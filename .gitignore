@@ -2,3 +2,10 @@
 .DS_Store
 backups/
 *.log
+knowledge/*
+!knowledge/.gitkeep
+!knowledge/demo/
+!knowledge/demo/**
+materials/*
+!materials/.gitkeep
+runtime/

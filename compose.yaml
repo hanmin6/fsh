@@ -29,10 +29,21 @@ services:
       ESPOCRM_ADMIN_USERNAME: ${ESPOCRM_ADMIN_USERNAME:-admin}
       ESPOCRM_ADMIN_PASSWORD: ${ESPOCRM_ADMIN_PASSWORD}
       ESPOCRM_SITE_URL: ${ESPOCRM_SITE_URL:-http://localhost:8080}
+      AI_API_BASE_URL: ${AI_API_BASE_URL:-https://api.openai.com/v1}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-gpt-4.1-mini}
+      AI_TIMEOUT: ${AI_TIMEOUT:-30}
+      AI_MAX_RETRIES: ${AI_MAX_RETRIES:-2}
+      KNOWLEDGE_BASE_PATH: ${KNOWLEDGE_BASE_PATH:-/var/www/html/knowledge}
+      MATERIAL_LIBRARY_PATH: ${MATERIAL_LIBRARY_PATH:-/var/www/html/materials}
+      FUSANHE_AUTOMATION_TOKEN: ${FUSANHE_AUTOMATION_TOKEN}
+      FUSANHE_OUTBOUND_PAUSED: ${FUSANHE_OUTBOUND_PAUSED:-true}
     volumes:
       - espocrm-data:/var/www/html/data
-      - espocrm-custom:/var/www/html/custom
-      - espocrm-custom-client:/var/www/html/client/custom
+      - ./custom:/var/www/html/custom
+      - ./client/custom:/var/www/html/client/custom
+      - ./knowledge:/var/www/html/knowledge:ro
+      - ./materials:/var/www/html/materials:ro
     ports:
       - "${ESPOCRM_PORT:-8080}:80"
     restart: unless-stopped
@@ -88,5 +99,3 @@ services:
 volumes:
   db-data:
   espocrm-data:
-  espocrm-custom:
-  espocrm-custom-client:
