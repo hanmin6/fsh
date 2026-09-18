@@ -85,6 +85,8 @@
     "entityType": "对象类型",
     "entityId": "对象 ID",
     "result": "结果",
-    "details": "详情"
+    "details": "详情",
+    "lastMessagePreview": "最后消息",
+    "waitingMinutes": "等待分钟"
   }
 }

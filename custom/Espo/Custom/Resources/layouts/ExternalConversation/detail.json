@@ -62,6 +62,11 @@
           "name": "lastMessageAt"
         },
         {
+          "name": "lastMessagePreview"
+        }
+      ],
+      [
+        {
           "name": "lastInboundAt"
         }
       ],
@@ -71,6 +76,14 @@
         },
         {
           "name": "firstResponseMinutes"
+        }
+      ],
+      [
+        {
+          "name": "waitingMinutes"
+        },
+        {
+          "name": "slaBreached"
         }
       ],
       [

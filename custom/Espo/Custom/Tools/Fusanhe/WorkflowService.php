@@ -49,7 +49,7 @@ final class WorkflowService
             'sentAt' => $sentAt, 'body' => $body, 'deliveryStatus' => 'received', 'contentHash' => $hash,
             'rawPayload' => json_decode(json_encode($input), true),
         ]);
-        $conversation->set(['lastMessageAt' => $sentAt, 'lastInboundAt' => $sentAt, 'unreadCount' => ((int)$conversation->get('unreadCount')) + 1, 'status' => 'pending']);
+        $conversation->set(['lastMessageAt' => $sentAt, 'lastInboundAt' => $sentAt, 'lastMessagePreview' => mb_substr(preg_replace('/\s+/', ' ', $body), 0, 220), 'waitingMinutes' => 0, 'unreadCount' => ((int)$conversation->get('unreadCount')) + 1, 'status' => 'pending']);
         $this->em->saveEntity($conversation);
         $this->audit('message.intake','connector',$channelType,'ExternalMessage',$message->getId(),'success',['deduplicated'=>false]);
         return ['deduplicated' => false, 'conversationId' => $conversation->getId(), 'messageId' => $message->getId(), 'createdLead' => $createdLead];
@@ -161,7 +161,7 @@ final class WorkflowService
             if(!$this->repo('ExternalMessage')->where(['conversationId'=>$conv->getId(),'contentHash'=>$hash])->findOne()) {
                 $this->create('ExternalMessage',['name'=>'OUT '.substr($hash,0,8),'conversationId'=>$conv->getId(),'externalId'=>(string)($input->platformMessageId??$task->getId()),'direction'=>'outbound','senderName'=>'福三和','sentAt'=>$this->now(),'body'=>$body,'deliveryStatus'=>'sent','contentHash'=>$hash]);
             }
-            $conv->set(['status'=>'sent','lastOutboundAt'=>$this->now(),'lastMessageAt'=>$this->now(),'unreadCount'=>0]);
+            $conv->set(['status'=>'sent','lastOutboundAt'=>$this->now(),'lastMessageAt'=>$this->now(),'lastMessagePreview'=>mb_substr(preg_replace('/\s+/',' ',$body),0,220),'waitingMinutes'=>null,'unreadCount'=>0]);
             if($conv->get('lastInboundAt')) $conv->set('firstResponseMinutes',max(0,(int)round((time()-strtotime((string)$conv->get('lastInboundAt')))/60)));
             $this->em->saveEntity($conv);
         } else {
@@ -179,7 +179,7 @@ final class WorkflowService
         $conversations=$this->repo('ExternalConversation')->where(['createdAt>='=>$today])->find(); $channels=[];$byAssignedUser=[];
         foreach($conversations as $c){$channel=$this->em->getEntityById('ExternalChannel',(string)$c->get('channelId'));$k=$channel?(string)$channel->get('type'):'Unknown';$channels[$k]=($channels[$k]??0)+1;$owner=(string)($c->get('assignedUserName')?:'未分配');$byAssignedUser[$owner]=($byAssignedUser[$owner]??0)+1;}
         $open=$this->repo('ExternalConversation')->where(['status'=>['new','pending','drafted','waitingApproval']])->find();$slaBreached=0;
-        foreach($open as $c){$breached=$c->get('lastInboundAt') && strtotime((string)$c->get('lastInboundAt')) < time()-7200;if((bool)$c->get('slaBreached')!==$breached){$c->set('slaBreached',$breached);$this->em->saveEntity($c);}if($breached)$slaBreached++;}
+        foreach($open as $c){$waiting=$c->get('lastInboundAt')?max(0,(int)floor((time()-strtotime((string)$c->get('lastInboundAt')))/60)):null;$breached=$waiting!==null&&$waiting>=120;if((bool)$c->get('slaBreached')!==$breached||$c->get('waitingMinutes')!==$waiting){$c->set(['slaBreached'=>$breached,'waitingMinutes'=>$waiting]);$this->em->saveEntity($c);}if($breached)$slaBreached++;}
         $responded=$this->repo('ExternalConversation')->where(['firstResponseMinutes!='=>null])->find(); $sum=0;$n=0;
         foreach($responded as $c){$sum+=(int)$c->get('firstResponseMinutes');$n++;}
         $draftTotal=$count('AIReplyDraft'); $edited=$count('AIReplyDraft',['wasEdited'=>true]); $taskTotal=$count('OutboundTask'); $sent=$count('OutboundTask',['status'=>'sent']);

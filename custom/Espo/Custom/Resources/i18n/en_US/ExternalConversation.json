@@ -85,6 +85,8 @@
     "entityType": "entityType",
     "entityId": "entityId",
     "result": "result",
-    "details": "details"
+    "details": "details",
+    "lastMessagePreview": "lastMessagePreview",
+    "waitingMinutes": "waitingMinutes"
   }
 }

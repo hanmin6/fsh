@@ -80,6 +80,15 @@
         "lastMessageAt": {
             "type": "datetime"
         },
+        "lastMessagePreview": {
+            "type": "varchar",
+            "maxLength": 255,
+            "readOnly": true
+        },
+        "waitingMinutes": {
+            "type": "int",
+            "readOnly": true
+        },
         "lastInboundAt": {
             "type": "datetime"
         },
