@@ -88,7 +88,8 @@
     "details": "详情",
     "translatedText": "译文",
     "createdBy": "创建人",
-    "modifiedBy": "修改人"
+    "modifiedBy": "修改人",
+    "extractedText": "资料正文"
   },
   "options": {
     "sourceType": {

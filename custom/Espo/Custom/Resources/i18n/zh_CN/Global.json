@@ -45,5 +45,8 @@
   },
   "dashlets": {
     "FusanheOperations": "外贸运营概览"
+  },
+  "fields": {
+    "assignedUser": "负责人"
   }
 }

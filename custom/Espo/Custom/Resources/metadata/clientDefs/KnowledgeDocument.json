@@ -5,5 +5,6 @@
   "recordViews": {
     "detail": "custom:views/fusanhe/context-detail"
   },
-  "controller": "controllers/record"
+  "controller": "controllers/record",
+  "iconClass": "fas fa-book"
 }
