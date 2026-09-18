@@ -50,6 +50,11 @@
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetDashboard"
     },
     {
+        "route": "/Fusanhe/status",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetStatus"
+    },
+    {
         "route": "/Fusanhe/knowledge/scan",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostKnowledgeScan"

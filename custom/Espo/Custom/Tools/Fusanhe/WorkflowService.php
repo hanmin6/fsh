@@ -36,7 +36,7 @@ final class WorkflowService
                 'name' => (string) ($input->subject ?? ('询盘 ' . $externalId)), 'subject' => (string) ($input->subject ?? ''),
                 'channelId' => $channel->getId(), 'externalId' => $externalId, 'externalUserId' => (string) ($input->externalUserId ?? ''),
                 ...$customer['links'], 'country' => (string) ($input->country ?? ''), 'language' => (string) ($input->language ?? 'en'),
-                'product' => (string) ($input->product ?? ''), 'status' => 'new', 'needsManualMatch' => $lead['created'], 'unreadCount' => 0,
+                'product' => (string) ($input->product ?? ''), 'status' => 'new', 'needsManualMatch' => $customer['created'], 'unreadCount' => 0,
             ]);
         }
         $hash = hash('sha256', $conversation->getId() . '|inbound|' . $messageId . '|' . $body);
@@ -123,67 +123,243 @@ final class WorkflowService
 
     public function claim(stdClass $input): array
     {
-        if (filter_var(getenv('FUSANHE_OUTBOUND_PAUSED') ?: 'true', FILTER_VALIDATE_BOOLEAN)) return ['task'=>null,'paused'=>true];
-        $key=(string)($input->agentKey??''); if($key==='') throw new BadRequest('agentKey is required.');
-        $tx=$this->em->getTransactionManager(); $tx->start();
+        $key = trim((string) ($input->agentKey ?? ''));
+        if ($key === '') {
+            throw new BadRequest('agentKey is required.');
+        }
+
+        $agent = $this->repo('AutomationAgent')->where(['agentKey' => $key])->findOne();
+        if (!$agent) {
+            throw new NotFound('Agent not registered.');
+        }
+        if ($agent->get('status') !== 'online') {
+            throw new Conflict('Agent is not online.');
+        }
+
+        if (filter_var(getenv('FUSANHE_OUTBOUND_PAUSED') ?: 'true', FILTER_VALIDATE_BOOLEAN)) {
+            return ['task' => null, 'paused' => true];
+        }
+
+        $capabilities = (array) ($agent->get('capabilities') ?? []);
+
+        $tx = $this->em->getTransactionManager();
+        $tx->start();
         try {
-            $now=$this->now();
-            foreach($this->repo('OutboundTask')->where(['status'=>'claimed','claimExpiresAt<'=>$now])->find() as $expired){$expired->set(['status'=>'pending','claimedBy'=>null,'claimedAt'=>null,'claimExpiresAt'=>null]);$this->em->saveEntity($expired);}
-            $task=$this->repo('OutboundTask')->forUpdate()->where(['status'=>'pending'])->order('createdAt','ASC')->findOne();
-            if(!$task){$tx->commit(); return ['task'=>null,'paused'=>false];}
-            $active=$this->repo('OutboundTask')->where(['conversationId'=>$task->get('conversationId'),'status'=>['claimed','sending']])->findOne();
-            if($active){$tx->commit(); return ['task'=>null,'paused'=>false];}
-            $task->set(['status'=>'claimed','claimedBy'=>$key,'claimedAt'=>$now,'claimExpiresAt'=>(new DateTimeImmutable('+5 minutes'))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s')]);
-            $this->em->saveEntity($task); $tx->commit();
-            $this->audit('task.claimed','agent',$key,'OutboundTask',$task->getId());
-            return ['paused'=>false,'task'=>$this->taskPayload($task)];
-        } catch (\Throwable $e) { $tx->rollback(); throw $e; }
+            $now = $this->now();
+            foreach ($this->repo('OutboundTask')->where(['status' => 'claimed', 'claimExpiresAt<' => $now])->find() as $expired) {
+                $expired->set(['status' => 'pending', 'claimedBy' => null, 'claimedAt' => null, 'claimExpiresAt' => null]);
+                $this->em->saveEntity($expired);
+            }
+
+            $pendingTasks = $this->repo('OutboundTask')->forUpdate()->where(['status' => 'pending'])->order('createdAt', 'ASC')->find();
+            $task = null;
+            foreach ($pendingTasks as $candidate) {
+                if (!empty($capabilities)) {
+                    $channel = $this->em->getEntityById('ExternalChannel', (string) $candidate->get('channelId'));
+                    $channelType = $channel ? (string) $channel->get('type') : '';
+                    if ($channelType !== '' && !in_array($channelType, $capabilities, true)) {
+                        continue;
+                    }
+                }
+                $active = $this->repo('OutboundTask')->where([
+                    'conversationId' => $candidate->get('conversationId'),
+                    'status' => ['claimed', 'sending']
+                ])->findOne();
+                if ($active && $active->getId() !== $candidate->getId()) {
+                    continue;
+                }
+                $task = $candidate;
+                break;
+            }
+
+            if (!$task) {
+                $tx->commit();
+                return ['task' => null, 'paused' => false];
+            }
+
+            $task->set([
+                'status' => 'claimed',
+                'claimedBy' => $key,
+                'claimedAt' => $now,
+                'claimExpiresAt' => (new DateTimeImmutable('+5 minutes'))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s')
+            ]);
+            $this->em->saveEntity($task);
+            $tx->commit();
+
+            $this->audit('task.claimed', 'agent', $key, 'OutboundTask', $task->getId());
+            return ['paused' => false, 'task' => $this->taskPayload($task)];
+        } catch (\Throwable $e) {
+            $tx->rollback();
+            throw $e;
+        }
     }
 
     public function markSending(string $id, stdClass $input): array
     {
-        $task=$this->ownedTask($id,(string)($input->agentKey??''));
-        if($task->get('status')!=='claimed') throw new Conflict('Task must be claimed first.');
-        $task->set('status','sending'); $this->em->saveEntity($task); $this->syncConversation($task,'sending');
-        $this->audit('task.sending','agent',(string)$task->get('claimedBy'),'OutboundTask',$id); return ['ok'=>true];
+        $task = $this->ownedTask($id, (string) ($input->agentKey ?? ''));
+        if ($task->get('status') !== 'claimed') {
+            throw new Conflict('Task must be claimed first.');
+        }
+        $task->set('status', 'sending');
+        $this->em->saveEntity($task);
+        $this->syncConversation($task, 'sending');
+        $this->audit('task.sending', 'agent', (string) $task->get('claimedBy'), 'OutboundTask', $id);
+        return ['ok' => true];
     }
 
     public function reportResult(string $id, stdClass $input): array
     {
-        $task=$this->ownedTask($id,(string)($input->agentKey??''));
-        if(!in_array($task->get('status'),['claimed','sending'],true)) throw new Conflict('Task is not active.');
-        $success=(bool)($input->success??false);
-        if($success){
-            $task->set(['status'=>'sent','platformMessageId'=>(string)($input->platformMessageId??''),'completedAt'=>$this->now(),'errorMessage'=>null]);
-            $draft=$this->requireEntity('AIReplyDraft',(string)$task->get('replyDraftId')); $draft->set('status','sent'); $this->em->saveEntity($draft);
-            $conv=$this->requireEntity('ExternalConversation',(string)$task->get('conversationId'));
-            $body=(string)$draft->get('draftText'); $hash=hash('sha256',$conv->getId().'|outbound|'.$task->get('idempotencyKey'));
-            if(!$this->repo('ExternalMessage')->where(['conversationId'=>$conv->getId(),'contentHash'=>$hash])->findOne()) {
-                $this->create('ExternalMessage',['name'=>'OUT '.substr($hash,0,8),'conversationId'=>$conv->getId(),'externalId'=>(string)($input->platformMessageId??$task->getId()),'direction'=>'outbound','senderName'=>'福三和','sentAt'=>$this->now(),'body'=>$body,'deliveryStatus'=>'sent','contentHash'=>$hash]);
+        $task = $this->ownedTask($id, (string) ($input->agentKey ?? ''));
+        if ($task->get('status') === 'sent') {
+            return ['ok' => true, 'status' => 'sent', 'idempotent' => true];
+        }
+        if (!in_array($task->get('status'), ['claimed', 'sending'], true)) {
+            throw new Conflict('Task is not active.');
+        }
+
+        $success = (bool) ($input->success ?? false);
+        if ($success) {
+            $platformMessageId = trim((string) ($input->platformMessageId ?? ''));
+            if ($platformMessageId === '') {
+                throw new BadRequest('platformMessageId is required for successful result.');
             }
-            $conv->set(['status'=>'sent','lastOutboundAt'=>$this->now(),'lastMessageAt'=>$this->now(),'lastMessagePreview'=>mb_substr(preg_replace('/\s+/',' ',$body),0,220),'waitingMinutes'=>null,'unreadCount'=>0]);
-            if($conv->get('lastInboundAt')) $conv->set('firstResponseMinutes',max(0,(int)round((time()-strtotime((string)$conv->get('lastInboundAt')))/60)));
+
+            $task->set([
+                'status' => 'sent',
+                'platformMessageId' => $platformMessageId,
+                'completedAt' => $this->now(),
+                'errorMessage' => null
+            ]);
+            $draft = $this->requireEntity('AIReplyDraft', (string) $task->get('replyDraftId'));
+            $draft->set('status', 'sent');
+            $this->em->saveEntity($draft);
+
+            $conv = $this->requireEntity('ExternalConversation', (string) $task->get('conversationId'));
+            $body = (string) $draft->get('draftText');
+            $hash = hash('sha256', $conv->getId() . '|outbound|' . $task->get('idempotencyKey'));
+            if (!$this->repo('ExternalMessage')->where(['conversationId' => $conv->getId(), 'contentHash' => $hash])->findOne()) {
+                $this->create('ExternalMessage', [
+                    'name' => 'OUT ' . substr($hash, 0, 8),
+                    'conversationId' => $conv->getId(),
+                    'externalId' => $platformMessageId,
+                    'direction' => 'outbound',
+                    'senderName' => '福三和',
+                    'sentAt' => $this->now(),
+                    'body' => $body,
+                    'deliveryStatus' => 'sent',
+                    'contentHash' => $hash
+                ]);
+            }
+            $conv->set([
+                'status' => 'sent',
+                'lastOutboundAt' => $this->now(),
+                'lastMessageAt' => $this->now(),
+                'lastMessagePreview' => mb_substr(preg_replace('/\s+/', ' ', $body), 0, 220),
+                'waitingMinutes' => null,
+                'unreadCount' => 0
+            ]);
+            if ($conv->get('lastInboundAt')) {
+                $conv->set('firstResponseMinutes', max(0, (int) round((time() - strtotime((string) $conv->get('lastInboundAt'))) / 60)));
+            }
             $this->em->saveEntity($conv);
         } else {
-            $retries=((int)$task->get('retryCount'))+1; $task->set(['retryCount'=>$retries,'status'=>$retries<3?'pending':'failed','errorMessage'=>(string)($input->errorMessage??'Unknown send error'),'claimedBy'=>null,'claimExpiresAt'=>null]);
-            $this->syncConversation($task,$retries<3?'readyToSend':'failed');
+            $retries = ((int) $task->get('retryCount')) + 1;
+            $task->set([
+                'retryCount' => $retries,
+                'status' => $retries < 3 ? 'pending' : 'failed',
+                'errorMessage' => (string) ($input->errorMessage ?? 'Unknown send error'),
+                'claimedBy' => null,
+                'claimExpiresAt' => null
+            ]);
+            $this->syncConversation($task, $retries < 3 ? 'readyToSend' : 'failed');
         }
-        $this->em->saveEntity($task); $this->audit('task.result','agent',(string)($input->agentKey??''),'OutboundTask',$id,$success?'success':'failure',['platformMessageId'=>$input->platformMessageId??null]);
-        return ['ok'=>true,'status'=>$task->get('status')];
+
+        $this->em->saveEntity($task);
+        $this->audit('task.result', 'agent', (string) ($input->agentKey ?? ''), 'OutboundTask', $id, $success ? 'success' : 'failure', ['platformMessageId' => $input->platformMessageId ?? null]);
+        return ['ok' => true, 'status' => $task->get('status')];
     }
 
     public function dashboard(): array
     {
-        $today=date('Y-m-d 00:00:00');
-        $count=fn(string $type,array $where=[])=>$this->repo($type)->where($where)->count();
-        $conversations=$this->repo('ExternalConversation')->where(['createdAt>='=>$today])->find(); $channels=[];$byAssignedUser=[];
-        foreach($conversations as $c){$channel=$this->em->getEntityById('ExternalChannel',(string)$c->get('channelId'));$k=$channel?(string)$channel->get('type'):'Unknown';$channels[$k]=($channels[$k]??0)+1;$owner=(string)($c->get('assignedUserName')?:'未分配');$byAssignedUser[$owner]=($byAssignedUser[$owner]??0)+1;}
-        $open=$this->repo('ExternalConversation')->where(['status'=>['new','pending','drafted','waitingApproval']])->find();$slaBreached=0;
-        foreach($open as $c){$waiting=$c->get('lastInboundAt')?max(0,(int)floor((time()-strtotime((string)$c->get('lastInboundAt')))/60)):null;$breached=$waiting!==null&&$waiting>=120;if((bool)$c->get('slaBreached')!==$breached||$c->get('waitingMinutes')!==$waiting){$c->set(['slaBreached'=>$breached,'waitingMinutes'=>$waiting]);$this->em->saveEntity($c);}if($breached)$slaBreached++;}
-        $responded=$this->repo('ExternalConversation')->where(['firstResponseMinutes!='=>null])->find(); $sum=0;$n=0;
-        foreach($responded as $c){$sum+=(int)$c->get('firstResponseMinutes');$n++;}
-        $draftTotal=$count('AIReplyDraft'); $edited=$count('AIReplyDraft',['wasEdited'=>true]); $taskTotal=$count('OutboundTask'); $sent=$count('OutboundTask',['status'=>'sent']);
-        return ['todayInquiries'=>count($conversations),'byChannel'=>$channels,'byAssignedUser'=>$byAssignedUser,'unassigned'=>$count('ExternalConversation',['assignedUserId'=>null]),'waitingReply'=>$count('ExternalConversation',['status'=>['new','pending']]),'waitingApproval'=>$count('ExternalConversation',['status'=>'waitingApproval']),'slaBreached'=>$slaBreached,'averageFirstResponseMinutes'=>$n?round($sum/$n,1):null,'aiDrafts'=>$draftTotal,'humanEditRate'=>$draftTotal?round($edited/$draftTotal,3):0,'sendSuccessRate'=>$taskTotal?round($sent/$taskTotal,3):0,'failedTasks'=>$count('OutboundTask',['status'=>'failed'])];
+        $today = date('Y-m-d 00:00:00');
+        $count = fn(string $type, array $where = []) => $this->repo($type)->where($where)->count();
+        $conversations = $this->repo('ExternalConversation')->where(['createdAt>=' => $today])->find();
+        $channels = [];
+        $byAssignedUser = [];
+        foreach ($conversations as $c) {
+            $channel = $this->em->getEntityById('ExternalChannel', (string) $c->get('channelId'));
+            $k = $channel ? (string) $channel->get('type') : 'Unknown';
+            $channels[$k] = ($channels[$k] ?? 0) + 1;
+            $owner = (string) ($c->get('assignedUserName') ?: '未分配');
+            $byAssignedUser[$owner] = ($byAssignedUser[$owner] ?? 0) + 1;
+        }
+
+        $open = $this->repo('ExternalConversation')->where(['status' => ['new', 'pending', 'drafted', 'waitingApproval']])->find();
+        $slaBreached = 0;
+        foreach ($open as $c) {
+            $waiting = $c->get('lastInboundAt') ? max(0, (int) floor((time() - strtotime((string) $c->get('lastInboundAt'))) / 60)) : null;
+            if ($waiting !== null && $waiting >= 120) {
+                $slaBreached++;
+            }
+        }
+
+        $responded = $this->repo('ExternalConversation')->where(['firstResponseMinutes!=' => null])->find();
+        $sum = 0;
+        $n = 0;
+        foreach ($responded as $c) {
+            $sum += (int) $c->get('firstResponseMinutes');
+            $n++;
+        }
+        $draftTotal = $count('AIReplyDraft');
+        $edited = $count('AIReplyDraft', ['wasEdited' => true]);
+        $taskTotal = $count('OutboundTask');
+        $sent = $count('OutboundTask', ['status' => 'sent']);
+
+        return [
+            'todayInquiries' => count($conversations),
+            'byChannel' => $channels,
+            'byAssignedUser' => $byAssignedUser,
+            'unassigned' => $count('ExternalConversation', ['assignedUserId' => null]),
+            'waitingReply' => $count('ExternalConversation', ['status' => ['new', 'pending']]),
+            'waitingApproval' => $count('ExternalConversation', ['status' => 'waitingApproval']),
+            'slaBreached' => $slaBreached,
+            'averageFirstResponseMinutes' => $n ? round($sum / $n, 1) : null,
+            'aiDrafts' => $draftTotal,
+            'humanEditRate' => $draftTotal ? round($edited / $draftTotal, 3) : 0,
+            'sendSuccessRate' => $taskTotal ? round($sent / $taskTotal, 3) : 0,
+            'failedTasks' => $count('OutboundTask', ['status' => 'failed']),
+        ];
+    }
+
+    public function status(): array
+    {
+        $outboundPaused = filter_var(getenv('FUSANHE_OUTBOUND_PAUSED') ?: 'true', FILTER_VALIDATE_BOOLEAN);
+        $channels = [];
+        foreach (['Alibaba', 'MadeInChina', 'Website', 'Email'] as $type) {
+            $connector = $this->getConnector($type);
+            $channels[$type] = $connector->healthCheck();
+        }
+        return [
+            'outboundPaused' => $outboundPaused,
+            'channels' => $channels,
+            'agents' => [
+                'total' => $this->repo('AutomationAgent')->count(),
+                'online' => $this->repo('AutomationAgent')->where(['status' => 'online'])->count(),
+                'offline' => $this->repo('AutomationAgent')->where(['status' => 'offline'])->count(),
+            ],
+            'serverTime' => $this->now(),
+        ];
+    }
+
+    public function getConnector(string $channelType): Connector\Connector
+    {
+        return match ($channelType) {
+            'Alibaba' => new Connector\AlibabaConnector(),
+            'MadeInChina' => new Connector\MadeInChinaConnector(),
+            'Website' => new Connector\WebsiteConnector(),
+            'Email' => new Connector\EmailConnector(),
+            default => new Connector\MockConnector(),
+        };
     }
 
     private function matchOrCreateCustomer(stdClass $input, string $channelId): array

@@ -38,6 +38,8 @@ services:
       MATERIAL_LIBRARY_PATH: ${MATERIAL_LIBRARY_PATH:-/var/www/html/materials}
       FUSANHE_AUTOMATION_TOKEN: ${FUSANHE_AUTOMATION_TOKEN}
       FUSANHE_OUTBOUND_PAUSED: ${FUSANHE_OUTBOUND_PAUSED:-true}
+      ALIBABA_BRIDGE_URL: ${ALIBABA_BRIDGE_URL:-https://api.fsh.digital}
+      ALIBABA_BRIDGE_TOKEN: ${ALIBABA_BRIDGE_TOKEN:-}
     volumes:
       - espocrm-data:/var/www/html/data
       - ./custom:/var/www/html/custom
