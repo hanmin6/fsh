@@ -1,45 +1,135 @@
-# 福三和 CRM
+# 福三和外贸 CRM 与 AI 回复工作台
 
-本地 EspoCRM 环境，使用 Docker Compose 运行。
+基于 EspoCRM 10.0.8 的本地部署及“统一询盘工作台”MVP。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核和广州 Windows 平台执行端放在一个可审计的流程里。
 
-## 当前版本
+当前环境默认禁止自动外发。真实阿里国际站和 Made-in-China 连接器尚未接入，现阶段使用 MockConnector 演示完整闭环。
 
-- EspoCRM: `10.0.8-apache`
-- MariaDB: `11.4`
+## 架构
 
-镜像标签固定在 `compose.yaml` 中，升级时修改标签并提交 Git，便于审查和回溯。
+```mermaid
+flowchart LR
+  MY[马来西亚独立站] -->|广州主动拉取 / 幂等| CRM[广州 EspoCRM]
+  ALI[阿里国际站] -. 官方 API / 执行端 .-> CRM
+  MIC[Made-in-China] -. 官方 API / 执行端 .-> CRM
+  CRM --> DB[(MariaDB)]
+  SHARE[广州共享盘] -->|只读挂载和索引| CRM
+  CRM -->|已审核知识 + 会话上下文| AI[第三方 AI API]
+  CRM -->|人工批准后的任务| AGENT[4070 Windows 执行端]
+  AGENT -->|发送结果 / 风控状态| CRM
+```
 
-## 启动
+- CRM 数据库位于本机 Docker volume，不放在 SMB 共享盘。
+- `custom/` 和 `client/custom/` 直接从仓库挂载，全部二开可进行 Git 版本管理。
+- 共享盘在生产部署时映射到 `KNOWLEDGE_BASE_PATH` 和 `MATERIAL_LIBRARY_PATH`；原始视频不提交给 AI。
+- AI API Key、执行端 Token 和数据库密码只保存在被 Git 忽略的 `.env`。
+
+## 已实现
+
+- 8 个 EspoCRM 实体：渠道、会话、消息、AI 草稿、发送任务、知识文档、执行端、审计日志。
+- 统一询盘列表的渠道、负责人、状态、国家和未读字段，以及按最后消息时间排序的数据基础。
+- 会话详情工作台：客户资料、消息时间线、AI 草稿编辑和人工批准区。
+- 客户匹配顺序：平台用户 ID、邮箱、手机号、公司加国家、姓名加公司；无法可靠匹配时创建待确认 Lead。
+- 消息、会话和发送任务的数据库唯一约束。
+- OpenAI Compatible Provider；未配置 Key 时使用确定性的 Mock AI。
+- PDF、DOCX、XLSX、TXT、Markdown 扫描和校验值更新。PDF 文本提取在容器存在 `pdftotext` 时启用。
+- Alibaba、MadeInChina、Website、Email 的连接器骨架及可演示的 MockConnector。
+- 执行端注册、心跳、任务领取、发送中、成功/失败回写、三次重试、领取超时和审计。
+- 全局停发开关，默认 `true`。
+- “外贸运营概览”Dashlet，展示询盘、待回复、待审核、超时、负责人、响应时间、AI 修改率和发送结果。
+- 老板、业务主管、业务员和平台执行端的权限基线；管理员使用 EspoCRM 内置管理员权限。
+
+## 目录
+
+```text
+custom/Espo/Custom/                 PHP、metadata、布局、API 路由
+client/custom/src/                  EspoCRM 客户端工作台与 Dashlet
+knowledge/demo/                     可提交的演示知识资料
+materials/                          本地素材挂载点，不提交内容
+scripts/bootstrap.py                幂等安装导航和角色
+scripts/mock-agent.py               一次性模拟 Windows 执行端
+scripts/backup.sh                   数据库和运行数据备份
+scripts/restore.sh                  备份恢复（需明确传入备份目录）
+docs/permissions.md                 角色权限说明
+```
+
+## 启动和安装
 
 ```bash
 cp .env.example .env
-# 编辑 .env，替换密码
+# 修改所有 change-me 值，并为 FUSANHE_AUTOMATION_TOKEN 生成长随机值
 docker compose up -d
+docker compose exec espocrm bin/command rebuild
+set -a; source .env; set +a
+python3 scripts/bootstrap.py
 ```
 
-打开 <http://localhost:8080>，使用 `.env` 中的管理员账号登录。
+打开 <http://localhost:8080>。左侧导航包含“统一询盘”“知识文档”和“发送任务”。老板看板可在首页添加 Dashlet“外贸运营概览”。
 
-## 常用命令
+升级自定义代码后执行：
 
 ```bash
-make ps       # 查看容器状态
-make logs     # 跟踪日志
-make restart  # 重启
-make down     # 停止，保留数据
+docker compose exec espocrm bin/command rebuild
 ```
 
-## 数据和密码
+## 环境变量
 
-- CRM 数据保存在 Docker 卷 `fusanhe-crm_espocrm-data`。
-- 服务端自定义保存在 `fusanhe-crm_espocrm-custom`，客户端自定义保存在 `fusanhe-crm_espocrm-custom-client`。
-- 数据库保存在 Docker 卷 `fusanhe-crm_db-data`。
-- `.env` 包含本地密码，已被 Git 忽略。
-- `docker compose down` 会保留数据；`docker compose down -v` 会删除所有数据。
+| 变量 | 用途 |
+|---|---|
+| `AI_API_BASE_URL` | OpenAI Compatible `/v1` 根地址 |
+| `AI_API_KEY` | 留空时使用 Mock AI |
+| `AI_MODEL` | 模型名 |
+| `AI_TIMEOUT` / `AI_MAX_RETRIES` | 超时秒数和重试次数 |
+| `KNOWLEDGE_BASE_PATH` | 容器内知识库目录 |
+| `MATERIAL_LIBRARY_PATH` | 容器内素材目录 |
+| `FUSANHE_AUTOMATION_TOKEN` | Windows 执行端独立 Token |
+| `FUSANHE_OUTBOUND_PAUSED` | 全局停发开关，生产初始化为 `true` |
 
-## 升级流程
+修改环境变量后使用 `docker compose up -d --force-recreate espocrm` 使 Apache 进程读取新值。
 
-1. 先备份数据库和 `espocrm-data` 卷。
-2. 修改 `compose.yaml` 中的 EspoCRM 镜像标签。
-3. 运行 `docker compose pull && docker compose up -d`。
-4. 检查页面、容器状态和日志。
-5. 验证通过后提交版本变更。
+## Mock 演示
+
+1. 管理员调用 `POST /api/v1/Fusanhe/mock/intake` 导入演示询盘。
+2. 在“统一询盘”打开会话，点击“生成 AI 草稿”。
+3. 修改草稿并点击“批准并创建发送任务”。
+4. 保持 `FUSANHE_OUTBOUND_PAUSED=true` 时，执行端无法领取任务。
+5. 仅在演示环境把开关改为 `false`，重建 CRM 容器后运行：
+
+```bash
+set -a; source .env; set +a
+python3 scripts/mock-agent.py
+```
+
+6. 演示后立即恢复 `FUSANHE_OUTBOUND_PAUSED=true` 并重建 CRM 容器。
+
+真实连接器不得直接复用网页选择器写进 CRM。接入优先级为官方 API、邮件或接口组合、浏览器自动化、Windows UI 自动化。
+
+## 备份与恢复
+
+```bash
+make backup
+# 恢复会覆盖当前数据库，必须明确指定目录
+./scripts/restore.sh backups/20260918-120000
+```
+
+备份包含 MariaDB dump、EspoCRM `data` volume 和当前 Git 提交信息。共享盘原始素材应使用广州文件服务器自己的快照与异地备份。
+
+## 故障处理
+
+```bash
+docker compose ps
+docker compose logs --tail=200 espocrm daemon websocket db
+docker compose exec espocrm bin/command app-check
+docker compose exec espocrm bin/command rebuild
+```
+
+- 页面没有新模块：运行 rebuild，强制刷新浏览器，再运行 `scripts/bootstrap.py`。
+- AI 失败：检查 API 地址、Key、模型名、超时以及容器出网。
+- 执行端领不到任务：检查全局停发开关、Token、任务是否已批准以及是否存在同会话活跃任务。
+- 登录失效、验证码、页面变化或风控：执行端通过心跳上报，人工处理后再恢复发送。
+
+## 已知限制
+
+- Alibaba、Made-in-China、独立站和邮件目前是接口骨架，尚未使用真实账号或真实平台发送。
+- 浏览器或 Windows UI 自动化执行程序尚未实现。
+- DOCX/XLSX 使用轻量文本提取；复杂表格和扫描 PDF 后续应接专业解析/OCR 服务。
+- 当前共享目录为本地演示挂载，部署到广州 Windows 时需替换为实际共享盘路径并配置只读权限。
