@@ -1,0 +1,68 @@
+name: fusanhe-crm
+
+services:
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME:-espocrm}
+      MARIADB_USER: ${DB_USER:-espocrm}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 20s
+      start_period: 20s
+      timeout: 10s
+      retries: 5
+
+  espocrm:
+    image: espocrm/espocrm:10.0.8-apache
+    environment:
+      ESPOCRM_DATABASE_PLATFORM: Mysql
+      ESPOCRM_DATABASE_HOST: db
+      ESPOCRM_DATABASE_NAME: ${DB_NAME:-espocrm}
+      ESPOCRM_DATABASE_USER: ${DB_USER:-espocrm}
+      ESPOCRM_DATABASE_PASSWORD: ${DB_PASSWORD}
+      ESPOCRM_ADMIN_USERNAME: ${ESPOCRM_ADMIN_USERNAME:-admin}
+      ESPOCRM_ADMIN_PASSWORD: ${ESPOCRM_ADMIN_PASSWORD}
+      ESPOCRM_SITE_URL: ${ESPOCRM_SITE_URL:-http://localhost:8080}
+    volumes:
+      - espocrm-data:/var/www/html
+    ports:
+      - "${ESPOCRM_PORT:-8080}:80"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
+  daemon:
+    image: espocrm/espocrm:10.0.8-apache
+    volumes:
+      - espocrm-data:/var/www/html
+    restart: unless-stopped
+    depends_on:
+      - espocrm
+    entrypoint: docker-daemon.sh
+
+  websocket:
+    image: espocrm/espocrm:10.0.8-apache
+    environment:
+      ESPOCRM_CONFIG_USE_WEB_SOCKET: "true"
+      ESPOCRM_CONFIG_WEB_SOCKET_URL: ${ESPOCRM_WEBSOCKET_URL:-ws://localhost:8081}
+      ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBSCRIBER_DSN: tcp://*:7777
+      ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBMISSION_DSN: tcp://websocket:7777
+    volumes:
+      - espocrm-data:/var/www/html
+    ports:
+      - "${ESPOCRM_WEBSOCKET_PORT:-8081}:8080"
+    restart: unless-stopped
+    depends_on:
+      - espocrm
+    entrypoint: docker-websocket.sh
+
+volumes:
+  db-data:
+  espocrm-data:
