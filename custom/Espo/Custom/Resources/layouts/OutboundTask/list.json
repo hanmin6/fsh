@@ -1,0 +1,30 @@
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "conversation",
+    "link": false
+  },
+  {
+    "name": "status",
+    "link": false
+  },
+  {
+    "name": "claimedBy",
+    "link": false
+  },
+  {
+    "name": "retryCount",
+    "link": false
+  },
+  {
+    "name": "createdAt",
+    "link": false
+  },
+  {
+    "name": "completedAt",
+    "link": false
+  }
+]

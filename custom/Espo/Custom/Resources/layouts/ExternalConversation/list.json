@@ -1,0 +1,34 @@
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "channel",
+    "link": false
+  },
+  {
+    "name": "country",
+    "link": false
+  },
+  {
+    "name": "product",
+    "link": false
+  },
+  {
+    "name": "lastMessageAt",
+    "link": false
+  },
+  {
+    "name": "assignedUser",
+    "link": false
+  },
+  {
+    "name": "status",
+    "link": false
+  },
+  {
+    "name": "unreadCount",
+    "link": false
+  }
+]

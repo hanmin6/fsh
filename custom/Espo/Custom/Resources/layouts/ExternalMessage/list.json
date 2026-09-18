@@ -1,0 +1,26 @@
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "conversation",
+    "link": false
+  },
+  {
+    "name": "direction",
+    "link": false
+  },
+  {
+    "name": "senderName",
+    "link": false
+  },
+  {
+    "name": "sentAt",
+    "link": false
+  },
+  {
+    "name": "deliveryStatus",
+    "link": false
+  }
+]

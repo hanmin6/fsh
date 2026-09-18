@@ -1,0 +1,46 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        }
+      ],
+      [
+        {
+          "name": "eventType"
+        }
+      ],
+      [
+        {
+          "name": "actorType"
+        }
+      ],
+      [
+        {
+          "name": "actorId"
+        }
+      ],
+      [
+        {
+          "name": "entityType"
+        }
+      ],
+      [
+        {
+          "name": "entityId"
+        }
+      ],
+      [
+        {
+          "name": "result"
+        }
+      ],
+      [
+        {
+          "name": "details"
+        }
+      ]
+    ]
+  }
+]

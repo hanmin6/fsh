@@ -1,0 +1,46 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        }
+      ],
+      [
+        {
+          "name": "subject"
+        }
+      ],
+      [
+        {
+          "name": "channel"
+        }
+      ],
+      [
+        {
+          "name": "externalId"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "assignedUser"
+        }
+      ],
+      [
+        {
+          "name": "account"
+        }
+      ],
+      [
+        {
+          "name": "contact"
+        }
+      ]
+    ]
+  }
+]

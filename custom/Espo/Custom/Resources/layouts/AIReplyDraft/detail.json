@@ -1,0 +1,78 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "conversation"
+        }
+      ],
+      [
+        {
+          "name": "sourceMessage"
+        },
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "riskLevel"
+        },
+        {
+          "name": "confidence"
+        }
+      ],
+      [
+        {
+          "name": "intent"
+        },
+        {
+          "name": "summaryZh"
+        }
+      ],
+      [
+        {
+          "name": "suggestedLanguage"
+        },
+        {
+          "name": "draftText"
+        }
+      ],
+      [
+        {
+          "name": "translatedText"
+        },
+        {
+          "name": "missingInformation"
+        }
+      ],
+      [
+        {
+          "name": "citedKnowledge"
+        },
+        {
+          "name": "modelProvider"
+        }
+      ],
+      [
+        {
+          "name": "modelName"
+        },
+        {
+          "name": "promptVersion"
+        }
+      ],
+      [
+        {
+          "name": "approvedBy"
+        },
+        {
+          "name": "approvedAt"
+        }
+      ]
+    ]
+  }
+]

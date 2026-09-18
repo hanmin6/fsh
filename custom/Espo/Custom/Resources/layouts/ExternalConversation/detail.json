@@ -1,0 +1,86 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "subject"
+        }
+      ],
+      [
+        {
+          "name": "channel"
+        },
+        {
+          "name": "externalId"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        },
+        {
+          "name": "assignedUser"
+        }
+      ],
+      [
+        {
+          "name": "account"
+        },
+        {
+          "name": "contact"
+        }
+      ],
+      [
+        {
+          "name": "lead"
+        },
+        {
+          "name": "country"
+        }
+      ],
+      [
+        {
+          "name": "language"
+        },
+        {
+          "name": "product"
+        }
+      ],
+      [
+        {
+          "name": "sourceUrl"
+        },
+        {
+          "name": "unreadCount"
+        }
+      ],
+      [
+        {
+          "name": "lastMessageAt"
+        },
+        {
+          "name": "lastInboundAt"
+        }
+      ],
+      [
+        {
+          "name": "lastOutboundAt"
+        },
+        {
+          "name": "firstResponseMinutes"
+        }
+      ],
+      [
+        {
+          "name": "needsManualMatch"
+        },
+        {
+          "name": "description"
+        }
+      ]
+    ]
+  }
+]

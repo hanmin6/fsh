@@ -1,0 +1,30 @@
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "conversation",
+    "link": false
+  },
+  {
+    "name": "status",
+    "link": false
+  },
+  {
+    "name": "riskLevel",
+    "link": false
+  },
+  {
+    "name": "confidence",
+    "link": false
+  },
+  {
+    "name": "modelName",
+    "link": false
+  },
+  {
+    "name": "createdAt",
+    "link": false
+  }
+]

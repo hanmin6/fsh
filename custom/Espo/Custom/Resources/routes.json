@@ -1,0 +1,57 @@
+[
+    {
+        "route": "/Fusanhe/mock/intake",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMockIntake"
+    },
+    {
+        "route": "/Fusanhe/conversation/:id/generate-draft",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostGenerateDraft"
+    },
+    {
+        "route": "/Fusanhe/draft/:id/approve",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostApproveDraft"
+    },
+    {
+        "route": "/Fusanhe/agent/register",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostAgentRegister",
+        "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/agent/heartbeat",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostAgentHeartbeat",
+        "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/agent/claim",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostAgentClaim",
+        "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/agent/task/:id/sending",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostTaskSending",
+        "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/agent/task/:id/result",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostTaskResult",
+        "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/dashboard",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetDashboard"
+    },
+    {
+        "route": "/Fusanhe/knowledge/scan",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostKnowledgeScan"
+    }
+]

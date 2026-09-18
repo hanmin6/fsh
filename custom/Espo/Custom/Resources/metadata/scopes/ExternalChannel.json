@@ -1,0 +1,11 @@
+{
+    "entity": true,
+    "layouts": true,
+    "tab": true,
+    "acl": true,
+    "customizable": false,
+    "importable": false,
+    "notifications": true,
+    "object": true,
+    "stream": true
+}

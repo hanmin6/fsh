@@ -1,0 +1,59 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "conversation"
+        }
+      ],
+      [
+        {
+          "name": "replyDraft"
+        },
+        {
+          "name": "channel"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        },
+        {
+          "name": "idempotencyKey"
+        }
+      ],
+      [
+        {
+          "name": "claimedBy"
+        },
+        {
+          "name": "claimedAt"
+        }
+      ],
+      [
+        {
+          "name": "claimExpiresAt"
+        },
+        {
+          "name": "retryCount"
+        }
+      ],
+      [
+        {
+          "name": "errorMessage"
+        },
+        {
+          "name": "platformMessageId"
+        }
+      ],
+      [
+        {
+          "name": "completedAt"
+        }
+      ]
+    ]
+  }
+]

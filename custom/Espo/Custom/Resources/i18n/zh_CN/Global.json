@@ -1,0 +1,31 @@
+{
+  "scopeNames": {
+    "ExternalChannel": "外部渠道",
+    "ExternalConversation": "统一询盘",
+    "ExternalMessage": "外部消息",
+    "AIReplyDraft": "AI 回复草稿",
+    "OutboundTask": "发送任务",
+    "KnowledgeDocument": "知识文档",
+    "AutomationAgent": "平台执行端",
+    "AutomationAudit": "自动化审计"
+  },
+  "scopeNamesPlural": {
+    "ExternalChannel": "外部渠道",
+    "ExternalConversation": "统一询盘",
+    "ExternalMessage": "外部消息",
+    "AIReplyDraft": "AI 回复草稿",
+    "OutboundTask": "发送任务",
+    "KnowledgeDocument": "知识文档",
+    "AutomationAgent": "平台执行端",
+    "AutomationAudit": "自动化审计"
+  },
+  "labels": {
+    "Unified Inbox": "统一询盘",
+    "Generate AI Draft": "生成 AI 草稿",
+    "Approve and Queue": "批准并创建发送任务",
+    "Outbound Paused": "发送已全局暂停"
+  },
+  "dashlets": {
+    "FusanheOperations": "外贸运营概览"
+  }
+}

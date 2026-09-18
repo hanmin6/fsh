@@ -1,0 +1,46 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        }
+      ],
+      [
+        {
+          "name": "conversation"
+        }
+      ],
+      [
+        {
+          "name": "externalId"
+        }
+      ],
+      [
+        {
+          "name": "direction"
+        }
+      ],
+      [
+        {
+          "name": "senderName"
+        }
+      ],
+      [
+        {
+          "name": "senderExternalId"
+        }
+      ],
+      [
+        {
+          "name": "sentAt"
+        }
+      ],
+      [
+        {
+          "name": "body"
+        }
+      ]
+    ]
+  }
+]

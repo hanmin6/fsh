@@ -1,0 +1,19 @@
+{
+    "recordViews": {
+        "detail": "custom:views/external-conversation/record/detail"
+    },
+    "relationshipPanels": {
+        "messages": {
+            "orderBy": "sentAt",
+            "orderDirection": "desc"
+        },
+        "replyDrafts": {
+            "orderBy": "createdAt",
+            "orderDirection": "desc"
+        },
+        "outboundTasks": {
+            "orderBy": "createdAt",
+            "orderDirection": "desc"
+        }
+    }
+}

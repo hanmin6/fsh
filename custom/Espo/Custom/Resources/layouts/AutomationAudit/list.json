@@ -1,0 +1,26 @@
+[
+  {
+    "name": "createdAt",
+    "link": false
+  },
+  {
+    "name": "eventType",
+    "link": false
+  },
+  {
+    "name": "actorType",
+    "link": false
+  },
+  {
+    "name": "actorId",
+    "link": false
+  },
+  {
+    "name": "entityType",
+    "link": false
+  },
+  {
+    "name": "result",
+    "link": false
+  }
+]

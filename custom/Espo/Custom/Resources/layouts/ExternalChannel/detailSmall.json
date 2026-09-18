@@ -1,0 +1,36 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        }
+      ],
+      [
+        {
+          "name": "type"
+        }
+      ],
+      [
+        {
+          "name": "enabled"
+        }
+      ],
+      [
+        {
+          "name": "connectionStatus"
+        }
+      ],
+      [
+        {
+          "name": "lastSyncAt"
+        }
+      ],
+      [
+        {
+          "name": "description"
+        }
+      ]
+    ]
+  }
+]

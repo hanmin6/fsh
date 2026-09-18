@@ -1,0 +1,36 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        }
+      ],
+      [
+        {
+          "name": "agentKey"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "lastHeartbeatAt"
+        }
+      ],
+      [
+        {
+          "name": "capabilities"
+        }
+      ],
+      [
+        {
+          "name": "lastError"
+        }
+      ]
+    ]
+  }
+]

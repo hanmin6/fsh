@@ -1,0 +1,132 @@
+{
+    "fields": {
+        "name": {
+            "type": "varchar",
+            "required": true,
+            "maxLength": 255
+        },
+        "description": {
+            "type": "text"
+        },
+        "createdAt": {
+            "type": "datetime",
+            "readOnly": true
+        },
+        "modifiedAt": {
+            "type": "datetime",
+            "readOnly": true
+        },
+        "createdBy": {
+            "type": "link",
+            "readOnly": true
+        },
+        "modifiedBy": {
+            "type": "link",
+            "readOnly": true
+        },
+        "assignedUser": {
+            "type": "link",
+            "view": "views/fields/assigned-user",
+            "audited": true
+        },
+        "teams": {
+            "type": "linkMultiple",
+            "view": "views/fields/teams"
+        },
+        "category": {
+            "type": "varchar",
+            "maxLength": 100
+        },
+        "product": {
+            "type": "varchar",
+            "maxLength": 255
+        },
+        "filePath": {
+            "type": "varchar",
+            "required": true,
+            "maxLength": 512
+        },
+        "sourceType": {
+            "type": "enum",
+            "options": [
+                "PDF",
+                "DOCX",
+                "XLSX",
+                "TXT",
+                "Markdown",
+                "Other"
+            ]
+        },
+        "version": {
+            "type": "varchar",
+            "maxLength": 50
+        },
+        "approvalStatus": {
+            "type": "enum",
+            "options": [
+                "draft",
+                "approved",
+                "expired"
+            ],
+            "default": "draft",
+            "displayAsLabel": true
+        },
+        "effectiveFrom": {
+            "type": "date"
+        },
+        "effectiveTo": {
+            "type": "date"
+        },
+        "checksum": {
+            "type": "varchar",
+            "maxLength": 64
+        },
+        "indexedAt": {
+            "type": "datetime"
+        },
+        "extractedText": {
+            "type": "text",
+            "layoutListDisabled": true
+        }
+    },
+    "links": {
+        "createdBy": {
+            "type": "belongsTo",
+            "entity": "User"
+        },
+        "modifiedBy": {
+            "type": "belongsTo",
+            "entity": "User"
+        },
+        "assignedUser": {
+            "type": "belongsTo",
+            "entity": "User"
+        },
+        "teams": {
+            "type": "hasMany",
+            "entity": "Team",
+            "relationName": "entityTeam",
+            "layoutRelationshipsDisabled": true
+        }
+    },
+    "collection": {
+        "orderBy": "createdAt",
+        "order": "desc",
+        "textFilterFields": [
+            "name"
+        ]
+    },
+    "indexes": {
+        "filePath": {
+            "columns": [
+                "filePath"
+            ],
+            "unique": true
+        },
+        "approval": {
+            "columns": [
+                "approvalStatus"
+            ]
+        }
+    }
+}

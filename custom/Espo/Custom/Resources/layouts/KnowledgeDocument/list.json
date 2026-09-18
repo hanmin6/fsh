@@ -1,0 +1,30 @@
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "category",
+    "link": false
+  },
+  {
+    "name": "product",
+    "link": false
+  },
+  {
+    "name": "sourceType",
+    "link": false
+  },
+  {
+    "name": "approvalStatus",
+    "link": false
+  },
+  {
+    "name": "version",
+    "link": false
+  },
+  {
+    "name": "indexedAt",
+    "link": false
+  }
+]

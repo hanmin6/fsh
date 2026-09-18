@@ -1,0 +1,26 @@
+{
+  "scopeNames": {
+    "ExternalChannel": "ExternalChannel",
+    "ExternalConversation": "ExternalConversation",
+    "ExternalMessage": "ExternalMessage",
+    "AIReplyDraft": "AIReplyDraft",
+    "OutboundTask": "OutboundTask",
+    "KnowledgeDocument": "KnowledgeDocument",
+    "AutomationAgent": "AutomationAgent",
+    "AutomationAudit": "AutomationAudit"
+  },
+  "scopeNamesPlural": {
+    "ExternalChannel": "ExternalChannel",
+    "ExternalConversation": "ExternalConversation",
+    "ExternalMessage": "ExternalMessage",
+    "AIReplyDraft": "AIReplyDraft",
+    "OutboundTask": "OutboundTask",
+    "KnowledgeDocument": "KnowledgeDocument",
+    "AutomationAgent": "AutomationAgent",
+    "AutomationAudit": "AutomationAudit"
+  },
+  "labels": {},
+  "dashlets": {
+    "FusanheOperations": "Export Operations Overview"
+  }
+}

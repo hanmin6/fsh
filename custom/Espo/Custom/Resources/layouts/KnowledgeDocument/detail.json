@@ -1,0 +1,54 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "category"
+        }
+      ],
+      [
+        {
+          "name": "product"
+        },
+        {
+          "name": "filePath"
+        }
+      ],
+      [
+        {
+          "name": "sourceType"
+        },
+        {
+          "name": "version"
+        }
+      ],
+      [
+        {
+          "name": "approvalStatus"
+        },
+        {
+          "name": "effectiveFrom"
+        }
+      ],
+      [
+        {
+          "name": "effectiveTo"
+        },
+        {
+          "name": "checksum"
+        }
+      ],
+      [
+        {
+          "name": "indexedAt"
+        },
+        {
+          "name": "description"
+        }
+      ]
+    ]
+  }
+]

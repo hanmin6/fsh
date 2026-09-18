@@ -1,0 +1,12 @@
+{
+    "view": "custom:views/dashlets/fusanhe-operations",
+    "aclScope": "ExternalConversation",
+    "options": {
+        "fields": {
+            "title": {"type": "varchar", "required": true},
+            "autorefreshInterval": {"type": "enumFloat", "options": [0, 0.5, 1, 2, 5, 10]}
+        },
+        "defaults": {"title": "外贸运营概览", "autorefreshInterval": 1},
+        "layout": [{"rows": [[{"name": "title"}, {"name": "autorefreshInterval"}]]}]
+    }
+}

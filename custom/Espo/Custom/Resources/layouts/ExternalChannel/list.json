@@ -1,0 +1,22 @@
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "type",
+    "link": false
+  },
+  {
+    "name": "enabled",
+    "link": false
+  },
+  {
+    "name": "connectionStatus",
+    "link": false
+  },
+  {
+    "name": "lastSyncAt",
+    "link": false
+  }
+]

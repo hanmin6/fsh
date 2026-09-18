@@ -1,0 +1,46 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        }
+      ],
+      [
+        {
+          "name": "conversation"
+        }
+      ],
+      [
+        {
+          "name": "sourceMessage"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "riskLevel"
+        }
+      ],
+      [
+        {
+          "name": "confidence"
+        }
+      ],
+      [
+        {
+          "name": "intent"
+        }
+      ],
+      [
+        {
+          "name": "summaryZh"
+        }
+      ]
+    ]
+  }
+]
