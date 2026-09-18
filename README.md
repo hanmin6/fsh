@@ -30,7 +30,8 @@ make down     # 停止，保留数据
 
 ## 数据和密码
 
-- CRM 文件保存在 Docker 卷 `fusanhe-crm_espocrm-data`。
+- CRM 数据保存在 Docker 卷 `fusanhe-crm_espocrm-data`。
+- 服务端自定义保存在 `fusanhe-crm_espocrm-custom`，客户端自定义保存在 `fusanhe-crm_espocrm-custom-client`。
 - 数据库保存在 Docker 卷 `fusanhe-crm_db-data`。
 - `.env` 包含本地密码，已被 Git 忽略。
 - `docker compose down` 会保留数据；`docker compose down -v` 会删除所有数据。

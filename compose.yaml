@@ -30,22 +30,37 @@ services:
       ESPOCRM_ADMIN_PASSWORD: ${ESPOCRM_ADMIN_PASSWORD}
       ESPOCRM_SITE_URL: ${ESPOCRM_SITE_URL:-http://localhost:8080}
     volumes:
-      - espocrm-data:/var/www/html
+      - espocrm-data:/var/www/html/data
+      - espocrm-custom:/var/www/html/custom
+      - espocrm-custom-client:/var/www/html/client/custom
     ports:
       - "${ESPOCRM_PORT:-8080}:80"
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bin/command", "app-check"]
+      start_period: 20s
+      interval: 60s
+      timeout: 20s
+      retries: 3
 
   daemon:
     image: espocrm/espocrm:10.0.8-apache
-    volumes:
-      - espocrm-data:/var/www/html
+    volumes_from:
+      - espocrm
     restart: unless-stopped
     depends_on:
-      - espocrm
+      espocrm:
+        condition: service_healthy
     entrypoint: docker-daemon.sh
+    healthcheck:
+      test: ["CMD", "bin/command", "app-check"]
+      start_period: 20s
+      interval: 180s
+      timeout: 20s
+      retries: 3
 
   websocket:
     image: espocrm/espocrm:10.0.8-apache
@@ -54,15 +69,24 @@ services:
       ESPOCRM_CONFIG_WEB_SOCKET_URL: ${ESPOCRM_WEBSOCKET_URL:-ws://localhost:8081}
       ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBSCRIBER_DSN: tcp://*:7777
       ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBMISSION_DSN: tcp://websocket:7777
-    volumes:
-      - espocrm-data:/var/www/html
+    volumes_from:
+      - espocrm
     ports:
       - "${ESPOCRM_WEBSOCKET_PORT:-8081}:8080"
     restart: unless-stopped
     depends_on:
-      - espocrm
+      espocrm:
+        condition: service_healthy
     entrypoint: docker-websocket.sh
+    healthcheck:
+      test: ["CMD", "bin/command", "app-check"]
+      start_period: 20s
+      interval: 180s
+      timeout: 20s
+      retries: 3
 
 volumes:
   db-data:
   espocrm-data:
+  espocrm-custom:
+  espocrm-custom-client:
