@@ -18,5 +18,6 @@
   },
   "views": {
     "list": "custom:views/fusanhe/list"
-  }
+  },
+  "controller": "controllers/record"
 }

@@ -86,6 +86,23 @@
     "entityId": "对象 ID",
     "result": "结果",
     "details": "详情",
-    "wasEdited": "人工修改"
+    "wasEdited": "人工修改",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "riskLevel": {
+      "low": "低风险",
+      "medium": "中风险",
+      "high": "高风险"
+    },
+    "status": {
+      "generated": "待审核",
+      "edited": "已修改",
+      "approved": "已审核",
+      "rejected": "已拒绝",
+      "sent": "已发送"
+    }
   }
 }

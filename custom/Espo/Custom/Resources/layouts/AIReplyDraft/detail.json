@@ -1,5 +1,6 @@
 [
   {
+    "label": "Overview",
     "rows": [
       [
         {
@@ -11,40 +12,23 @@
       ],
       [
         {
-          "name": "sourceMessage"
-        },
-        {
           "name": "status"
-        }
-      ],
-      [
+        },
         {
           "name": "riskLevel"
-        },
-        {
-          "name": "confidence"
         }
       ],
       [
-        {
-          "name": "intent"
-        },
         {
           "name": "summaryZh"
         }
       ],
       [
         {
-          "name": "suggestedLanguage"
-        },
-        {
           "name": "draftText"
         }
       ],
       [
-        {
-          "name": "translatedText"
-        },
         {
           "name": "missingInformation"
         }
@@ -52,17 +36,24 @@
       [
         {
           "name": "citedKnowledge"
-        },
-        {
-          "name": "modelProvider"
         }
       ],
       [
         {
-          "name": "modelName"
+          "name": "suggestedLanguage"
         },
         {
-          "name": "promptVersion"
+          "name": "assignedUser"
+        }
+      ]
+    ]
+  },
+  {
+    "label": "Details",
+    "rows": [
+      [
+        {
+          "name": "sourceMessage"
         }
       ],
       [

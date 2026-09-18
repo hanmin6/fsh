@@ -1,6 +1,9 @@
 {
   "labels": {
-    "Create ExternalConversation": "新建统一询盘"
+    "Create ExternalConversation": "新建统一询盘",
+    "messages": "外部消息",
+    "replyDrafts": "AI 回复草稿",
+    "outboundTasks": "发送任务"
   },
   "fields": {
     "name": "名称",
@@ -87,6 +90,30 @@
     "result": "结果",
     "details": "详情",
     "lastMessagePreview": "最后消息",
-    "waitingMinutes": "等待分钟"
+    "waitingMinutes": "等待分钟",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "messages": "外部消息",
+    "replyDrafts": "AI 回复草稿",
+    "outboundTasks": "发送任务"
+  },
+  "options": {
+    "status": {
+      "new": "新询盘",
+      "pending": "待处理",
+      "drafted": "已有草稿",
+      "waitingApproval": "待审核",
+      "readyToSend": "待发送",
+      "sending": "发送中",
+      "sent": "已发送",
+      "failed": "失败",
+      "closed": "已关闭"
+    }
+  },
+  "links": {
+    "messages": "外部消息",
+    "replyDrafts": "AI 回复草稿",
+    "outboundTasks": "发送任务"
   }
 }

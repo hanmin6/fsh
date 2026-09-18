@@ -85,6 +85,19 @@
     "entityType": "entityType",
     "entityId": "entityId",
     "result": "result",
-    "details": "details"
+    "details": "details",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by"
+  },
+  "options": {
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "loginExpired": "Login expired",
+      "captcha": "Captcha",
+      "pageChanged": "Page changed",
+      "riskControl": "Risk control"
+    }
   }
 }

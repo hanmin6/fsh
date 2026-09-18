@@ -1,5 +1,9 @@
 {
   "views": {
     "list": "custom:views/fusanhe/list"
-  }
+  },
+  "recordViews": {
+    "detail": "custom:views/fusanhe/context-detail"
+  },
+  "controller": "controllers/record"
 }

@@ -85,6 +85,19 @@
     "entityType": "entityType",
     "entityId": "entityId",
     "result": "result",
-    "details": "details"
+    "details": "details",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by"
+  },
+  "options": {
+    "status": {
+      "pending": "Pending",
+      "claimed": "Claimed",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    }
   }
 }

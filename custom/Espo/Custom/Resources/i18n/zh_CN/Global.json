@@ -7,7 +7,14 @@
     "OutboundTask": "发送任务",
     "KnowledgeDocument": "知识文档",
     "AutomationAgent": "平台执行端",
-    "AutomationAudit": "自动化审计"
+    "AutomationAudit": "自动化审计",
+    "Home": "工作台",
+    "Account": "客户公司",
+    "Contact": "联系人",
+    "Lead": "潜在客户",
+    "Opportunity": "商机",
+    "Task": "任务",
+    "Email": "邮件"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "外部渠道",
@@ -17,13 +24,24 @@
     "OutboundTask": "发送任务",
     "KnowledgeDocument": "知识文档",
     "AutomationAgent": "平台执行端",
-    "AutomationAudit": "自动化审计"
+    "AutomationAudit": "自动化审计",
+    "Home": "工作台",
+    "Account": "客户公司",
+    "Contact": "联系人",
+    "Lead": "潜在客户",
+    "Opportunity": "商机",
+    "Task": "任务",
+    "Email": "邮件"
   },
   "labels": {
     "Unified Inbox": "统一询盘",
     "Generate AI Draft": "生成 AI 草稿",
     "Approve and Queue": "批准并创建发送任务",
-    "Outbound Paused": "发送已全局暂停"
+    "Outbound Paused": "发送已全局暂停",
+    "Home": "工作台",
+    "Log in": "登录",
+    "Overview": "概览",
+    "Details": "详细信息"
   },
   "dashlets": {
     "FusanheOperations": "外贸运营概览"

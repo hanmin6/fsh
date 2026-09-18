@@ -85,6 +85,16 @@
     "entityType": "对象类型",
     "entityId": "对象 ID",
     "result": "结果",
-    "details": "详情"
+    "details": "详情",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "result": {
+      "success": "成功",
+      "failure": "failure",
+      "denied": "denied"
+    }
   }
 }

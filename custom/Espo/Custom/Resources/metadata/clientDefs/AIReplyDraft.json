@@ -1,5 +1,17 @@
 {
   "views": {
     "list": "custom:views/fusanhe/list"
-  }
+  },
+  "recordViews": {
+    "detail": "custom:views/fusanhe/context-detail"
+  },
+  "fieldDefs": {
+    "missingInformation": {
+      "view": "custom:views/fields/structured"
+    },
+    "citedKnowledge": {
+      "view": "custom:views/fields/structured"
+    }
+  },
+  "controller": "controllers/record"
 }

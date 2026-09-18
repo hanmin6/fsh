@@ -85,6 +85,25 @@
     "entityType": "entityType",
     "entityId": "entityId",
     "result": "result",
-    "details": "details"
+    "details": "details",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by"
+  },
+  "options": {
+    "type": {
+      "Alibaba": "Alibaba",
+      "MadeInChina": "Made in china",
+      "Website": "Website",
+      "Email": "Email",
+      "WhatsApp": "Whats app",
+      "Other": "Other"
+    },
+    "connectionStatus": {
+      "unknown": "Unknown",
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "offline": "Offline"
+    }
   }
 }

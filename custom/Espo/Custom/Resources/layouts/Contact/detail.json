@@ -1,0 +1,41 @@
+[
+  {
+    "label": "Overview",
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "accounts"
+        }
+      ],
+      [
+        {
+          "name": "emailAddress"
+        },
+        {
+          "name": "phoneNumber"
+        }
+      ],
+      [
+        {
+          "name": "assignedUser"
+        },
+        {
+          "name": "address"
+        }
+      ]
+    ]
+  },
+  {
+    "label": "Details",
+    "rows": [
+      [
+        {
+          "name": "description"
+        }
+      ]
+    ]
+  }
+]

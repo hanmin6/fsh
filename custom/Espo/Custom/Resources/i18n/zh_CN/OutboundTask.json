@@ -85,6 +85,19 @@
     "entityType": "对象类型",
     "entityId": "对象 ID",
     "result": "结果",
-    "details": "详情"
+    "details": "详情",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "status": {
+      "pending": "待处理",
+      "claimed": "已领取",
+      "sending": "发送中",
+      "sent": "已发送",
+      "failed": "失败",
+      "cancelled": "已取消"
+    }
   }
 }

@@ -1,5 +1,11 @@
 {
   "views": {
     "list": "custom:views/fusanhe/list"
-  }
+  },
+  "fieldDefs": {
+    "capabilities": {
+      "view": "custom:views/fields/structured"
+    }
+  },
+  "controller": "controllers/record"
 }

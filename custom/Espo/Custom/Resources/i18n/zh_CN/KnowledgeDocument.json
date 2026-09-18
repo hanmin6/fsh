@@ -85,6 +85,24 @@
     "entityType": "对象类型",
     "entityId": "对象 ID",
     "result": "结果",
-    "details": "详情"
+    "details": "详情",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "sourceType": {
+      "PDF": "PDF",
+      "DOCX": "DOCX",
+      "XLSX": "XLSX",
+      "TXT": "TXT",
+      "Markdown": "Markdown",
+      "Other": "其他"
+    },
+    "approvalStatus": {
+      "draft": "草稿",
+      "approved": "已审核",
+      "expired": "已过期"
+    }
   }
 }

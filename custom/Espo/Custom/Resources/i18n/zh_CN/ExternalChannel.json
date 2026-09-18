@@ -85,6 +85,25 @@
     "entityType": "对象类型",
     "entityId": "对象 ID",
     "result": "结果",
-    "details": "详情"
+    "details": "详情",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "type": {
+      "Alibaba": "阿里国际站",
+      "MadeInChina": "中国制造网",
+      "Website": "独立站",
+      "Email": "邮件",
+      "WhatsApp": "WhatsApp",
+      "Other": "其他"
+    },
+    "connectionStatus": {
+      "unknown": "未知",
+      "healthy": "正常",
+      "degraded": "异常",
+      "offline": "离线"
+    }
   }
 }

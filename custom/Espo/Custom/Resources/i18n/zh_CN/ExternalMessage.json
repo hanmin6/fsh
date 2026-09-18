@@ -85,6 +85,23 @@
     "entityType": "对象类型",
     "entityId": "对象 ID",
     "result": "结果",
-    "details": "详情"
+    "details": "详情",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "direction": {
+      "inbound": "收到",
+      "outbound": "发出"
+    },
+    "deliveryStatus": {
+      "received": "已接收",
+      "queued": "已排队",
+      "sending": "发送中",
+      "sent": "已发送",
+      "delivered": "已送达",
+      "failed": "失败"
+    }
   }
 }

@@ -86,6 +86,23 @@
     "entityId": "entityId",
     "result": "result",
     "details": "details",
-    "wasEdited": "wasEdited"
+    "wasEdited": "wasEdited",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by"
+  },
+  "options": {
+    "riskLevel": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "status": {
+      "generated": "Generated",
+      "edited": "Edited",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "sent": "Sent"
+    }
   }
 }

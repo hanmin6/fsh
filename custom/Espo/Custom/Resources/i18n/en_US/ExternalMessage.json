@@ -85,6 +85,23 @@
     "entityType": "entityType",
     "entityId": "entityId",
     "result": "result",
-    "details": "details"
+    "details": "details",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by"
+  },
+  "options": {
+    "direction": {
+      "inbound": "Inbound",
+      "outbound": "Outbound"
+    },
+    "deliveryStatus": {
+      "received": "Received",
+      "queued": "Queued",
+      "sending": "Sending",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "failed": "Failed"
+    }
   }
 }

@@ -25,6 +25,7 @@ define('custom:views/fusanhe/list', ['views/main', 'ajax', 'custom:views/fusanhe
             this.$el.find('[data-action=clear]').on('click',()=>{this.$el.find('form')[0].reset();this.offset=0;this.load();});
             this.$el.find('[data-action=refresh]').on('click',()=>this.load());
             this.$el.on('click.fsh','tr[data-id]',e=>{if($(e.target).closest('a,button').length)return;this.getRouter().navigate(`#${this.entity}/view/${e.currentTarget.dataset.id}`,{trigger:true});});
+            this.$el.on('keydown.fsh','tr[data-id]',e=>{if(e.target!==e.currentTarget)return;if(e.key==='Enter'){e.preventDefault();this.getRouter().navigate(`#${this.entity}/view/${e.currentTarget.dataset.id}`,{trigger:true});}});
             if(this.entity === 'ExternalConversation') this.loadSelectors();
             this.load();
         }
@@ -48,8 +49,13 @@ define('custom:views/fusanhe/list', ['views/main', 'ajax', 'custom:views/fusanhe
                     const ids=[...new Set(rows.map(x=>x.conversationId).filter(Boolean))];
                     if(ids.length&&this.getAcl().checkScope('ExternalConversation','read')) {const r=await Ajax.getRequest('ExternalConversation',{where:[{type:'in',attribute:'id',value:ids}],maxSize:50});const by=Object.fromEntries(r.list.map(x=>[x.id,x])); rows=rows.map(x=>({...by[x.conversationId],...x,accountName:by[x.conversationId]?.accountName,contactName:by[x.conversationId]?.contactName,contactId:by[x.conversationId]?.contactId,leadId:by[x.conversationId]?.leadId,leadName:by[x.conversationId]?.leadName,accountId:by[x.conversationId]?.accountId,channelName:x.channelName||by[x.conversationId]?.channelName,product:by[x.conversationId]?.product}));}
                 }
+                if(this.entity==='ExternalConversation') {
+                    const leads=[...new Set(rows.map(x=>x.leadId).filter(Boolean))];
+                    if(leads.length&&this.getAcl().checkScope('Lead','read')){const lr=await Ajax.getRequest('Lead',{where:[{type:'in',attribute:'id',value:leads}],maxSize:50,select:'id,accountName'});const by=Object.fromEntries(lr.list.map(x=>[x.id,x]));rows=rows.map(x=>({...x,accountName:x.accountName||by[x.leadId]?.accountName}));}
+                    if(this.getAcl().checkScope('ExternalMessage','read'))await Promise.all(rows.filter(x=>!x.lastMessagePreview).map(async x=>{const r=await Ajax.getRequest('ExternalMessage',{where:[{type:'equals',attribute:'conversationId',value:x.id}],orderBy:'sentAt',order:'desc',maxSize:1,select:'id,body'});x.lastMessagePreview=r.list[0]?.body;}));
+                }
                 if(seq!==this.serial)return;
-                const body=rows.length?`<div class="fsh-table-scroll"><table class="fsh-table"><thead><tr>${this.def.columns.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr data-id="${U.escape(row.id)}" class="${row.unreadCount?'is-unread':''}">${this.def.columns.map(([field])=>this.cell(row,field)).join('')}</tr>`).join('')}</tbody></table></div>`:'<div class="fsh-empty">暂无符合条件的记录。可清除筛选或稍后刷新。</div>';
+                const body=rows.length?`<div class="fsh-table-scroll"><table class="fsh-table"><thead><tr>${this.def.columns.map(c=>`<th class="${['product','country','idempotencyKey','platformMessageId','checksum'].includes(c[0])?'fsh-secondary':''}">${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr tabindex="0" data-id="${U.escape(row.id)}" class="${row.unreadCount?'is-unread':''}">${this.def.columns.map(([field])=>this.cell(row,field)).join('')}</tr>`).join('')}</tbody></table></div>`:'<div class="fsh-empty">暂无符合条件的记录。可清除筛选或稍后刷新。</div>';
                 this.$el.find('.fsh-list-body').html(body);
                 this.$el.find('.fsh-pagination').html(`<span>${rows.length?this.offset+1:0}–${this.offset+rows.length} / ${result.total>=0?result.total:'更多'}</span><button class="btn btn-default fsh-prev" ${this.offset===0?'disabled':''}>上一页</button><button class="btn btn-default fsh-next" ${rows.length<50?'disabled':''}>下一页</button>`);
                 this.$el.find('.fsh-prev').on('click',()=>{this.offset=Math.max(0,this.offset-50);this.load();});this.$el.find('.fsh-next').on('click',()=>{this.offset+=50;this.load();});
@@ -66,7 +72,7 @@ define('custom:views/fusanhe/list', ['views/main', 'ajax', 'custom:views/fusanhe
             else if(field==='waiting'){const n=U.wait(this.entity==='ExternalConversation'?row.lastInboundAt:row.createdAt);const closed=['sent','closed','approved','rejected'].includes(row.status);value=closed?'—':n==null?'—':`${n} 分钟`;html=`<span class="${!closed&&n>=120?'fsh-danger':''}">${U.escape(value)}</span>`;}
             else if(Array.isArray(value)){value=value.map(x=>typeof x==='string'?U.status(x):x.name||x.title||'资料').join('、');html=U.escape(value);}
             else {html=U.escape(['checksum','idempotencyKey'].includes(field)&&value?value.slice(0,12)+'…':value);}
-            return `<td title="${U.escape(value)}">${html}</td>`;
+            return `<td class="${['product','country','idempotencyKey','platformMessageId','checksum'].includes(field)?'fsh-secondary':''}" title="${U.escape(['status','approvalStatus','riskLevel'].includes(field)?U.status(value):value)}">${html}</td>`;
         }
     };
 });

@@ -1,6 +1,9 @@
 {
   "labels": {
-    "Create ExternalConversation": "Create ExternalConversation"
+    "Create ExternalConversation": "Create ExternalConversation",
+    "messages": "Messages",
+    "replyDrafts": "AI reply drafts",
+    "outboundTasks": "Outbound tasks"
   },
   "fields": {
     "name": "name",
@@ -87,6 +90,30 @@
     "result": "result",
     "details": "details",
     "lastMessagePreview": "lastMessagePreview",
-    "waitingMinutes": "waitingMinutes"
+    "waitingMinutes": "waitingMinutes",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by",
+    "messages": "Messages",
+    "replyDrafts": "AI reply drafts",
+    "outboundTasks": "Outbound tasks"
+  },
+  "options": {
+    "status": {
+      "new": "New",
+      "pending": "Pending",
+      "drafted": "Drafted",
+      "waitingApproval": "Waiting approval",
+      "readyToSend": "Ready to send",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "closed": "Closed"
+    }
+  },
+  "links": {
+    "messages": "Messages",
+    "replyDrafts": "AI reply drafts",
+    "outboundTasks": "Outbound tasks"
   }
 }

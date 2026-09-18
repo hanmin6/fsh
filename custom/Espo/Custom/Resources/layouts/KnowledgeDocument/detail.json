@@ -1,20 +1,21 @@
 [
   {
+    "label": "Overview",
     "rows": [
       [
         {
           "name": "name"
         },
         {
-          "name": "category"
+          "name": "approvalStatus"
         }
       ],
       [
         {
-          "name": "product"
+          "name": "category"
         },
         {
-          "name": "filePath"
+          "name": "product"
         }
       ],
       [
@@ -27,26 +28,33 @@
       ],
       [
         {
-          "name": "approvalStatus"
-        },
-        {
           "name": "effectiveFrom"
-        }
-      ],
-      [
+        },
         {
           "name": "effectiveTo"
-        },
-        {
-          "name": "checksum"
         }
       ],
       [
         {
-          "name": "indexedAt"
+          "name": "checksum"
         },
         {
+          "name": "indexedAt"
+        }
+      ]
+    ]
+  },
+  {
+    "label": "Details",
+    "rows": [
+      [
+        {
           "name": "description"
+        }
+      ],
+      [
+        {
+          "name": "extractedText"
         }
       ]
     ]

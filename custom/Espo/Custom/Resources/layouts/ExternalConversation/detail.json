@@ -1,28 +1,13 @@
 [
   {
+    "label": "Overview",
     "rows": [
       [
         {
           "name": "name"
         },
         {
-          "name": "subject"
-        }
-      ],
-      [
-        {
-          "name": "channel"
-        },
-        {
-          "name": "externalId"
-        }
-      ],
-      [
-        {
           "name": "status"
-        },
-        {
-          "name": "assignedUser"
         }
       ],
       [
@@ -38,60 +23,31 @@
           "name": "lead"
         },
         {
+          "name": "assignedUser"
+        }
+      ],
+      [
+        {
+          "name": "channel"
+        },
+        {
           "name": "country"
         }
       ],
       [
         {
-          "name": "language"
-        },
-        {
           "name": "product"
-        }
-      ],
-      [
-        {
-          "name": "sourceUrl"
         },
         {
-          "name": "unreadCount"
-        }
-      ],
-      [
-        {
-          "name": "lastMessageAt"
-        },
-        {
-          "name": "lastMessagePreview"
+          "name": "language"
         }
       ],
       [
         {
           "name": "lastInboundAt"
-        }
-      ],
-      [
+        },
         {
           "name": "lastOutboundAt"
-        },
-        {
-          "name": "firstResponseMinutes"
-        }
-      ],
-      [
-        {
-          "name": "waitingMinutes"
-        },
-        {
-          "name": "slaBreached"
-        }
-      ],
-      [
-        {
-          "name": "needsManualMatch"
-        },
-        {
-          "name": "description"
         }
       ]
     ]

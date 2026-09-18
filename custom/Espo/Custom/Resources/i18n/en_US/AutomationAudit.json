@@ -85,6 +85,16 @@
     "entityType": "entityType",
     "entityId": "entityId",
     "result": "result",
-    "details": "details"
+    "details": "details",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by"
+  },
+  "options": {
+    "result": {
+      "success": "Success",
+      "failure": "Failure",
+      "denied": "Denied"
+    }
   }
 }

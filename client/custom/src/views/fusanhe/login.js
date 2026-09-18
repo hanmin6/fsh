@@ -1,5 +1,6 @@
 define('custom:views/fusanhe/login', ['views/login'], function (Dep) {
     return class extends Dep {
+        remove() { this.$el.removeClass('fsh-login'); return super.remove(); }
         afterRender() {
             super.afterRender();
             this.$el.addClass('fsh-login');

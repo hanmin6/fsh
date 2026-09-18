@@ -85,6 +85,24 @@
     "entityType": "entityType",
     "entityId": "entityId",
     "result": "result",
-    "details": "details"
+    "details": "details",
+    "translatedText": "Translation",
+    "createdBy": "Created by",
+    "modifiedBy": "Modified by"
+  },
+  "options": {
+    "sourceType": {
+      "PDF": "Pdf",
+      "DOCX": "Docx",
+      "XLSX": "Xlsx",
+      "TXT": "Txt",
+      "Markdown": "Markdown",
+      "Other": "Other"
+    },
+    "approvalStatus": {
+      "draft": "Draft",
+      "approved": "Approved",
+      "expired": "Expired"
+    }
   }
 }

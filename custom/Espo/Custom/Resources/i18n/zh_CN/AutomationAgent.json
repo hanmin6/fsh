@@ -85,6 +85,19 @@
     "entityType": "对象类型",
     "entityId": "对象 ID",
     "result": "结果",
-    "details": "详情"
+    "details": "详情",
+    "translatedText": "译文",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "status": {
+      "online": "在线",
+      "offline": "离线",
+      "loginExpired": "登录失效",
+      "captcha": "验证码",
+      "pageChanged": "页面变化",
+      "riskControl": "风控"
+    }
   }
 }
