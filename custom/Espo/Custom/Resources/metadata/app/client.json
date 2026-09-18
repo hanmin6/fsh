@@ -1,0 +1,9 @@
+{
+  "linkList": [
+    "__APPEND__",
+    {
+      "href": "client/custom/res/fusanhe/brand.css",
+      "rel": "stylesheet"
+    }
+  ]
+}
