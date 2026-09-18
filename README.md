@@ -2,7 +2,7 @@
 
 基于 EspoCRM 10.0.8 的本地部署及“统一询盘工作台”MVP。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核和广州 Windows 平台执行端放在一个可审计的流程里。
 
-当前环境默认禁止自动外发。真实阿里国际站和 Made-in-China 连接器尚未接入，现阶段使用 MockConnector 演示完整闭环。
+当前环境默认禁止自动外发。Alibaba Bridge 只完成健康检查，真实消息同步和发送尚未接入；其他渠道使用占位连接器演示完整闭环。
 
 ## 架构
 
@@ -37,6 +37,7 @@ flowchart LR
 - 全局停发开关，默认 `true`。
 - “外贸运营概览”Dashlet，展示询盘、待回复、待审核、超时、负责人、响应时间、AI 修改率和发送结果。
 - 老板、业务主管、业务员和平台执行端的权限基线；管理员使用 EspoCRM 内置管理员权限。
+- Android `1.0.0` UI 演示版：客户新增、客户历史、询盘会话、翻译和 AI 回复建议，当前使用本地 Mock Repository。
 
 ## 目录
 
@@ -50,6 +51,9 @@ scripts/mock-agent.py               一次性模拟 Windows 执行端
 scripts/backup.sh                   数据库和运行数据备份
 scripts/restore.sh                  备份恢复（需明确传入备份目录）
 docs/permissions.md                 角色权限说明
+docs/API_AGENT_HANDOFF.md           接口开发交接与技术债
+docs/PROJECT_STATUS.md              项目完成度与版本基线
+android-client/                     Android 1.0.0 UI 演示版
 ```
 
 ## 启动和安装
@@ -83,6 +87,8 @@ docker compose exec espocrm bin/command rebuild
 | `MATERIAL_LIBRARY_PATH` | 容器内素材目录 |
 | `FUSANHE_AUTOMATION_TOKEN` | Windows 执行端独立 Token |
 | `FUSANHE_OUTBOUND_PAUSED` | 全局停发开关，生产初始化为 `true` |
+| `ALIBABA_BRIDGE_URL` | Alibaba Bridge 地址 |
+| `ALIBABA_BRIDGE_TOKEN` | Alibaba Bridge Token，不得提交到 Git |
 
 修改环境变量后使用 `docker compose up -d --force-recreate espocrm` 使 Apache 进程读取新值。
 
@@ -102,6 +108,17 @@ python3 scripts/mock-agent.py
 6. 演示后立即恢复 `FUSANHE_OUTBOUND_PAUSED=true` 并重建 CRM 容器。
 
 真实连接器不得直接复用网页选择器写进 CRM。接入优先级为官方 API、邮件或接口组合、浏览器自动化、Windows UI 自动化。
+
+## Android 客户端
+
+Android 项目位于 `android-client/`。当前版本为 `1.0.0` UI 演示版，使用 Kotlin、Jetpack Compose、Material 3、Hilt、StateFlow、Room 占位和 Retrofit 占位。
+
+```bash
+cd android-client
+./gradlew testDebugUnitTest assembleDebug
+```
+
+当前 Android 客户端没有连接真实 CRM。详细功能、Mock 数据和接入方式见 `android-client/README.md` 与 `android-client/docs/BACKEND_API_MAPPING.md`。
 
 ## 备份与恢复
 
@@ -129,7 +146,8 @@ docker compose exec espocrm bin/command rebuild
 
 ## 已知限制
 
-- Alibaba、Made-in-China、独立站和邮件目前是接口骨架，尚未使用真实账号或真实平台发送。
+- Alibaba 目前只完成 Bridge 健康检查；Made-in-China、独立站和邮件仍是接口骨架，所有渠道均未从 CRM 执行真实平台发送。
 - 浏览器或 Windows UI 自动化执行程序尚未实现。
+- Android 1.0.0 使用本地 Mock 数据，真实认证、数据库、WebSocket、离线同步和消息发送尚未接入。
 - DOCX/XLSX 使用轻量文本提取；复杂表格和扫描 PDF 后续应接专业解析/OCR 服务。
 - 当前共享目录为本地演示挂载，部署到广州 Windows 时需替换为实际共享盘路径并配置只读权限。
