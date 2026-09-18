@@ -1,1 +1,5 @@
-{}
+{
+  "views": {
+    "list": "custom:views/fusanhe/list"
+  }
+}
