@@ -1,0 +1,51 @@
+{
+  "labels": {
+    "Create ExternalIdentity": "新建客户身份",
+    "conversations": "关联会话"
+  },
+  "fields": {
+    "name": "名称",
+    "description": "说明",
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "identityKey": "身份唯一键",
+    "channelType": "渠道类型",
+    "channelAccountId": "渠道账号实例",
+    "externalUserId": "平台用户 ID",
+    "displayName": "展示名称",
+    "emailAddress": "邮箱",
+    "phoneNumber": "电话",
+    "country": "国家",
+    "linkStatus": "关联状态",
+    "confirmedBy": "确认人",
+    "confirmedAt": "确认时间",
+    "firstSeenAt": "首次见到",
+    "lastSeenAt": "最近见到",
+    "notes": "备注",
+    "account": "客户公司",
+    "contact": "联系人",
+    "lead": "潜在客户"
+  },
+  "options": {
+    "linkStatus": {
+      "unlinked": "待确认",
+      "confirmed": "已确认"
+    },
+    "channelType": {
+      "Alibaba": "阿里国际站",
+      "MadeInChina": "中国制造网",
+      "Website": "独立站",
+      "Email": "邮件",
+      "WhatsApp": "WhatsApp",
+      "Other": "其他"
+    }
+  },
+  "links": {
+    "conversations": "关联会话",
+    "account": "客户公司",
+    "contact": "联系人",
+    "lead": "潜在客户"
+  }
+}

@@ -1,0 +1,73 @@
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "linkStatus"
+        }
+      ],
+      [
+        {
+          "name": "channelType"
+        },
+        {
+          "name": "channelAccountId"
+        }
+      ],
+      [
+        {
+          "name": "externalUserId"
+        },
+        {
+          "name": "displayName"
+        }
+      ],
+      [
+        {
+          "name": "emailAddress"
+        },
+        {
+          "name": "phoneNumber"
+        }
+      ],
+      [
+        {
+          "name": "lead"
+        },
+        {
+          "name": "contact"
+        }
+      ],
+      [
+        {
+          "name": "account"
+        },
+        {
+          "name": "confirmedAt"
+        }
+      ],
+      [
+        {
+          "name": "firstSeenAt"
+        },
+        {
+          "name": "lastSeenAt"
+        }
+      ],
+      [
+        {
+          "name": "assignedUser"
+        },
+        {
+          "name": "country"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "notes"
+  }
+]

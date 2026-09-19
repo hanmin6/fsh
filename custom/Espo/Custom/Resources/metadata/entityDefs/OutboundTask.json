@@ -94,6 +94,20 @@
       "type": "jsonObject",
       "layoutListDisabled": true,
       "view": "custom:views/fields/structured"
+    },
+    "executionMode": {
+      "type": "enum",
+      "options": [
+        "mock",
+        "real"
+      ],
+      "default": "mock",
+      "displayAsLabel": true
+    },
+    "contentSnapshot": {
+      "type": "text",
+      "readOnly": true,
+      "layoutListDisabled": true
     }
   },
   "links": {

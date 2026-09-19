@@ -51,6 +51,9 @@
     "lead": {
       "type": "link"
     },
+    "identity": {
+      "type": "link"
+    },
     "subject": {
       "type": "varchar",
       "maxLength": 255
@@ -66,11 +69,21 @@
         "sending",
         "sent",
         "failed",
+        "replied",
         "closed"
       ],
       "default": "new",
       "displayAsLabel": true,
       "audited": true
+    },
+    "controlMode": {
+      "type": "enum",
+      "options": [
+        "aiAssist",
+        "human"
+      ],
+      "default": "aiAssist",
+      "displayAsLabel": true
     },
     "unreadCount": {
       "type": "int",
@@ -162,6 +175,11 @@
     "lead": {
       "type": "belongsTo",
       "entity": "Lead"
+    },
+    "identity": {
+      "type": "belongsTo",
+      "entity": "ExternalIdentity",
+      "foreign": "conversations"
     },
     "messages": {
       "type": "hasMany",

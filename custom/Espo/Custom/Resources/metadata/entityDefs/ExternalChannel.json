@@ -45,6 +45,11 @@
       ],
       "default": "Other"
     },
+    "accountHandle": {
+      "type": "varchar",
+      "maxLength": 191,
+      "default": "default"
+    },
     "enabled": {
       "type": "bool",
       "default": true

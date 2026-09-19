@@ -96,7 +96,11 @@
     "modifiedBy": "修改人",
     "messages": "外部消息",
     "replyDrafts": "AI 回复草稿",
-    "outboundTasks": "发送任务"
+    "outboundTasks": "发送任务",
+    "identity": "客户身份映射",
+    "controlMode": "接待控制模式",
+    "executionMode": "执行模式",
+    "contentSnapshot": "内容快照"
   },
   "options": {
     "status": {
@@ -108,7 +112,19 @@
       "sending": "发送中",
       "sent": "已发送",
       "failed": "失败",
-      "closed": "已关闭"
+      "closed": "已关闭",
+      "replied": "已回复"
+    },
+    "controlMode": {
+      "aiAssist": "AI 辅助",
+      "human": "人工接管"
+    },
+    "executionMode": {
+      "mock": "模拟",
+      "real": "真实"
+    },
+    "deliveryStatus": {
+      "mockSent": "模拟已发送"
     }
   },
   "links": {

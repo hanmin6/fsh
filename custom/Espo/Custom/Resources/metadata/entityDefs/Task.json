@@ -1,0 +1,27 @@
+{
+  "fields": {
+    "parent": {
+      "type": "linkParent",
+      "entityList": [
+        "__APPEND__",
+        "ExternalConversation"
+      ]
+    },
+    "fusanheHandoffKey": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutDetailDisabled": true,
+      "layoutMassUpdateDisabled": true
+    }
+  },
+  "indexes": {
+    "fusanheHandoffKey": {
+      "columns": [
+        "fusanheHandoffKey"
+      ],
+      "unique": true
+    }
+  }
+}

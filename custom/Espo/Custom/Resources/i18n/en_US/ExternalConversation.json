@@ -96,7 +96,11 @@
     "modifiedBy": "Modified by",
     "messages": "Messages",
     "replyDrafts": "AI reply drafts",
-    "outboundTasks": "Outbound tasks"
+    "outboundTasks": "Outbound tasks",
+    "identity": "Customer identity",
+    "controlMode": "Control mode",
+    "executionMode": "Execution mode",
+    "contentSnapshot": "Content snapshot"
   },
   "options": {
     "status": {
@@ -108,7 +112,19 @@
       "sending": "Sending",
       "sent": "Sent",
       "failed": "Failed",
-      "closed": "Closed"
+      "closed": "Closed",
+      "replied": "Replied"
+    },
+    "controlMode": {
+      "aiAssist": "AI assist",
+      "human": "Human takeover"
+    },
+    "executionMode": {
+      "mock": "Mock",
+      "real": "Real"
+    },
+    "deliveryStatus": {
+      "mockSent": "Mock sent"
     }
   },
   "links": {

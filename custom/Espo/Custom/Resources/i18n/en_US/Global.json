@@ -7,7 +7,8 @@
     "OutboundTask": "OutboundTask",
     "KnowledgeDocument": "KnowledgeDocument",
     "AutomationAgent": "AutomationAgent",
-    "AutomationAudit": "AutomationAudit"
+    "AutomationAudit": "AutomationAudit",
+    "ExternalIdentity": "External identity"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "ExternalChannel",
@@ -17,7 +18,8 @@
     "OutboundTask": "OutboundTask",
     "KnowledgeDocument": "KnowledgeDocument",
     "AutomationAgent": "AutomationAgent",
-    "AutomationAudit": "AutomationAudit"
+    "AutomationAudit": "AutomationAudit",
+    "ExternalIdentity": "External identity"
   },
   "labels": {},
   "dashlets": {

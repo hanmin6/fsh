@@ -1,0 +1,38 @@
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "channelType",
+    "link": false
+  },
+  {
+    "name": "channelAccountId",
+    "link": false
+  },
+  {
+    "name": "externalUserId",
+    "link": false
+  },
+  {
+    "name": "linkStatus",
+    "link": false
+  },
+  {
+    "name": "lead",
+    "link": true
+  },
+  {
+    "name": "contact",
+    "link": true
+  },
+  {
+    "name": "account",
+    "link": true
+  },
+  {
+    "name": "lastSeenAt",
+    "link": false
+  }
+]

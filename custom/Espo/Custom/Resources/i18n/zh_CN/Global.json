@@ -14,7 +14,8 @@
     "Lead": "潜在客户",
     "Opportunity": "商机",
     "Task": "任务",
-    "Email": "邮件"
+    "Email": "邮件",
+    "ExternalIdentity": "客户身份映射"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "外部渠道",
@@ -31,7 +32,8 @@
     "Lead": "潜在客户",
     "Opportunity": "商机",
     "Task": "任务",
-    "Email": "邮件"
+    "Email": "邮件",
+    "ExternalIdentity": "客户身份映射"
   },
   "labels": {
     "Unified Inbox": "统一询盘",

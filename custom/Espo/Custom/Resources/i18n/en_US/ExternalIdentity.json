@@ -1,0 +1,51 @@
+{
+  "labels": {
+    "Create ExternalIdentity": "Create ExternalIdentity",
+    "conversations": "Conversations"
+  },
+  "fields": {
+    "name": "Name",
+    "description": "Description",
+    "createdAt": "Created At",
+    "modifiedAt": "Modified At",
+    "assignedUser": "Assigned User",
+    "teams": "Teams",
+    "identityKey": "Identity key",
+    "channelType": "Channel type",
+    "channelAccountId": "Channel account",
+    "externalUserId": "External user ID",
+    "displayName": "Display name",
+    "emailAddress": "Email",
+    "phoneNumber": "Phone",
+    "country": "Country",
+    "linkStatus": "Link status",
+    "confirmedBy": "Confirmed by",
+    "confirmedAt": "Confirmed at",
+    "firstSeenAt": "First seen",
+    "lastSeenAt": "Last seen",
+    "notes": "Notes",
+    "account": "Account",
+    "contact": "Contact",
+    "lead": "Lead"
+  },
+  "options": {
+    "linkStatus": {
+      "unlinked": "Unlinked",
+      "confirmed": "Confirmed"
+    },
+    "channelType": {
+      "Alibaba": "Alibaba",
+      "MadeInChina": "Made-in-China",
+      "Website": "Website",
+      "Email": "Email",
+      "WhatsApp": "WhatsApp",
+      "Other": "Other"
+    }
+  },
+  "links": {
+    "conversations": "Conversations",
+    "account": "Account",
+    "contact": "Contact",
+    "lead": "Lead"
+  }
+}

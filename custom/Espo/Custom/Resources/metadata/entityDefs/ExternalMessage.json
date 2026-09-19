@@ -80,6 +80,7 @@
         "queued",
         "sending",
         "sent",
+        "mockSent",
         "delivered",
         "failed"
       ],

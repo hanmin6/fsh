@@ -38,6 +38,15 @@
       "required": true,
       "maxLength": 100
     },
+    "mode": {
+      "type": "enum",
+      "options": [
+        "mock",
+        "real"
+      ],
+      "default": "mock",
+      "displayAsLabel": true
+    },
     "status": {
       "type": "enum",
       "options": [
