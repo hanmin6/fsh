@@ -1,0 +1,233 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text"
+    },
+    "number": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "status": {
+      "type": "enum",
+      "options": [
+        "requested",
+        "preparing",
+        "sent",
+        "delivered",
+        "feedbackReceived",
+        "closed",
+        "cancelled"
+      ],
+      "default": "requested",
+      "displayAsLabel": true,
+      "audited": true
+    },
+    "account": {
+      "type": "link"
+    },
+    "contact": {
+      "type": "link"
+    },
+    "conversation": {
+      "type": "link"
+    },
+    "product": {
+      "type": "link"
+    },
+    "productSpec": {
+      "type": "link"
+    },
+    "quantity": {
+      "type": "float",
+      "min": 0
+    },
+    "unit": {
+      "type": "enum",
+      "options": [
+        "carton",
+        "ctn",
+        "kg",
+        "g",
+        "ton",
+        "pcs",
+        "set",
+        "box",
+        "bottle",
+        "can",
+        "bag",
+        "container20",
+        "container40"
+      ]
+    },
+    "feeAmount": {
+      "type": "float",
+      "min": 0
+    },
+    "feeCurrency": {
+      "type": "enum",
+      "options": [
+        "USD",
+        "CNY",
+        "EUR"
+      ],
+      "default": "USD"
+    },
+    "recipientName": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "recipientPhone": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "recipientAddress": {
+      "type": "text"
+    },
+    "trackingNo": {
+      "type": "varchar",
+      "maxLength": 191
+    },
+    "trackingCarrier": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "expectedSendDate": {
+      "type": "date"
+    },
+    "sentAt": {
+      "type": "date"
+    },
+    "expectedDeliveryDate": {
+      "type": "date"
+    },
+    "deliveredAt": {
+      "type": "date"
+    },
+    "returned": {
+      "type": "bool",
+      "default": false
+    },
+    "returnedAt": {
+      "type": "date"
+    },
+    "returnNote": {
+      "type": "text"
+    },
+    "exceptionNote": {
+      "type": "text"
+    },
+    "feedback": {
+      "type": "text"
+    },
+    "feedbackAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "feedbackResult": {
+      "type": "enum",
+      "options": [
+        "pending",
+        "positive",
+        "mixed",
+        "negative"
+      ],
+      "default": "pending",
+      "displayAsLabel": true
+    },
+    "cancelReason": {
+      "type": "text"
+    },
+    "assignedUser": {
+      "type": "link",
+      "view": "views/fields/assigned-user"
+    },
+    "teams": {
+      "type": "linkMultiple",
+      "view": "views/fields/teams"
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "account": {
+      "type": "belongsTo",
+      "entity": "Account"
+    },
+    "contact": {
+      "type": "belongsTo",
+      "entity": "Contact"
+    },
+    "conversation": {
+      "type": "belongsTo",
+      "entity": "ExternalConversation"
+    },
+    "product": {
+      "type": "belongsTo",
+      "entity": "FusanheProduct"
+    },
+    "productSpec": {
+      "type": "belongsTo",
+      "entity": "FusanheProductSpec"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "teams": {
+      "type": "hasMany",
+      "entity": "Team",
+      "relationName": "entityTeam",
+      "layoutRelationshipsDisabled": true
+    },
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name",
+      "number",
+      "trackingNo",
+      "recipientName"
+    ]
+  },
+  "indexes": {
+    "number": {
+      "columns": [
+        "number"
+      ],
+      "unique": true
+    },
+    "status": {
+      "columns": [
+        "status"
+      ]
+    }
+  }
+}

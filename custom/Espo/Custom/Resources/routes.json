@@ -128,5 +128,15 @@
         "route": "/Fusanhe/certificates/expiring",
         "method": "get",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCertificatesExpiring"
+    },
+    {
+        "route": "/Fusanhe/sample/:id/follow-up",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostSampleFollowUp"
+    },
+    {
+        "route": "/Fusanhe/sample/:id/:action",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostSampleTransition"
     }
 ]

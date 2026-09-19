@@ -11,7 +11,8 @@
     "ExternalIdentity": "External identity",
     "FusanheProduct": "Products",
     "FusanheProductSpec": "Product Spec Versions",
-    "FusanheCertificate": "Certificates & Reports"
+    "FusanheCertificate": "Certificates & Reports",
+    "FusanheSample": "Samples"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "ExternalChannel",

@@ -1,0 +1,76 @@
+{
+  "scopeName": "Samples",
+  "labels": {
+    "Create FusanheSample": "Create Sample"
+  },
+  "fields": {
+    "name": "Name",
+    "number": "Number",
+    "status": "Status",
+    "account": "Account",
+    "contact": "Contact",
+    "conversation": "Conversation",
+    "product": "Product",
+    "productSpec": "ProductSpec",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "feeAmount": "FeeAmount",
+    "feeCurrency": "FeeCurrency",
+    "recipientName": "RecipientName",
+    "recipientPhone": "RecipientPhone",
+    "recipientAddress": "RecipientAddress",
+    "trackingCarrier": "TrackingCarrier",
+    "trackingNo": "TrackingNo",
+    "expectedSendDate": "ExpectedSendDate",
+    "sentAt": "SentAt",
+    "expectedDeliveryDate": "ExpectedDeliveryDate",
+    "deliveredAt": "DeliveredAt",
+    "returned": "Returned",
+    "returnedAt": "ReturnedAt",
+    "returnNote": "ReturnNote",
+    "exceptionNote": "ExceptionNote",
+    "feedback": "Feedback",
+    "feedbackAt": "FeedbackAt",
+    "feedbackResult": "FeedbackResult",
+    "cancelReason": "CancelReason",
+    "assignedUser": "AssignedUser",
+    "teams": "Teams",
+    "createdAt": "CreatedAt",
+    "modifiedAt": "ModifiedAt",
+    "createdBy": "CreatedBy",
+    "modifiedBy": "ModifiedBy",
+    "description": "Description"
+  },
+  "options": {
+    "status": {
+      "requested": "Requested",
+      "preparing": "Preparing",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "feedbackReceived": "Feedback received",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "feedbackResult": {
+      "pending": "Pending",
+      "positive": "Positive",
+      "mixed": "Mixed",
+      "negative": "Negative"
+    },
+    "unit": {
+      "carton": "Carton",
+      "ctn": "CTN",
+      "kg": "kg",
+      "g": "g",
+      "ton": "Ton",
+      "pcs": "PCS",
+      "set": "Set",
+      "box": "Box",
+      "bottle": "Bottle",
+      "can": "Can",
+      "bag": "Bag",
+      "container20": "20ft",
+      "container40": "40ft"
+    }
+  }
+}

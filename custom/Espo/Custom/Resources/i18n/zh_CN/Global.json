@@ -18,7 +18,8 @@
     "Email": "邮件",
     "FusanheProduct": "产品库",
     "FusanheProductSpec": "产品规格版本",
-    "FusanheCertificate": "证书与报告"
+    "FusanheCertificate": "证书与报告",
+    "FusanheSample": "样品管理"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "外部渠道",

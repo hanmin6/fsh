@@ -1,0 +1,76 @@
+{
+  "scopeName": "样品管理",
+  "labels": {
+    "Create FusanheSample": "新建样品单"
+  },
+  "fields": {
+    "name": "样品单主题",
+    "number": "样品编号",
+    "status": "状态",
+    "account": "客户公司",
+    "contact": "联系人",
+    "conversation": "来源会话",
+    "product": "产品",
+    "productSpec": "规格版本",
+    "quantity": "数量",
+    "unit": "单位",
+    "feeAmount": "样品费用",
+    "feeCurrency": "币种",
+    "recipientName": "收件人",
+    "recipientPhone": "收件电话",
+    "recipientAddress": "收件地址",
+    "trackingCarrier": "承运方（手工填写）",
+    "trackingNo": "物流单号（手工填写）",
+    "expectedSendDate": "预计寄出",
+    "sentAt": "实际寄出",
+    "expectedDeliveryDate": "预计签收",
+    "deliveredAt": "实际签收",
+    "returned": "是否退回",
+    "returnedAt": "退回日期",
+    "returnNote": "退回记录",
+    "exceptionNote": "异常记录",
+    "feedback": "反馈内容",
+    "feedbackAt": "反馈时间",
+    "feedbackResult": "反馈结论",
+    "cancelReason": "取消原因",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "description": "说明"
+  },
+  "options": {
+    "status": {
+      "requested": "客户需求",
+      "preparing": "准备中",
+      "sent": "已寄出",
+      "delivered": "已签收",
+      "feedbackReceived": "已反馈",
+      "closed": "已完成",
+      "cancelled": "已取消"
+    },
+    "feedbackResult": {
+      "pending": "待反馈",
+      "positive": "正面",
+      "mixed": "有改进点",
+      "negative": "负面"
+    },
+    "unit": {
+      "carton": "纸箱",
+      "ctn": "箱",
+      "kg": "千克",
+      "g": "克",
+      "ton": "吨",
+      "pcs": "件",
+      "set": "套",
+      "box": "盒",
+      "bottle": "瓶",
+      "can": "罐",
+      "bag": "袋",
+      "container20": "20尺柜",
+      "container40": "40尺柜"
+    }
+  }
+}
