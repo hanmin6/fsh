@@ -1,0 +1,238 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text"
+    },
+    "number": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "status": {
+      "type": "enum",
+      "options": [
+        "draft",
+        "inReview",
+        "approved",
+        "accepted",
+        "rejected",
+        "superseded"
+      ],
+      "default": "draft",
+      "displayAsLabel": true,
+      "audited": true
+    },
+    "versionNo": {
+      "type": "int",
+      "default": 1,
+      "min": 1,
+      "readOnly": true
+    },
+    "rootId": {
+      "type": "varchar",
+      "maxLength": 17
+    },
+    "revisionOf": {
+      "type": "link",
+      "entity": "FusanheQuote"
+    },
+    "account": {
+      "type": "link",
+      "required": true
+    },
+    "contact": {
+      "type": "link"
+    },
+    "inquiry": {
+      "type": "link"
+    },
+    "conversation": {
+      "type": "link"
+    },
+    "sample": {
+      "type": "link"
+    },
+    "currency": {
+      "type": "enum",
+      "required": true,
+      "options": [
+        "USD",
+        "CNY",
+        "EUR"
+      ],
+      "default": "USD"
+    },
+    "validUntil": {
+      "type": "date"
+    },
+    "tradeTerm": {
+      "type": "enum",
+      "options": [
+        "EXW",
+        "FCA",
+        "FOB",
+        "CFR",
+        "CIF",
+        "DAP",
+        "DPU",
+        "DDP"
+      ]
+    },
+    "tradeTermPlace": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "tradeTermVersion": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "paymentTerms": {
+      "type": "varchar",
+      "maxLength": 500
+    },
+    "leadTimeText": {
+      "type": "varchar",
+      "maxLength": 500
+    },
+    "exchangeRate": {
+      "type": "float",
+      "min": 0
+    },
+    "exchangeRateDate": {
+      "type": "date"
+    },
+    "exchangeRateSource": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "approvedBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "approvedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "acceptedAt": {
+      "type": "date"
+    },
+    "acceptedByRef": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "notesInternal": {
+      "type": "text",
+      "tooltip": "内部备注：客户版文档禁止显示"
+    },
+    "assignedUser": {
+      "type": "link",
+      "view": "views/fields/assigned-user"
+    },
+    "teams": {
+      "type": "linkMultiple",
+      "view": "views/fields/teams"
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "revisionOf": {
+      "type": "belongsTo",
+      "entity": "FusanheQuote",
+      "foreign": "revisions"
+    },
+    "revisions": {
+      "type": "hasMany",
+      "entity": "FusanheQuote",
+      "foreign": "revisionOf"
+    },
+    "account": {
+      "type": "belongsTo",
+      "entity": "Account"
+    },
+    "contact": {
+      "type": "belongsTo",
+      "entity": "Contact"
+    },
+    "inquiry": {
+      "type": "belongsTo",
+      "entity": "FusanheInquiry",
+      "foreign": "quotes"
+    },
+    "conversation": {
+      "type": "belongsTo",
+      "entity": "ExternalConversation"
+    },
+    "sample": {
+      "type": "belongsTo",
+      "entity": "FusanheSample"
+    },
+    "approvedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "items": {
+      "type": "hasMany",
+      "entity": "FusanheQuoteItem",
+      "foreign": "quote"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "teams": {
+      "type": "hasMany",
+      "entity": "Team",
+      "relationName": "entityTeam",
+      "layoutRelationshipsDisabled": true
+    },
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name",
+      "number"
+    ]
+  },
+  "indexes": {
+    "number": {
+      "columns": [
+        "number"
+      ],
+      "unique": true
+    },
+    "rootVersion": {
+      "columns": [
+        "rootId",
+        "versionNo"
+      ]
+    }
+  }
+}

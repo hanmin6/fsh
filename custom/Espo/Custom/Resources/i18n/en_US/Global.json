@@ -12,7 +12,10 @@
     "FusanheProduct": "Products",
     "FusanheProductSpec": "Product Spec Versions",
     "FusanheCertificate": "Certificates & Reports",
-    "FusanheSample": "Samples"
+    "FusanheSample": "Samples",
+    "FusanheInquiry": "Inquiries",
+    "FusanheQuote": "Quotes",
+    "FusanheQuoteItem": "Quote Lines"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "ExternalChannel",

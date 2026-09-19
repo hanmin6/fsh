@@ -121,16 +121,16 @@ class WP3Samples(unittest.TestCase):
         self.assertEqual(ent['status'], 'sent', 'Return record must not overwrite the status machine.')
         # Generic PATCH cannot forge workflow fields.
         s, err = call('PATCH', f"/FusanheSample/{sample['id']}", {'status': 'closed'})
-        self.assertEqual(s, 409, err)
+        self.assertEqual(s, 403, err)
         s, err = call('PATCH', f"/FusanheSample/{sample['id']}", {'returned': False})
-        self.assertEqual(s, 409, err)
+        self.assertEqual(s, 403, err)
 
     def test_unique_sample_numbers(self):
         sample = self.make_sample()
         s, err = call('POST', '/FusanheSample', {'name': 'dup number test', 'number': sample['number']})
         self.assertEqual(s, 409, err)
         s, err = call('PATCH', f"/FusanheSample/{sample['id']}", {'number': 'CHANGED'})
-        self.assertEqual(s, 409, err)
+        self.assertEqual(s, 403, err)
 
     def test_follow_up_task_from_feedback(self):
         sample = self.make_sample()

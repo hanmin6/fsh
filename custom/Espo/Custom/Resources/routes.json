@@ -138,5 +138,25 @@
         "route": "/Fusanhe/sample/:id/:action",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostSampleTransition"
-    }
+    },
+    {
+        "route": "/Fusanhe/quote/:id/print",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetQuotePrint"
+    },
+  {
+    "route": "/Fusanhe/quote/:id/html",
+    "method": "get",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetQuoteHtml"
+  },
+  {
+    "route": "/Fusanhe/inquiry/:id/missing",
+    "method": "get",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInquiryMissing"
+  },
+  {
+    "route": "/Fusanhe/quote/:id/:action",
+    "method": "post",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostQuoteTransition"
+  }
 ]

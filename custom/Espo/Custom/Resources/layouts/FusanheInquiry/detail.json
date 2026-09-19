@@ -1,0 +1,88 @@
+{
+  "layout": [
+    [
+      {
+        "name": "name"
+      },
+      {
+        "name": "number"
+      }
+    ],
+    [
+      {
+        "name": "status"
+      },
+      {
+        "name": "assignedUser"
+      }
+    ],
+    [
+      {
+        "name": "account"
+      },
+      {
+        "name": "contact"
+      }
+    ],
+    [
+      {
+        "name": "conversation"
+      }
+    ],
+    [
+      {
+        "name": "product"
+      },
+      {
+        "name": "productSpec"
+      }
+    ],
+    [
+      {
+        "name": "quantity"
+      },
+      {
+        "name": "unit"
+      }
+    ],
+    [
+      {
+        "name": "destination"
+      },
+      {
+        "name": "deliveryWindow"
+      }
+    ],
+    [
+      {
+        "name": "packagingRequirement"
+      },
+      {
+        "name": "certificatesNeeded"
+      }
+    ],
+    [
+      {
+        "name": "customerTargetPrice"
+      },
+      {
+        "name": "customerTargetCurrency"
+      }
+    ],
+    [
+      {
+        "name": "notes"
+      }
+    ],
+    [
+      {
+        "name": "teams"
+      }
+    ],
+    [
+      {
+        "name": "description"
+      }
+    ]
+  ]
+}

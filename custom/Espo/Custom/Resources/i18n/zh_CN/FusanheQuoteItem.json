@@ -1,0 +1,47 @@
+{
+  "scopeName": "报价行",
+  "labels": {
+    "Create FusanheQuoteItem": "新建报价行"
+  },
+  "fields": {
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "name": "行名称",
+    "quote": "报价单",
+    "position": "行号",
+    "product": "产品",
+    "productSpec": "规格版本",
+    "description": "行描述",
+    "quantity": "数量",
+    "unit": "单位",
+    "unitPrice": "单价",
+    "amount": "行金额",
+    "moq": "MOQ",
+    "packingSpec": "包装",
+    "leadTimeText": "行交期",
+    "remark": "备注（客户可见）",
+    "internalNote": "内部备注（客户版不显示）"
+  },
+  "options": {
+    "unit": {
+      "carton": "纸箱",
+      "ctn": "箱",
+      "kg": "千克",
+      "g": "克",
+      "ton": "吨",
+      "pcs": "件",
+      "set": "套",
+      "box": "盒",
+      "bottle": "瓶",
+      "can": "罐",
+      "bag": "袋",
+      "container20": "20尺柜",
+      "container40": "40尺柜"
+    }
+  },
+  "tooltips": {
+    "internalNote": "内部备注：客户版文档禁止显示"
+  }
+}

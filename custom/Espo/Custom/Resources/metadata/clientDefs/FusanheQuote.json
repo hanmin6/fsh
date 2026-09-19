@@ -1,0 +1,9 @@
+{
+  "controller": "controllers/record",
+  "relationshipPanels": {
+    "items": {
+      "layout": "list",
+      "create": true
+    }
+  }
+}

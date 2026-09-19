@@ -1,0 +1,70 @@
+{
+  "scopeName": "Quotes",
+  "labels": {
+    "Create FusanheQuote": "Create Quote"
+  },
+  "fields": {
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "name": "报价主题",
+    "number": "报价编号",
+    "status": "状态",
+    "versionNo": "版本",
+    "rootId": "版本链根 ID",
+    "revisionOf": "修订自",
+    "account": "客户公司",
+    "contact": "联系人",
+    "inquiry": "询价",
+    "sample": "样品",
+    "conversation": "来源会话",
+    "currency": "币种",
+    "validUntil": "报价有效期至",
+    "tradeTerm": "贸易术语",
+    "tradeTermPlace": "术语指定地点",
+    "tradeTermVersion": "术语版本",
+    "paymentTerms": "付款方式（记录）",
+    "leadTimeText": "交期说明",
+    "exchangeRate": "人工汇率",
+    "exchangeRateDate": "汇率日期",
+    "exchangeRateSource": "汇率来源",
+    "approvedBy": "审批人",
+    "approvedAt": "审批时间",
+    "acceptedAt": "客户接受日期",
+    "acceptedByRef": "客户接受人",
+    "notesInternal": "内部备注（客户版不显示）",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "description": "说明",
+    "items": "报价行"
+  },
+  "options": {
+    "status": {
+      "draft": "草稿",
+      "inReview": "内部审批中",
+      "approved": "已审批",
+      "accepted": "客户已接受",
+      "rejected": "已拒绝",
+      "superseded": "已被新版本替代"
+    },
+    "tradeTerm": {
+      "EXW": "EXW 工厂交货",
+      "FCA": "FCA 货交承运人",
+      "FOB": "FOB 装运港船上交货",
+      "CFR": "CFR 成本加运费",
+      "CIF": "CIF 成本保险加运费",
+      "DAP": "DAP 目的地交货",
+      "DPU": "DPU 卸货地交货",
+      "DDP": "DDP 完税后交货"
+    },
+    "currency": {
+      "USD": "美元 USD",
+      "CNY": "人民币 CNY",
+      "EUR": "欧元 EUR"
+    }
+  },
+  "tooltips": {
+    "notesInternal": "内部备注：客户版文档禁止显示"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "scopeName": "Inquiries",
+  "labels": {
+    "Create FusanheInquiry": "Create Inquiry"
+  },
+  "fields": {
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "name": "询价主题",
+    "number": "询价编号",
+    "status": "状态",
+    "account": "客户公司",
+    "contact": "联系人",
+    "conversation": "来源会话",
+    "product": "产品",
+    "productSpec": "规格版本",
+    "quantity": "需求数量",
+    "unit": "单位",
+    "destination": "目的港/地",
+    "deliveryWindow": "交期要求",
+    "packagingRequirement": "包装要求",
+    "certificatesNeeded": "所需证书/报告",
+    "customerTargetPrice": "客户目标价",
+    "customerTargetCurrency": "目标价币种",
+    "notes": "备注",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "description": "说明",
+    "quotes": "关联报价"
+  },
+  "options": {
+    "status": {
+      "open": "待报价",
+      "quoted": "已报价",
+      "converted": "已转订单",
+      "cancelled": "已取消"
+    },
+    "unit": {
+      "carton": "纸箱",
+      "ctn": "箱",
+      "kg": "千克",
+      "g": "克",
+      "ton": "吨",
+      "pcs": "件",
+      "set": "套",
+      "box": "盒",
+      "bottle": "瓶",
+      "can": "罐",
+      "bag": "袋",
+      "container20": "20尺柜",
+      "container40": "40尺柜"
+    }
+  }
+}

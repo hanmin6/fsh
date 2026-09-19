@@ -1,0 +1,20 @@
+{
+  "layout": [
+    [
+      {
+        "name": "quote"
+      },
+      {
+        "name": "position"
+      }
+    ],
+    [
+      {
+        "name": "quantity"
+      },
+      {
+        "name": "unitPrice"
+      }
+    ]
+  ]
+}

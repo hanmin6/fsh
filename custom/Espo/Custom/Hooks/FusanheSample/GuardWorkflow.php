@@ -2,6 +2,7 @@
 namespace Espo\Custom\Hooks\FusanheSample;
 
 use Espo\Core\Exceptions\Conflict;
+use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Hook\Hook\BeforeSave;
 use Espo\ORM\Entity;
 use Espo\ORM\Repository\Option\SaveOptions;
@@ -33,21 +34,23 @@ class GuardWorkflow implements BeforeSave
         if (!\Espo\Custom\Tools\Fusanhe\InternalWrite::isFlagged()) {
             foreach (self::GUARDED as $attribute) {
                 if ($entity->isAttributeChanged($attribute)) {
-                    throw new Conflict('Sample workflow fields can only change through the Fusanhe endpoints.');
+                    throw new Forbidden('Sample workflow fields can only change through the Fusanhe endpoints.');
                 }
             }
         }
         if ($entity->isAttributeChanged('number')) {
-            throw new Conflict('Sample numbers are immutable.');
+            throw new Forbidden('Sample numbers are immutable.');
         }
     }
 
     private function assertNumberFree(Entity $entity): void
     {
-        $duplicate = $this->em->getRDBRepository('FusanheSample')
-            ->where(['number' => $entity->get('number')])
-            ->findOne();
-        if ($duplicate) {
+        $query = $this->em->getRDBRepository('FusanheSample')
+            ->where(['number' => $entity->get('number')]);
+        if ($entity->getId()) {
+            $query->where(['id!=' => $entity->getId()]);
+        }
+        if ($query->findOne()) {
             throw new Conflict('Sample number already exists.');
         }
     }

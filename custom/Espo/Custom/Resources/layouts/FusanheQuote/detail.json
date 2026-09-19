@@ -1,0 +1,111 @@
+{
+  "layout": [
+    [
+      {
+        "name": "name"
+      },
+      {
+        "name": "number"
+      }
+    ],
+    [
+      {
+        "name": "status"
+      },
+      {
+        "name": "versionNo"
+      }
+    ],
+    [
+      {
+        "name": "account"
+      },
+      {
+        "name": "contact"
+      }
+    ],
+    [
+      {
+        "name": "inquiry"
+      },
+      {
+        "name": "sample"
+      }
+    ],
+    [
+      {
+        "name": "conversation"
+      }
+    ],
+    [
+      {
+        "name": "currency"
+      },
+      {
+        "name": "validUntil"
+      }
+    ],
+    [
+      {
+        "name": "tradeTerm"
+      },
+      {
+        "name": "tradeTermPlace"
+      }
+    ],
+    [
+      {
+        "name": "tradeTermVersion"
+      }
+    ],
+    [
+      {
+        "name": "paymentTerms"
+      }
+    ],
+    [
+      {
+        "name": "leadTimeText"
+      }
+    ],
+    [
+      {
+        "name": "exchangeRate"
+      },
+      {
+        "name": "exchangeRateDate"
+      }
+    ],
+    [
+      {
+        "name": "exchangeRateSource"
+      }
+    ],
+    [
+      {
+        "name": "acceptedAt"
+      },
+      {
+        "name": "acceptedByRef"
+      }
+    ],
+    [
+      {
+        "name": "notesInternal"
+      }
+    ],
+    [
+      {
+        "name": "assignedUser"
+      },
+      {
+        "name": "teams"
+      }
+    ],
+    [
+      {
+        "name": "description"
+      }
+    ]
+  ]
+}
