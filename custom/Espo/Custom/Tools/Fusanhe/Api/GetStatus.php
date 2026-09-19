@@ -5,21 +5,27 @@ use Espo\Core\Api\Action;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Api\ResponseComposer;
-use Espo\Core\Acl;
 use Espo\Core\Exceptions\Forbidden;
+use Espo\Entities\User;
+use Espo\ORM\EntityManager;
+use Espo\Core\Acl;
 use Espo\Custom\Tools\Fusanhe\WorkflowService;
 
-final class GetStatus implements Action
+final class GetStatus extends AbstractFusanheAction
 {
     public function __construct(
-        private WorkflowService $service,
-        private Acl $acl,
-    ) {}
+        User $user,
+        Acl $acl,
+        EntityManager $em,
+        private WorkflowService $service
+    ) {
+        parent::__construct($user, $acl, $em);
+    }
 
     public function process(Request $request): Response
     {
-        if (!$this->acl->checkScope('ExternalConversation', 'read')) {
-            throw new Forbidden('Not allowed to read conversation status.');
+        if (!$this->user->isAdmin() && !$this->acl->checkScope('ExternalConversation', 'read')) {
+            throw new Forbidden('Not allowed to read the run status.');
         }
         return ResponseComposer::json($this->service->status());
     }

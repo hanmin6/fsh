@@ -51,11 +51,13 @@ final class WorkflowService
         $country = (string) ($input->country ?? '');
         $accountHandle = trim((string) ($input->accountHandle ?? ''));
 
+        if (!in_array($channelType, ['Alibaba', 'MadeInChina', 'Website', 'Email', 'WhatsApp', 'Other'], true)) {
+            throw new BadRequest('Unknown channelType.');
+        }
         $channel = $this->findChannel($channelType, $accountHandle);
         $conversation = $this->repo('ExternalConversation')
             ->where(['channelId' => $channel->getId(), 'externalId' => $externalId])
             ->findOne();
-
         if (!$conversation) {
             [$identity, $identityCreated] = $this->identityService->resolveIdentity(
                 $channelType,
@@ -589,11 +591,11 @@ final class WorkflowService
         return ['ok' => true, 'status' => $task->get('status')];
     }
 
-    public function dashboard(): array
+    public function dashboard(?string $ownUserId = null): array
     {
         $today = gmdate('Y-m-d 00:00:00');
         $count = fn(string $type, array $where = []) => $this->repo($type)->where($where)->count();
-        $conversations = $this->repo('ExternalConversation')->where(['createdAt>=' => $today])->find();
+        $conversations = $this->repo('ExternalConversation')->where($ownWhere ? ['createdAt>=' => $today, ...$ownWhere] : ['createdAt>=' => $today])->find();
         $channels = [];
         $byAssignedUser = [];
         foreach ($conversations as $c) {
@@ -604,7 +606,7 @@ final class WorkflowService
             $byAssignedUser[$owner] = ($byAssignedUser[$owner] ?? 0) + 1;
         }
 
-        $open = $this->repo('ExternalConversation')->where(['status' => ['new', 'pending', 'drafted', 'waitingApproval']])->find();
+        $open = $this->repo('ExternalConversation')->where($ownWhere ? ['status' => ['new', 'pending', 'drafted', 'waitingApproval'], ...$ownWhere] : ['status' => ['new', 'pending', 'drafted', 'waitingApproval']])->find();
         $slaBreached = 0;
         foreach ($open as $c) {
             $waiting = $c->get('lastInboundAt') ? max(0, (int) floor((time() - strtotime((string) $c->get('lastInboundAt'))) / 60)) : null;
@@ -613,7 +615,7 @@ final class WorkflowService
             }
         }
 
-        $responded = $this->repo('ExternalConversation')->where(['firstResponseMinutes!=' => null])->find();
+        $responded = $this->repo('ExternalConversation')->where($ownWhere ? ['firstResponseMinutes!=' => null, ...$ownWhere] : ['firstResponseMinutes!=' => null])->find();
         $sum = 0;
         $n = 0;
         foreach ($responded as $c) {
@@ -629,9 +631,9 @@ final class WorkflowService
             'todayInquiries' => count($conversations),
             'byChannel' => $channels,
             'byAssignedUser' => $byAssignedUser,
-            'unassigned' => $count('ExternalConversation', ['assignedUserId' => null]),
-            'waitingReply' => $count('ExternalConversation', ['status' => ['new', 'pending']]),
-            'waitingApproval' => $count('ExternalConversation', ['status' => 'waitingApproval']),
+            'unassigned' => $ownUserId ? 0 : $count('ExternalConversation', ['assignedUserId' => null]),
+            'waitingReply' => $ownUserId ? $count('ExternalConversation', ['status' => ['new', 'pending'], ...$ownWhere]) : $count('ExternalConversation', ['status' => ['new', 'pending']]),
+            'waitingApproval' => $ownUserId ? $count('ExternalConversation', ['status' => 'waitingApproval', ...$ownWhere]) : $count('ExternalConversation', ['status' => 'waitingApproval']),
             'slaBreached' => $slaBreached,
             'averageFirstResponseMinutes' => $n ? round($sum / $n, 1) : null,
             'aiDrafts' => $draftTotal,

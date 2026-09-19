@@ -106,9 +106,9 @@ final class SampleService
                 throw new BadRequest('Unknown sample action.');
         }
 
-        InternalWrite::flag();
-        $this->em->saveEntity($sample);
-        InternalWrite::clear();
+        InternalWrite::wrap(function () use ($sample) {
+            $this->em->saveEntity($sample);
+        });
         $this->audit($action, $user, $sample);
         return ['id' => $sample->getId(), 'status' => $sample->get('status')];
     }

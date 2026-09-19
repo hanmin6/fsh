@@ -28,6 +28,7 @@ final class PostShipmentTransition extends AbstractFusanheAction
         $id = $request->getRouteParam('id');
         $action = (string) $request->getRouteParam('action');
         if (!$id || $action === '') throw new BadRequest();
+        $this->requireEntityScope('FusanheOrderShipment', $id, 'edit');
         return ResponseComposer::json(
             $this->service->shipmentTransition($action, $id, $this->user, $request->getParsedBody())
         );

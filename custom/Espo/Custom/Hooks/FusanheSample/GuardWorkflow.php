@@ -14,7 +14,7 @@ use Espo\ORM\Repository\Option\SaveOptions;
 class GuardWorkflow implements BeforeSave
 {
     private const GUARDED = [
-        'status', 'trackingNo', 'sentAt', 'deliveredAt', 'returned',
+        'status', 'trackingNo', 'trackingCarrier', 'sentAt', 'deliveredAt', 'returned',
         'returnedAt', 'returnNote', 'exceptionNote', 'feedback',
         'feedbackAt', 'feedbackResult', 'cancelReason',
     ];
@@ -28,6 +28,18 @@ class GuardWorkflow implements BeforeSave
                 $entity->set('number', 'SMP-' . date('YmdHis') . '-' . substr(bin2hex(random_bytes(3)), 0, 5));
             } else {
                 $this->assertNumberFree($entity);
+            }
+            if (!\Espo\Custom\Tools\Fusanhe\InternalWrite::isFlagged()) {
+                // The state machine starts at requested and only moves via endpoints.
+                if (($entity->get('status') ?: 'requested') !== 'requested') {
+                    $entity->set('status', 'requested');
+                }
+                foreach (self::GUARDED as $attribute) {
+                    if ($attribute === 'status' || $attribute === 'feedbackResult') {
+                        continue; // status stays requested; enum default applies
+                    }
+                    $entity->set($attribute, $attribute === 'returned' ? false : null);
+                }
             }
             return;
         }

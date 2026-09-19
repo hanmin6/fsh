@@ -19,6 +19,12 @@ class ComputeAmount implements BeforeSave
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {
+        if (!$entity->isNew() && $entity->isAttributeChanged('quoteId')) {
+            $fetchedQuote = $this->em->getEntityById('FusanheQuote', (string) $entity->getFetched('quoteId'));
+            if ($fetchedQuote && in_array($fetchedQuote->get('status'), self::FROZEN, true)) {
+                throw new Conflict('The quote snapshot is frozen; lines cannot be moved out of it.');
+            }
+        }
         $quoteId = $entity->get('quoteId');
         if ($quoteId) {
             $quote = $this->em->getEntityById('FusanheQuote', (string) $quoteId);

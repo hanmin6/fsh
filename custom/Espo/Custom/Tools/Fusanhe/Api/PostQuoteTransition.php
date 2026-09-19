@@ -28,6 +28,7 @@ final class PostQuoteTransition extends AbstractFusanheAction
         $id = $request->getRouteParam('id');
         $action = (string) $request->getRouteParam('action');
         if (!$id || $action === '') throw new BadRequest();
+        $this->requireEntityScope('FusanheQuote', $id, 'edit');
         $body = $request->getParsedBody();
         switch ($action) {
             case 'submit':

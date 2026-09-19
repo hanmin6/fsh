@@ -29,6 +29,7 @@ final class PostSampleFollowUp extends AbstractFusanheAction
         }
         $id = $request->getRouteParam('id');
         if (!$id) throw new BadRequest();
+        $this->requireEntityScope('FusanheSample', $id, 'read');
         $body = $request->getParsedBody();
         return ResponseComposer::json($this->service->createFollowUp(
             $id,

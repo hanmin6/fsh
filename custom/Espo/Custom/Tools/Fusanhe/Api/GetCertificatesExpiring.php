@@ -29,6 +29,14 @@ final class GetCertificatesExpiring extends AbstractFusanheAction
             $level = $this->acl->getLevel('FusanheCertificate', 'read');
             if ($level === 'own') {
                 $query->where(['assignedUserId' => $this->user->getId()]);
+            } elseif ($level === 'team') {
+                $teamIds = method_exists($this->user, 'getTeamIdList') ? $this->user->getTeamIdList() : [];
+                $query->where([
+                    'OR' => [
+                        ['assignedUserId' => $this->user->getId()],
+                        ['teamsIds' => $teamIds],
+                    ],
+                ]);
             }
         }
         $records = $query->find();

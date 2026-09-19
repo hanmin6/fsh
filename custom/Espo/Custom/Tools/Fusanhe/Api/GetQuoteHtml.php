@@ -32,6 +32,7 @@ final class GetQuoteHtml extends AbstractFusanheAction
         $this->requireScope('FusanheQuote', 'read');
         $id = $request->getRouteParam('id');
         if (!$id) throw new BadRequest();
+        $this->requireEntityScope('FusanheQuote', $id, 'read');
         $kind = (string) ($request->getQueryParam('kind') ?? 'quotation');
         $data = $this->service->print($id, $kind, $this->user);
         $html = HtmlPrint::renderQuote($data);

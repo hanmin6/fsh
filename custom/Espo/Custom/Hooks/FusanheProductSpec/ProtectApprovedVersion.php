@@ -22,10 +22,24 @@ class ProtectApprovedVersion implements BeforeSave
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {
-        if ($entity->isNew() || $entity->getFetched('status') !== 'approved') {
+        if ($entity->isNew()) {
+            if (!\Espo\Custom\Tools\Fusanhe\InternalWrite::isFlagged() && ($entity->get('status') ?: 'draft') !== 'draft') {
+                $entity->set('status', 'draft');
+            }
             return;
         }
-        if ($entity->isAttributeChanged('status') && $entity->get('status') === 'retired') {
+        $flagged = \Espo\Custom\Tools\Fusanhe\InternalWrite::isFlagged();
+        if (!$flagged && $entity->isAttributeChanged('status')) {
+            // Review transitions only via the endpoints; an approved version can
+            // only leave the state machine through retirement.
+            if ($entity->getFetched('status') === 'approved' && $entity->get('status') !== 'retired') {
+                throw new Forbidden('Approved spec versions are immutable; create a new version instead.');
+            }
+            if ($entity->getFetched('status') !== 'approved') {
+                throw new Forbidden('Spec review status changes go through the Fusanhe endpoints.');
+            }
+        }
+        if ($entity->getFetched('status') !== 'approved') {
             return;
         }
         foreach (self::CONTENT_FIELDS as $attribute) {

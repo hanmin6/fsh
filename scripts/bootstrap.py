@@ -27,8 +27,17 @@ entities=('Account','Contact','Lead','Opportunity','Task','ExternalConversation'
           'FusanheProduct','FusanheProductSpec','FusanheCertificate','FusanheSample','FusanheInquiry','FusanheQuote','FusanheQuoteItem',
           'FusanheSalesOrder','FusanheOrderLine','FusanheOrderShipment','FusanheShipmentItem')
 # A partial rollout may not have every industry scope yet.
+flag_of={'FusanheProduct':'FUSANHE_FEATURE_PRODUCTS','FusanheProductSpec':'FUSANHE_FEATURE_PRODUCTS',
+ 'FusanheCertificate':'FUSANHE_FEATURE_CERTIFICATES','FusanheSample':'FUSANHE_FEATURE_SAMPLES',
+ 'FusanheInquiry':'FUSANHE_FEATURE_QUOTES','FusanheQuote':'FUSANHE_FEATURE_QUOTES','FusanheQuoteItem':'FUSANHE_FEATURE_QUOTES',
+ 'FusanheSalesOrder':'FUSANHE_FEATURE_ORDERS','FusanheOrderLine':'FUSANHE_FEATURE_ORDERS',
+ 'FusanheOrderShipment':'FUSANHE_FEATURE_ORDERS','FusanheShipmentItem':'FUSANHE_FEATURE_ORDERS'}
 deployed=[]
 for entity in entities:
+ var=flag_of.get(entity)
+ if var and os.getenv(var,'').strip().lower() not in ('1','true','yes'):
+  print(f'skip {entity}: feature flag {var} off')
+  continue
  try:
   request(f'/{entity}?maxSize=1'); deployed.append(entity)
  except Exception:

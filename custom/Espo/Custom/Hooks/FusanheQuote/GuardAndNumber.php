@@ -23,6 +23,10 @@ class GuardAndNumber implements BeforeSave
             } else {
                 $this->assertNumberFree($entity);
             }
+            if (!\Espo\Custom\Tools\Fusanhe\InternalWrite::isFlagged() && ($entity->get('status') ?: 'draft') !== 'draft') {
+                // Accepted/approved quotes can only exist through the endpoints.
+                $entity->set(['status' => 'draft', 'acceptedAt' => null, 'acceptedByRef' => null]);
+            }
             return;
         }
         if ($entity->isAttributeChanged('number')) {
@@ -36,7 +40,8 @@ class GuardAndNumber implements BeforeSave
                 foreach (['name', 'currency', 'validUntil', 'tradeTerm', 'tradeTermPlace',
                           'tradeTermVersion', 'paymentTerms', 'leadTimeText', 'exchangeRate',
                           'exchangeRateDate', 'exchangeRateSource', 'accountId', 'contactId',
-                          'inquiryId', 'notesInternal', 'acceptedAt', 'acceptedByRef'] as $attribute) {
+                          'inquiryId', 'conversationId', 'sampleId', 'notesInternal',
+                          'acceptedAt', 'acceptedByRef'] as $attribute) {
                     if ($entity->isAttributeChanged($attribute)) {
                         throw new Forbidden('Accepted or superseded quotes are immutable; create a new revision.');
                     }

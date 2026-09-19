@@ -15,12 +15,14 @@ final class PostCertificateApprove extends AbstractFusanheAction
         $this->requireScope('FusanheCertificate', 'edit');
         $id = $request->getRouteParam('id');
         if (!$id) throw new BadRequest();
-        $cert = $this->requireEntity('FusanheCertificate', $id);
+        $cert = $this->requireEntityScope('FusanheCertificate', $id, 'edit');
         if ($cert->get('status') !== 'draft') {
             throw new Conflict('Only draft certificates can be approved.');
         }
         $cert->set(['status' => 'approved', 'reviewerId' => $this->user->getId(), 'reviewedAt' => gmdate('Y-m-d H:i:s')]);
+        \Espo\Custom\Tools\Fusanhe\InternalWrite::flag();
         $this->em->saveEntity($cert);
+        \Espo\Custom\Tools\Fusanhe\InternalWrite::clear();
         return ResponseComposer::json(['id' => $cert->getId(), 'status' => 'approved']);
     }
 }

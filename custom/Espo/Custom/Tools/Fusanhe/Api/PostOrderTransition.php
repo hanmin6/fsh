@@ -28,6 +28,7 @@ final class PostOrderTransition extends AbstractFusanheAction
         $id = $request->getRouteParam('id');
         $action = (string) $request->getRouteParam('action');
         if (!$id || $action === '') throw new BadRequest();
+        $this->requireEntityScope('FusanheSalesOrder', $id, 'edit');
         return ResponseComposer::json(
             $this->service->transition($action, $id, $this->user, $request->getParsedBody())
         );

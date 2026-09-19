@@ -15,12 +15,14 @@ final class PostProductSpecRetire extends AbstractFusanheAction
         $this->requireScope('FusanheProductSpec', 'edit');
         $id = $request->getRouteParam('id');
         if (!$id) throw new BadRequest();
-        $spec = $this->requireEntity('FusanheProductSpec', $id);
+        $spec = $this->requireEntityScope('FusanheProductSpec', $id, 'edit');
         if ($spec->get('status') === 'retired') {
             throw new Conflict('Spec version is already retired.');
         }
         $spec->set('status', 'retired');
+        \Espo\Custom\Tools\Fusanhe\InternalWrite::flag();
         $this->em->saveEntity($spec);
+        \Espo\Custom\Tools\Fusanhe\InternalWrite::clear();
         return ResponseComposer::json(['id' => $spec->getId(), 'status' => 'retired']);
     }
 }

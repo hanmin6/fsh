@@ -15,7 +15,7 @@ final class PostCertificateRevoke extends AbstractFusanheAction
         $this->requireScope('FusanheCertificate', 'edit');
         $id = $request->getRouteParam('id');
         if (!$id) throw new BadRequest();
-        $cert = $this->requireEntity('FusanheCertificate', $id);
+        $cert = $this->requireEntityScope('FusanheCertificate', $id, 'edit');
         if ($cert->get('status') === 'revoked') {
             throw new Conflict('Certificate is already revoked.');
         }
@@ -23,7 +23,9 @@ final class PostCertificateRevoke extends AbstractFusanheAction
             throw new Conflict('Draft certificates are rejected instead of revoked.');
         }
         $cert->set(['status' => 'revoked', 'reviewerId' => $this->user->getId(), 'reviewedAt' => gmdate('Y-m-d H:i:s')]);
+        \Espo\Custom\Tools\Fusanhe\InternalWrite::flag();
         $this->em->saveEntity($cert);
+        \Espo\Custom\Tools\Fusanhe\InternalWrite::clear();
         return ResponseComposer::json(['id' => $cert->getId(), 'status' => 'revoked']);
     }
 }

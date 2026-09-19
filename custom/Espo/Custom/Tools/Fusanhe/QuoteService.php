@@ -36,9 +36,9 @@ final class QuoteService
             throw new Conflict('Quote has no line items; add at least one line before approval.');
         }
         $quote->set(['status' => 'approved', 'approvedById' => $user->getId(), 'approvedAt' => gmdate('Y-m-d H:i:s')]);
-        InternalWrite::flag();
-        $this->em->saveEntity($quote);
-        InternalWrite::clear();
+        InternalWrite::wrap(function () use ($quote) {
+            $this->em->saveEntity($quote);
+        });
         $this->audit('quote.approved', $user, $quote);
         return ['id' => $quote->getId(), 'status' => 'approved'];
     }
@@ -53,9 +53,9 @@ final class QuoteService
             throw new Conflict('Quote has no line items; add at least one line before submitting.');
         }
         $quote->set('status', 'inReview');
-        InternalWrite::flag();
-        $this->em->saveEntity($quote);
-        InternalWrite::clear();
+        InternalWrite::wrap(function () use ($quote) {
+            $this->em->saveEntity($quote);
+        });
         $this->audit('quote.submitted', $user, $quote);
         return ['id' => $quote->getId(), 'status' => 'inReview'];
     }
@@ -68,9 +68,9 @@ final class QuoteService
         }
         $quote->set(['status' => 'rejected']);
         $quote->set('description', ((string) ($quote->get('description') ?: '') . "\n[拒绝原因 " . gmdate('Y-m-d') . '] ' . $reason));
-        InternalWrite::flag();
-        $this->em->saveEntity($quote);
-        InternalWrite::clear();
+        InternalWrite::wrap(function () use ($quote) {
+            $this->em->saveEntity($quote);
+        });
         $this->audit('quote.rejected', $user, $quote, ['reason' => $reason]);
         return ['id' => $quote->getId(), 'status' => 'rejected'];
     }
@@ -88,9 +88,9 @@ final class QuoteService
             'acceptedAt' => (string) ($input->acceptedAt ?? gmdate('Y-m-d')),
             'acceptedByRef' => $acceptedByRef,
         ]);
-        InternalWrite::flag();
-        $this->em->saveEntity($quote);
-        InternalWrite::clear();
+        InternalWrite::wrap(function () use ($quote) {
+            $this->em->saveEntity($quote);
+        });
         // The inquiry, if linked, is now quoted.
         if ($quote->get('inquiryId')) {
             $inquiry = $this->em->getEntityById('FusanheInquiry', (string) $quote->get('inquiryId'));
@@ -117,9 +117,9 @@ final class QuoteService
         // Accepted versions stay as immutable snapshots, never marked superseded.
         if (!in_array($source->get('status'), ['accepted'], true)) {
             $source->set('status', 'superseded');
-            InternalWrite::flag();
-            $this->em->saveEntity($source);
-            InternalWrite::clear();
+            InternalWrite::wrap(function () use ($source) {
+                $this->em->saveEntity($source);
+            });
         }
         $copy = $this->em->getNewEntity('FusanheQuote');
         $copy->set([
@@ -146,29 +146,29 @@ final class QuoteService
             'notesInternal' => $note ?: $source->get('notesInternal'),
             'assignedUserId' => $source->get('assignedUserId'),
         ]);
-        InternalWrite::flag();
-        $this->em->saveEntity($copy);
-        foreach ($this->em->getRDBRepository('FusanheQuoteItem')->where(['quoteId' => $source->getId()])->order('position', 'ASC')->find() as $item) {
-            $newItem = $this->em->getNewEntity('FusanheQuoteItem');
-            $newItem->set([
-                'name' => $item->get('name'),
-                'quoteId' => $copy->getId(),
-                'position' => $item->get('position'),
-                'productId' => $item->get('productId'),
-                'productSpecId' => $item->get('productSpecId'),
-                'description' => $item->get('description'),
-                'quantity' => $item->get('quantity'),
-                'unit' => $item->get('unit'),
-                'unitPrice' => $item->get('unitPrice'),
-                'moq' => $item->get('moq'),
-                'packingSpec' => $item->get('packingSpec'),
-                'leadTimeText' => $item->get('leadTimeText'),
-                'remark' => $item->get('remark'),
-                'internalNote' => $item->get('internalNote'),
-            ]);
-            $this->em->saveEntity($newItem);
-        }
-        InternalWrite::clear();
+        InternalWrite::wrap(function () use ($copy, $source) {
+            $this->em->saveEntity($copy);
+            foreach ($this->em->getRDBRepository('FusanheQuoteItem')->where(['quoteId' => $source->getId()])->order('position', 'ASC')->find() as $item) {
+                $newItem = $this->em->getNewEntity('FusanheQuoteItem');
+                $newItem->set([
+                    'name' => $item->get('name'),
+                    'quoteId' => $copy->getId(),
+                    'position' => $item->get('position'),
+                    'productId' => $item->get('productId'),
+                    'productSpecId' => $item->get('productSpecId'),
+                    'description' => $item->get('description'),
+                    'quantity' => $item->get('quantity'),
+                    'unit' => $item->get('unit'),
+                    'unitPrice' => $item->get('unitPrice'),
+                    'moq' => $item->get('moq'),
+                    'packingSpec' => $item->get('packingSpec'),
+                    'leadTimeText' => $item->get('leadTimeText'),
+                    'remark' => $item->get('remark'),
+                    'internalNote' => $item->get('internalNote'),
+                ]);
+                $this->em->saveEntity($newItem);
+            }
+        });
         $this->audit('quote.revised', $user, $copy, ['sourceId' => $source->getId(), 'versionNo' => $copy->get('versionNo')]);
         return ['id' => $copy->getId(), 'versionNo' => (int) $copy->get('versionNo'), 'sourceId' => $source->getId()];
     }

@@ -39,6 +39,20 @@ abstract class AbstractFusanheAction implements Action
         }
     }
 
+    /**
+     * Entity-level check: own/team roles may only operate on records assigned
+     * to them, so scope permission alone is never enough for id-based routes.
+     */
+    protected function requireEntityScope(string $type, string $id, string $action): \Espo\ORM\Entity
+    {
+        $this->requireScope($type, $action === 'read' ? 'read' : $action);
+        $entity = $this->requireEntity($type, $id);
+        if (!$this->user->isAdmin() && !$this->acl->checkEntity($entity, $action)) {
+            throw new Forbidden("Not allowed to {$action} this {$type} record.");
+        }
+        return $entity;
+    }
+
     protected function requireEntity(string $type, string $id): \Espo\ORM\Entity
     {
         $entity = $this->em->getEntityById($type, $id);

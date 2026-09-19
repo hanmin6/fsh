@@ -24,7 +24,7 @@ final class HtmlPrint
                 . ($i['packingSpec'] ? '<br><small>Packing: ' . self::esc((string) $i['packingSpec']) . '</small>' : '')
                 . '</td>'
                 . '<td class="num">' . number_format((float) $i['quantity'], 2) . ' ' . self::esc((string) $i['unit']) . '</td>'
-                . '<td class="num">' . number_format((float) $i['unitPrice'], 2) . '</td>'
+                . '<td class="num">' . rtrim(rtrim(number_format((float) $i['unitPrice'], 4, '.', ''), '0'), '.') . '</td>'
                 . '<td class="num">' . number_format((float) $i['amount'], 2) . '</td>'
                 . '</tr>';
         }

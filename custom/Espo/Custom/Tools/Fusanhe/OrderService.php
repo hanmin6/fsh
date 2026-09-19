@@ -30,8 +30,7 @@ final class OrderService
         if ($customerRequiredDate === '') throw new BadRequest('customerRequiredDate is required.');
         $name = trim((string) ($input->name ?? '')) ?: ('订单 ' . (string) $quote->get('number'));
 
-        InternalWrite::flag();
-        try {
+        InternalWrite::wrap(function () use ($input, $quote, $name, $customerRequiredDate, &$order, &$items) {
             $order = $this->em->getNewEntity('FusanheSalesOrder');
             $order->set([
                 'name' => $name,
@@ -73,9 +72,7 @@ final class OrderService
                 ]);
                 $this->em->saveEntity($line);
             }
-        } finally {
-            InternalWrite::clear();
-        }
+        });
         $this->audit('order.created', $user, $order, ['quoteId' => $quote->getId()]);
         return ['id' => $order->getId(), 'number' => $order->get('number'), 'lines' => count($items)];
     }

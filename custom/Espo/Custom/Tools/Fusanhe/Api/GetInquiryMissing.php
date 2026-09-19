@@ -27,6 +27,7 @@ final class GetInquiryMissing extends AbstractFusanheAction
         $this->requireScope('FusanheInquiry', 'read');
         $id = $request->getRouteParam('id');
         if (!$id) throw new BadRequest();
+        $this->requireEntityScope('FusanheInquiry', $id, 'read');
         return ResponseComposer::json($this->service->inquiryMissing($id));
     }
 }

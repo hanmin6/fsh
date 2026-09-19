@@ -29,6 +29,7 @@ final class PostQuoteCreateOrder extends AbstractFusanheAction
         }
         $id = $request->getRouteParam('id');
         if (!$id) throw new BadRequest();
+        $this->requireEntityScope('FusanheQuote', $id, 'read');
         return ResponseComposer::json(
             $this->service->createFromQuote($id, $this->user, $request->getParsedBody())
         );
