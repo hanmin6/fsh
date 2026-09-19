@@ -364,6 +364,13 @@ class Phase1Runtime(unittest.TestCase):
             email=f"know.{self.stamp}@visitor.example", externalUserId=f"uid-know-{self.stamp}",
         )
         conv_id = conv["conversationId"]
+        # Park pre-existing approved docs from earlier runs so they cannot
+        # crowd the first-5 knowledge window before this run's docs.
+        _, pre = admin_api("/KnowledgeDocument?" + sp(where=[
+            {"type": "equals", "attribute": "approvalStatus", "value": "approved"},
+        ]))
+        for d0 in pre["list"]:
+            admin_api(f"/KnowledgeDocument/{d0['id']}", "PATCH", {"approvalStatus": "expired"})
         _, expired = admin_api("/KnowledgeDocument", "POST", {
             "name": f"expired-{self.stamp}", "filePath": f"/tmp/expired-{self.stamp}.txt",
             "approvalStatus": "approved", "effectiveFrom": "2020-01-01", "effectiveTo": "2020-12-31",

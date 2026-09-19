@@ -192,6 +192,8 @@ define("custom:views/fusanhe/list", [
       if (this.entity === "ExternalConversation") this.loadSelectors();
       this.load();
       U.localize(this);
+      U.refreshOutboundNotice(this);
+      U.refreshOutboundNotice(this);
     }
     async loadSelectors() {
       for (const [entity, field] of [

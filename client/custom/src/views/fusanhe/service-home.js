@@ -221,6 +221,7 @@ define("custom:views/fusanhe/service-home", [
           }</div>`,
       );
       U.localize(this);
+      U.refreshOutboundNotice(this);
       this.$el.find(".fsh-refresh").prop("disabled", false);
     }
   };

@@ -98,8 +98,46 @@ define("custom:views/fusanhe/common", [], function () {
           ),
         )
       : null;
+  // The outbound notice reflects the live FUSANHE_OUTBOUND_PAUSED switch
+  // (cached 60s); it never asserts a state it has not verified.
+  let outboundState = null;
+  let outboundFetchedAt = 0;
   const pause =
-    '<div class="fsh-notice" role="status">系统当前处于全局停发状态，批准只会创建任务，不会实际发送。</div>';
+    '<div class="fsh-notice fsh-outbound-notice" role="status">正在获取外发开关状态…</div>';
+  const noticeText = (state) =>
+    state === true
+      ? "系统当前处于全局停发状态：批准只创建发送任务，不会实际发送。"
+      : state === false
+        ? "全局停发已关闭：批准的任务可被执行端领取并实际发送。"
+        : "外发开关状态未知（无法读取状态接口），请勿假定任务不会实际发送。";
+  const refreshOutboundNotice = (view) => {
+    const root = view.element || view.$el?.[0];
+    if (!root) return;
+    const apply = (state) => {
+      root.querySelectorAll(".fsh-outbound-notice").forEach((el) => {
+        el.textContent = noticeText(state);
+      });
+    };
+    apply(outboundState);
+    const now = Date.now();
+    if (outboundFetchedAt && now - outboundFetchedAt < 60000) return;
+    outboundFetchedAt = now;
+    if (!view.getAcl?.().checkScope?.("ExternalConversation", "read")) {
+      outboundState = null;
+      apply(outboundState);
+      return;
+    }
+    require(["ajax"], (Ajax) => {
+      Ajax.getRequest("Fusanhe/status")
+        .then((r) => {
+          outboundState = !!r.outboundPaused;
+        })
+        .catch(() => {
+          outboundState = null;
+        })
+        .then(() => apply(outboundState));
+    });
+  };
   // Translate only known UI labels; never transform message or editable draft bodies.
   const localize = (view) => {
     const root = view.element || view.$el?.[0];
@@ -136,5 +174,5 @@ define("custom:views/fusanhe/common", [], function () {
         });
       });
   };
-  return { escape, status, badge, link, wait, pause, localize };
+  return { escape, status, badge, link, wait, pause, outboundState: () => outboundState, refreshOutboundNotice, localize };
 });

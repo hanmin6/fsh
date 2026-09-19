@@ -278,6 +278,15 @@ final class WorkflowService
     public function approve(string $draftId, User $user, ?string $editedText): array
     {
         $draft = $this->requireEntity('AIReplyDraft', $draftId);
+        // Entity-level gate: a user with OutboundTask:create but no access to
+        // the conversation must neither read the reply nor approve it.
+        if (!$this->acl->checkEntityRead($draft)) {
+            throw new NotFound('AIReplyDraft not found.');
+        }
+        $conversation = $this->requireEntity('ExternalConversation', (string) $draft->get('conversationId'));
+        if (!$this->acl->checkEntityRead($conversation)) {
+            throw new NotFound('ExternalConversation not found.');
+        }
         if (!in_array($draft->get('status'), ['generated', 'edited'], true)) {
             throw new Conflict('Draft is not approvable.');
         }
@@ -290,7 +299,6 @@ final class WorkflowService
         $key = hash('sha256', $draft->getId() . '|' . $draft->get('draftText'));
         $task = $this->repo('OutboundTask')->where(['idempotencyKey' => $key])->findOne();
         $deduplicated = (bool) $task;
-        $conversation = $this->requireEntity('ExternalConversation', (string) $draft->get('conversationId'));
         // Immutable snapshot: the approved text is frozen into the task; later
         // draft edits cannot change what will be sent.
         $snapshot = (string) $draft->get('draftText');
@@ -490,7 +498,10 @@ final class WorkflowService
                 throw new BadRequest('platformMessageId is required for successful result.');
             }
             $conversation = $this->requireEntity('ExternalConversation', (string) $task->get('conversationId'));
-            $this->controlService->assertSendAllowed($conversation, 'record a send result');
+            // Recording the outcome of a task already handed to the channel is
+            // bookkeeping, not a new send: pause/takeover gates live at claim
+            // and markSending time. Blocking here would wedge the task in
+            // 'sending' forever (undeliverable receipts, blocked pipeline).
             $executionMode = (string) ($task->get('executionMode') ?: 'mock');
 
             $task->set([
@@ -522,20 +533,22 @@ final class WorkflowService
                 ]);
             }
             $now = $this->kernel->now();
-            $conversation->set([
-                // Send results stay on the task; the conversation only records
-                // that a reply happened.
-                'status' => 'replied',
-                'lastOutboundAt' => $now,
-                'lastMessageAt' => $now,
-                'lastMessagePreview' => mb_substr(preg_replace('/\s+/', ' ', $body), 0, 220),
-                'waitingMinutes' => null,
-                'unreadCount' => 0,
-            ]);
-            if ($conversation->get('lastInboundAt')) {
-                $conversation->set('firstResponseMinutes', max(0, (int) round((time() - strtotime((string) $conversation->get('lastInboundAt'))) / 60)));
+            if ($conversation->get('status') !== 'closed') {
+                $conversation->set([
+                    // Send results stay on the task; the conversation only
+                    // records that a reply happened. Closed stays terminal.
+                    'status' => 'replied',
+                    'lastOutboundAt' => $now,
+                    'lastMessageAt' => $now,
+                    'lastMessagePreview' => mb_substr(preg_replace('/\s+/', ' ', $body), 0, 220),
+                    'waitingMinutes' => null,
+                    'unreadCount' => 0,
+                ]);
+                if ($conversation->get('lastInboundAt')) {
+                    $conversation->set('firstResponseMinutes', max(0, (int) round((time() - strtotime((string) $conversation->get('lastInboundAt'))) / 60)));
+                }
+                $this->kernel->save($conversation);
             }
-            $this->kernel->save($conversation);
         } else {
             $retries = ((int) $task->get('retryCount')) + 1;
             $task->set([
@@ -672,6 +685,10 @@ final class WorkflowService
         foreach ($this->repo('ExternalChannel')->where(['type' => $channelType])->find() as $candidate) {
             $candidateHandle = (string) ($candidate->get('accountHandle') ?: 'default');
             if ($candidateHandle === $handleKey) {
+                // A disabled channel must not accept inquiries.
+                if (!$candidate->get('enabled')) {
+                    throw new Conflict('Channel is disabled; inquiry intake rejected.');
+                }
                 return $candidate;
             }
         }

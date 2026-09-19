@@ -124,7 +124,7 @@ define("custom:views/external-conversation/record/detail", [
           )
           .join(
             "",
-          )}</main><aside class="fsh-pane fsh-pane-right">${control}${identityHtml}<h2>客户信息</h2><dl class="fsh-kv"><dt>客户</dt><dd>${customer}</dd><dt>公司</dt><dd>${U.link("Account", c.accountId, c.accountName)}</dd><dt>渠道 / 国家</dt><dd>${U.escape(c.channelName)} / ${U.escape(c.country)}</dd><dt>接待人</dt><dd>${U.escape(c.assignedUserName || "未分配")}</dd><dt>询盘产品</dt><dd>${U.escape(c.product)}</dd></dl><h2>转销售跟进</h2><div class="fsh-handoff-area"></div><h3>AI 回复与审核</h3>${U.pause}<div class="fsh-actions"><button class="btn btn-default fsh-generate" ${!this.getAcl().checkScope("AIReplyDraft", "create") ? "disabled" : ""}>生成 AI 草稿</button><button class="btn btn-default fsh-manual" ${!this.getAcl().checkScope("AIReplyDraft", "create") ? "disabled" : ""}>人工草稿</button></div><div class="fsh-draft-area"></div></aside></section>`;
+          )}</main><aside class="fsh-pane fsh-pane-right">${control}${identityHtml}<h2>客户信息</h2><dl class="fsh-kv"><dt>客户</dt><dd>${customer}</dd><dt>公司</dt><dd>${U.link("Account", c.accountId, c.accountName)}</dd><dt>渠道 / 国家</dt><dd>${U.escape(c.channelName)} / ${U.escape(c.country)}</dd><dt>接待人</dt><dd>${U.escape(c.assignedUserName || "未分配")}</dd><dt>询盘产品</dt><dd>${U.escape(c.product)}</dd></dl><h2>转销售跟进</h2><div class="fsh-handoff-area"></div><h3>AI 回复与审核</h3>${U.pause}<div class="fsh-actions"><button class="btn btn-default fsh-generate" ${!this.getAcl().checkScope("AIReplyDraft", "create") ? "disabled" : ""}>生成 AI 草稿</button><button class="btn btn-default fsh-manual" ${!this.getAcl().checkScope("AIReplyDraft", "create") ? "disabled" : ""}>人工草稿</button></div><div class="fsh-manual-area"></div><div class="fsh-draft-area"></div></aside></section>`;
         this.$el.find(".fsh-workspace-container").html(html);
         this.$el.find(".fsh-tabs button").on("click", (e) => {
           this.$el
@@ -144,6 +144,7 @@ define("custom:views/external-conversation/record/detail", [
         this.renderHandoff();
         this.renderDraft();
         U.localize(this);
+        U.refreshOutboundNotice(this);
       } catch (e) {
         this.$el
           .find(".fsh-workspace-container")
@@ -246,7 +247,7 @@ define("custom:views/external-conversation/record/detail", [
       );
     }
     manualDraft() {
-      const area = this.$el.find(".fsh-draft-area");
+      const area = this.$el.find(".fsh-manual-area");
       if (this.$el.find(".fsh-manual-text").length) return;
       area.prepend(
         `<div class="fsh-manual-form"><div class="fsh-form-row"><label for="fsh-manual-text">人工草稿内容</label><textarea id="fsh-manual-text" class="form-control fsh-manual-text" rows="6" placeholder="手动撰写回复，保存后走同一审核与发送任务流程"></textarea></div><div class="fsh-actions"><button class="btn btn-primary fsh-manual-save">创建人工草稿</button><button class="btn btn-link fsh-manual-cancel">取消</button></div></div>`,
@@ -448,15 +449,22 @@ define("custom:views/external-conversation/record/detail", [
             : "操作未完成，请检查权限和记录状态后重试。",
         );
         this.renderDraft();
-        this.$el
-          .find(".fsh-generate")
-          .prop(
-            "disabled",
-            !this.getAcl().checkScope("AIReplyDraft", "create"),
-          );
+        this.restoreActionButtons();
       } finally {
         this.busy = false;
       }
+    }
+    // After a failed action the buttons must come back, re-gated by
+    // permission; otherwise one 4xx bricks the whole workbench pane.
+    restoreActionButtons() {
+      this.$el.find(".fsh-pane-right button").prop("disabled", false);
+      const acl = this.getAcl();
+      if (!acl.checkScope("AIReplyDraft", "create"))
+        this.$el.find(".fsh-generate,.fsh-manual").prop("disabled", true);
+      if (!(acl.checkScope("Task", "create") && acl.checkScope("ExternalConversation", "read")))
+        this.$el.find(".fsh-handoff-open").prop("disabled", true);
+      if (!acl.checkScope("ExternalIdentity", "edit"))
+        this.$el.find(".fsh-id-find,.fsh-id-create").prop("disabled", true);
     }
     generateAiDraft() {
       return this.runAction(
@@ -491,9 +499,16 @@ define("custom:views/external-conversation/record/detail", [
         Espo.Ui.error("回复内容不能为空");
         return;
       }
+      const state = U.outboundState();
+      const suffix =
+        state === true
+          ? "；全局停发开启，尚未向客户发送"
+          : state === false
+            ? "；全局停发已关闭，任务可被执行端领取"
+            : "";
       return this.runAction(
         () => Ajax.postRequest(`Fusanhe/draft/${id}/approve`, { draftText }),
-        "已创建发送任务；全局停发开启，尚未向客户发送",
+        "已创建发送任务" + suffix,
       );
     }
   };

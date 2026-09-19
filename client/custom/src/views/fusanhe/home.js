@@ -90,6 +90,7 @@ define("custom:views/fusanhe/home", [
           )}</div>`,
       );
       U.localize(this);
+      U.refreshOutboundNotice(this);
     }
     async counts(specs) {
       return Promise.all(
