@@ -92,7 +92,14 @@ class ServiceContract(unittest.TestCase):
         self.assertIn("assertSendAllowed", control)
         self.assertIn("FUSANHE_OUTBOUND_PAUSED", control)
         workflow = read("custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php")
-        self.assertEqual(workflow.count("assertSendAllowed"), 2, "markSending and reportResult both gate sends")
+        self.assertIn("$this->controlService->assertSendAllowed($conversation, 'start sending')", workflow,
+                      "markSending is the send gate")
+        self.assertNotIn("assertSendAllowed($conversation, 'record a send result')", workflow,
+                         "recording the outcome of an already-dispatched task is bookkeeping; gating it wedges the task")
+        self.assertIn("ControlService::outboundPaused()", workflow,
+                      "claim refuses to hand out tasks while paused")
+        self.assertIn("get('controlMode') === 'human'", workflow,
+                      "claim skips conversations under human takeover")
 
     def test_approved_content_is_snapshotted(self):
         workflow = read("custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php")
