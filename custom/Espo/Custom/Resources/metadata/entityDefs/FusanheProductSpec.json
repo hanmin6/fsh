@@ -1,0 +1,213 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text"
+    },
+    "product": {
+      "type": "link",
+      "required": true
+    },
+    "version": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 50
+    },
+    "status": {
+      "type": "enum",
+      "options": [
+        "draft",
+        "approved",
+        "retired"
+      ],
+      "default": "draft",
+      "displayAsLabel": true
+    },
+    "packingSpec": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "pricingUnit": {
+      "type": "enum",
+      "options": [
+        "carton",
+        "ctn",
+        "kg",
+        "g",
+        "ton",
+        "pcs",
+        "set",
+        "box",
+        "bottle",
+        "can",
+        "bag",
+        "container20",
+        "container40"
+      ]
+    },
+    "netWeightKg": {
+      "type": "float",
+      "min": 0
+    },
+    "grossWeightKg": {
+      "type": "float",
+      "min": 0
+    },
+    "cartonSpec": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "moq": {
+      "type": "float",
+      "min": 0
+    },
+    "moqUnit": {
+      "type": "enum",
+      "options": [
+        "carton",
+        "ctn",
+        "kg",
+        "g",
+        "ton",
+        "pcs",
+        "set",
+        "box",
+        "bottle",
+        "can",
+        "bag",
+        "container20",
+        "container40"
+      ]
+    },
+    "ingredients": {
+      "type": "text"
+    },
+    "allergenStatus": {
+      "type": "enum",
+      "options": [
+        "unknown",
+        "none",
+        "contains",
+        "notApplicable"
+      ],
+      "default": "unknown",
+      "displayAsLabel": true
+    },
+    "allergens": {
+      "type": "text"
+    },
+    "shelfLife": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "storageConditions": {
+      "type": "text"
+    },
+    "origin": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "markets": {
+      "type": "text"
+    },
+    "customerVisibleNotes": {
+      "type": "text"
+    },
+    "internalNotes": {
+      "type": "text",
+      "tooltip": "仅内部使用，禁止出现在客户可见材料"
+    },
+    "source": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "effectiveFrom": {
+      "type": "date"
+    },
+    "effectiveTo": {
+      "type": "date"
+    },
+    "approvedBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "approvedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "assignedUser": {
+      "type": "link",
+      "view": "views/fields/assigned-user"
+    },
+    "teams": {
+      "type": "linkMultiple",
+      "view": "views/fields/teams"
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "product": {
+      "type": "belongsTo",
+      "entity": "FusanheProduct",
+      "foreign": "specs"
+    },
+    "approvedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "teams": {
+      "type": "hasMany",
+      "entity": "Team",
+      "relationName": "entityTeam",
+      "layoutRelationshipsDisabled": true
+    },
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name",
+      "version"
+    ]
+  },
+  "indexes": {
+    "productVersion": {
+      "columns": [
+        "productId",
+        "version"
+      ],
+      "unique": true
+    }
+  }
+}

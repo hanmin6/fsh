@@ -8,7 +8,9 @@
     "KnowledgeDocument": "KnowledgeDocument",
     "AutomationAgent": "AutomationAgent",
     "AutomationAudit": "AutomationAudit",
-    "ExternalIdentity": "External identity"
+    "ExternalIdentity": "External identity",
+    "FusanheProduct": "Products",
+    "FusanheProductSpec": "Product Spec Versions"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "ExternalChannel",
@@ -19,7 +21,9 @@
     "KnowledgeDocument": "KnowledgeDocument",
     "AutomationAgent": "AutomationAgent",
     "AutomationAudit": "AutomationAudit",
-    "ExternalIdentity": "External identity"
+    "ExternalIdentity": "External identity",
+    "FusanheProduct": "Products",
+    "FusanheProductSpec": "Product Spec Versions"
   },
   "labels": {},
   "dashlets": {

@@ -1,0 +1,23 @@
+{
+  "layout": [
+    {
+      "name": "name",
+      "link": true
+    },
+    {
+      "name": "product"
+    },
+    {
+      "name": "version"
+    },
+    {
+      "name": "status"
+    },
+    {
+      "name": "effectiveFrom"
+    },
+    {
+      "name": "effectiveTo"
+    }
+  ]
+}

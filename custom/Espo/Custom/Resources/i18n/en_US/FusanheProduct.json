@@ -1,0 +1,29 @@
+{
+  "scopeName": "Product",
+  "labels": {
+    "Create FusanheProduct": "Create Product",
+    "specs": "Spec Versions"
+  },
+  "fields": {
+    "name": "Product Name (ZH)",
+    "nameEn": "Product Name (EN)",
+    "code": "Product Code",
+    "category": "Category",
+    "status": "Status",
+    "defaultMoq": "Default MOQ",
+    "defaultMoqUnit": "MOQ Unit",
+    "description": "Description",
+    "assignedUser": "Assigned User",
+    "teams": "Teams",
+    "createdAt": "Created At",
+    "modifiedAt": "Modified At",
+    "createdBy": "Created By",
+    "modifiedBy": "Modified By"
+  },
+  "options": {
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    }
+  }
+}

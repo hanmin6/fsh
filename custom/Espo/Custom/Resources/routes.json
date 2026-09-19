@@ -98,5 +98,20 @@
         "route": "/Fusanhe/knowledge/scan",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostKnowledgeScan"
+    },
+    {
+        "route": "/Fusanhe/features",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetFeatures"
+    },
+    {
+        "route": "/Fusanhe/product-spec/:id/approve",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostProductSpecApprove"
+    },
+    {
+        "route": "/Fusanhe/product-spec/:id/retire",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostProductSpecRetire"
     }
 ]

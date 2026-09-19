@@ -1,0 +1,12 @@
+{
+  "controller": "controllers/record",
+  "relationshipPanels": {
+    "specs": {
+      "layout": "list",
+      "displayAsTab": false,
+      "create": true
+    }
+  },
+  "boolFilterData": {},
+  "views": {}
+}

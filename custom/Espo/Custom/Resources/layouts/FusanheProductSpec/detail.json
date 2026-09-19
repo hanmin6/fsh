@@ -1,0 +1,119 @@
+{
+  "layout": [
+    [
+      {
+        "name": "name"
+      },
+      {
+        "name": "version"
+      }
+    ],
+    [
+      {
+        "name": "product"
+      },
+      {
+        "name": "status"
+      }
+    ],
+    [
+      {
+        "name": "packingSpec"
+      },
+      {
+        "name": "pricingUnit"
+      }
+    ],
+    [
+      {
+        "name": "netWeightKg"
+      },
+      {
+        "name": "grossWeightKg"
+      }
+    ],
+    [
+      {
+        "name": "cartonSpec"
+      }
+    ],
+    [
+      {
+        "name": "moq"
+      },
+      {
+        "name": "moqUnit"
+      }
+    ],
+    [
+      {
+        "name": "ingredients"
+      }
+    ],
+    [
+      {
+        "name": "allergenStatus"
+      },
+      {
+        "name": "allergens"
+      }
+    ],
+    [
+      {
+        "name": "shelfLife"
+      },
+      {
+        "name": "origin"
+      }
+    ],
+    [
+      {
+        "name": "storageConditions"
+      }
+    ],
+    [
+      {
+        "name": "markets"
+      }
+    ],
+    [
+      {
+        "name": "effectiveFrom"
+      },
+      {
+        "name": "effectiveTo"
+      }
+    ],
+    [
+      {
+        "name": "source"
+      },
+      {
+        "name": "approvedBy"
+      }
+    ],
+    [
+      {
+        "name": "customerVisibleNotes"
+      }
+    ],
+    [
+      {
+        "name": "internalNotes"
+      }
+    ],
+    [
+      {
+        "name": "assignedUser"
+      },
+      {
+        "name": "teams"
+      }
+    ],
+    [
+      {
+        "name": "description"
+      }
+    ]
+  ]
+}

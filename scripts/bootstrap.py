@@ -10,8 +10,30 @@ def request(path,method='GET',body=None):
 settings=request('/Settings');tabs=settings.get('tabList',[])
 for item in ('ExternalConversation','KnowledgeDocument','OutboundTask'):
  if item not in tabs:tabs.append(item)
+# Industry modules stay hidden unless their feature flag is enabled.
+flags={
+ 'FUSANHE_FEATURE_PRODUCTS':('FusanheProduct','FusanheProductSpec'),
+ 'FUSANHE_FEATURE_CERTIFICATES':('FusanheCertificate',),
+ 'FUSANHE_FEATURE_SAMPLES':('FusanheSample',),
+ 'FUSANHE_FEATURE_QUOTES':('FusanheInquiry','FusanheQuote','FusanheQuoteItem'),
+ 'FUSANHE_FEATURE_ORDERS':('FusanheSalesOrder','FusanheOrderLine','FusanheOrderShipment','FusanheShipmentItem'),
+}
+for var,names in flags.items():
+ if os.getenv(var,'').strip().lower() in ('1','true','yes'):
+  for item in names:
+   if item not in tabs:tabs.append(item)
 request('/Settings','PUT',{'tabList':tabs})
-entities=('Account','Contact','Lead','Opportunity','Task','ExternalConversation','ExternalIdentity','ExternalMessage','AIReplyDraft','OutboundTask','KnowledgeDocument')
+entities=('Account','Contact','Lead','Opportunity','Task','ExternalConversation','ExternalIdentity','ExternalMessage','AIReplyDraft','OutboundTask','KnowledgeDocument',
+          'FusanheProduct','FusanheProductSpec','FusanheCertificate','FusanheSample','FusanheInquiry','FusanheQuote','FusanheQuoteItem',
+          'FusanheSalesOrder','FusanheOrderLine','FusanheOrderShipment','FusanheShipmentItem')
+# A partial rollout may not have every industry scope yet.
+deployed=[]
+for entity in entities:
+ try:
+  request(f'/{entity}?maxSize=1'); deployed.append(entity)
+ except Exception:
+  print(f'skip {entity}: scope not deployed')
+entities=tuple(deployed)
 def acl(read='all',edit='no',create='no',delete='no'):
  return {e:{'create':create,'read':read,'edit':edit,'delete':delete,'stream':read} for e in entities}
 roles={

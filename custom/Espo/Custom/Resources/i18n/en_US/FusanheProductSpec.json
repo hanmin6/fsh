@@ -1,0 +1,86 @@
+{
+  "scopeName": "Product Spec Version",
+  "labels": {
+    "Create FusanheProductSpec": "Create Spec Version"
+  },
+  "fields": {
+    "name": "Version Name",
+    "product": "Product",
+    "version": "Version",
+    "status": "Review Status",
+    "packingSpec": "Packing Spec",
+    "pricingUnit": "Pricing Unit",
+    "netWeightKg": "Net Weight (kg)",
+    "grossWeightKg": "Gross Weight (kg)",
+    "cartonSpec": "Carton Spec",
+    "moq": "MOQ",
+    "moqUnit": "MOQ Unit",
+    "ingredients": "Ingredients",
+    "allergenStatus": "Allergen Status",
+    "allergens": "Allergen Details",
+    "shelfLife": "Shelf Life",
+    "storageConditions": "Storage Conditions",
+    "origin": "Origin",
+    "markets": "Applicable Markets",
+    "customerVisibleNotes": "Customer-visible Notes",
+    "internalNotes": "Internal Notes",
+    "source": "Source",
+    "effectiveFrom": "Effective From",
+    "effectiveTo": "Effective To",
+    "approvedBy": "Approved By",
+    "approvedAt": "Approved At",
+    "assignedUser": "Assigned User",
+    "teams": "Teams",
+    "createdAt": "Created At",
+    "modifiedAt": "Modified At",
+    "createdBy": "Created By",
+    "modifiedBy": "Modified By",
+    "description": "Description"
+  },
+  "options": {
+    "status": {
+      "draft": "Draft",
+      "approved": "Approved",
+      "retired": "Retired"
+    },
+    "allergenStatus": {
+      "unknown": "Unknown",
+      "none": "Confirmed none",
+      "contains": "Contains (see details)",
+      "notApplicable": "Not applicable"
+    },
+    "pricingUnit": {
+      "carton": "Carton",
+      "ctn": "CTN",
+      "kg": "kg",
+      "g": "g",
+      "ton": "Ton",
+      "pcs": "PCS",
+      "set": "Set",
+      "box": "Box",
+      "bottle": "Bottle",
+      "can": "Can",
+      "bag": "Bag",
+      "container20": "20ft container",
+      "container40": "40ft container"
+    },
+    "moqUnit": {
+      "carton": "Carton",
+      "ctn": "CTN",
+      "kg": "kg",
+      "g": "g",
+      "ton": "Ton",
+      "pcs": "PCS",
+      "set": "Set",
+      "box": "Box",
+      "bottle": "Bottle",
+      "can": "Can",
+      "bag": "Bag",
+      "container20": "20ft container",
+      "container40": "40ft container"
+    }
+  },
+  "tooltips": {
+    "internalNotes": "Internal only; must never appear in customer-facing materials"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "scopeName": "产品库",
+  "labels": {
+    "Create FusanheProduct": "新建产品",
+    "specs": "规格版本"
+  },
+  "fields": {
+    "name": "产品名称（中文）",
+    "nameEn": "Product Name (EN)",
+    "code": "产品编码",
+    "category": "品类",
+    "status": "状态",
+    "defaultMoq": "默认 MOQ",
+    "defaultMoqUnit": "MOQ 单位",
+    "description": "说明",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人"
+  },
+  "options": {
+    "status": {
+      "enabled": "启用",
+      "disabled": "停用"
+    }
+  }
+}

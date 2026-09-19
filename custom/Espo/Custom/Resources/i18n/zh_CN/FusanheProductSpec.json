@@ -1,0 +1,86 @@
+{
+  "scopeName": "产品规格版本",
+  "labels": {
+    "Create FusanheProductSpec": "新建规格版本"
+  },
+  "fields": {
+    "name": "版本名称",
+    "product": "产品",
+    "version": "版本号",
+    "status": "审核状态",
+    "packingSpec": "包装规格",
+    "pricingUnit": "计价单位",
+    "netWeightKg": "净重 (kg)",
+    "grossWeightKg": "毛重 (kg)",
+    "cartonSpec": "箱规",
+    "moq": "MOQ",
+    "moqUnit": "MOQ 单位",
+    "ingredients": "成分",
+    "allergenStatus": "过敏原状态",
+    "allergens": "过敏原明细",
+    "shelfLife": "保质期",
+    "storageConditions": "储存条件",
+    "origin": "产地",
+    "markets": "适用市场",
+    "customerVisibleNotes": "客户可见说明",
+    "internalNotes": "内部备注",
+    "source": "来源",
+    "effectiveFrom": "生效日期",
+    "effectiveTo": "失效日期",
+    "approvedBy": "审核人",
+    "approvedAt": "审核时间",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "description": "说明"
+  },
+  "options": {
+    "status": {
+      "draft": "待审核",
+      "approved": "已审核",
+      "retired": "已停用"
+    },
+    "allergenStatus": {
+      "unknown": "未知",
+      "none": "明确不含",
+      "contains": "含有（见明细）",
+      "notApplicable": "不适用"
+    },
+    "pricingUnit": {
+      "carton": "纸箱",
+      "ctn": "箱",
+      "kg": "千克",
+      "g": "克",
+      "ton": "吨",
+      "pcs": "件",
+      "set": "套",
+      "box": "盒",
+      "bottle": "瓶",
+      "can": "罐",
+      "bag": "袋",
+      "container20": "20尺柜",
+      "container40": "40尺柜"
+    },
+    "moqUnit": {
+      "carton": "纸箱",
+      "ctn": "箱",
+      "kg": "千克",
+      "g": "克",
+      "ton": "吨",
+      "pcs": "件",
+      "set": "套",
+      "box": "盒",
+      "bottle": "瓶",
+      "can": "罐",
+      "bag": "袋",
+      "container20": "20尺柜",
+      "container40": "40尺柜"
+    }
+  },
+  "tooltips": {
+    "internalNotes": "仅内部使用，禁止出现在客户可见材料"
+  }
+}

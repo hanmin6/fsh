@@ -8,6 +8,7 @@
     "KnowledgeDocument": "知识文档",
     "AutomationAgent": "平台执行端",
     "AutomationAudit": "自动化审计",
+    "ExternalIdentity": "外部身份",
     "Home": "工作台",
     "Account": "客户公司",
     "Contact": "联系人",
@@ -15,7 +16,8 @@
     "Opportunity": "商机",
     "Task": "任务",
     "Email": "邮件",
-    "ExternalIdentity": "客户身份映射"
+    "FusanheProduct": "产品库",
+    "FusanheProductSpec": "产品规格版本"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "外部渠道",
@@ -33,7 +35,9 @@
     "Opportunity": "商机",
     "Task": "任务",
     "Email": "邮件",
-    "ExternalIdentity": "客户身份映射"
+    "ExternalIdentity": "外部身份",
+    "FusanheProduct": "产品库",
+    "FusanheProductSpec": "产品规格版本"
   },
   "labels": {
     "Unified Inbox": "统一询盘",
