@@ -9,3 +9,4 @@ knowledge/*
 materials/*
 !materials/.gitkeep
 runtime/
+.env.test
