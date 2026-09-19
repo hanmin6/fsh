@@ -27,8 +27,13 @@ class TestP0Fixes(unittest.TestCase):
             'Content-Type': 'application/json'
         }
 
-    def test_new_customer_intake_creates_lead_without_variable_error(self):
-        """P0 #1: Intake with brand new customer should use $customer['created'] without error."""
+    def test_new_customer_intake_receives_without_auto_lead(self):
+        """P0 #1 / Phase 1: intake must not error for brand-new customers.
+
+        Updated for the phase 1 product rule: unknown inquiries are received
+        with an identity mapping and stay unlinked - intake no longer
+        auto-creates a Lead, so createdLead is now asserted to be False.
+        """
         unique_id = f"NEW-{int(time.time() * 1000)}"
         payload = {
             'channelType': 'Alibaba',
@@ -52,7 +57,8 @@ class TestP0Fixes(unittest.TestCase):
             self.assertEqual(resp.status, 200)
             res = json.load(resp)
             self.assertFalse(res.get('deduplicated'))
-            self.assertTrue(res.get('createdLead'), "First-time customer must create a Lead")
+            self.assertFalse(res.get('createdLead'), "Phase 1: intake must not auto-create a Lead")
+            self.assertTrue(res.get('identityId'), "An identity mapping must be created")
             self.assertTrue(res.get('conversationId'))
             conv_id = res['conversationId']
 
@@ -63,7 +69,7 @@ class TestP0Fixes(unittest.TestCase):
         )
         with urllib.request.urlopen(req_conv, timeout=10) as resp:
             conv = json.load(resp)
-            self.assertTrue(conv.get('needsManualMatch'), "Newly created lead requires manual match flag")
+            self.assertTrue(conv.get('needsManualMatch'), "Unlinked identity requires manual confirmation")
             self.assertEqual(conv.get('status'), 'pending')
 
     def test_dashboard_get_is_strictly_read_only(self):

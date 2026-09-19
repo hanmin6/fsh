@@ -551,3 +551,62 @@ body:has(.fsh-login) footer a {
 #navbar .navbar-right > li > a {
   color: #e8e8df !important;
 }
+
+/* Phase 1: dual-module entry and collaboration cards */
+.fsh-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.fsh-entry {
+  display: block;
+  padding: 22px 20px;
+  border: 1px solid var(--border-color, #d4d4c8);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: inherit;
+  text-decoration: none;
+}
+.fsh-entry:hover,
+.fsh-entry:focus-visible {
+  border-color: var(--brand, #3e5c46);
+  text-decoration: none;
+}
+.fsh-entry h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+.fsh-entry p {
+  margin: 0;
+  color: var(--text-secondary, #6b6b60);
+  font-size: 13px;
+}
+.fsh-entry .fsh-entry-counts {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-secondary, #6b6b60);
+}
+.fsh-kv-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 8px 0;
+}
+.fsh-idcand {
+  border: 1px solid var(--border-color, #d4d4c8);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+.fsh-idcand .btn {
+  margin-left: 8px;
+}
+.fsh-form-row {
+  margin-bottom: 8px;
+}
+.fsh-form-row label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}

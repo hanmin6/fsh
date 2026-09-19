@@ -3,5 +3,11 @@ define("custom:controllers/home", ["controllers/home"], function (Dep) {
     actionIndex() {
       this.main("custom:views/fusanhe/home");
     }
+    actionCrm() {
+      this.main("custom:views/fusanhe/crm-home");
+    }
+    actionService() {
+      this.main("custom:views/fusanhe/service-home");
+    }
   };
 });

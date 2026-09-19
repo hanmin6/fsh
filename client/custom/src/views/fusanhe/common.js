@@ -23,7 +23,14 @@ define("custom:views/fusanhe/common", [], function () {
     sending: "发送中",
     sent: "已发送",
     failed: "失败",
+    replied: "已回复",
     closed: "已关闭",
+    aiAssist: "AI 辅助",
+    human: "人工接管",
+    unlinked: "待确认",
+    confirmed: "已确认",
+    real: "真实",
+    mockSent: "模拟已发送",
     generated: "待审核",
     edited: "已修改",
     approved: "已审核",
@@ -77,7 +84,7 @@ define("custom:views/fusanhe/common", [], function () {
     );
   const status = (value) => labels[value] || value || "—";
   const badge = (value) =>
-    `<span class="fsh-badge ${["failed", "high", "riskControl", "loginExpired"].includes(value) ? "fsh-danger" : ["waitingApproval", "generated", "medium", "captcha", "pageChanged", "heartbeatStale"].includes(value) ? "fsh-warning" : ["sent", "approved", "online"].includes(value) ? "fsh-success" : ""}">${escape(status(value))}</span>`;
+    `<span class="fsh-badge ${["failed", "high", "riskControl", "loginExpired"].includes(value) ? "fsh-danger" : ["waitingApproval", "generated", "medium", "captcha", "pageChanged", "heartbeatStale", "human", "mockSent", "unlinked"].includes(value) ? "fsh-warning" : ["sent", "approved", "online", "confirmed"].includes(value) ? "fsh-success" : ""}">${escape(status(value))}</span>`;
   const link = (type, id, name) =>
     id
       ? `<a href="#${type}/view/${encodeURIComponent(id)}">${escape(name)}</a>`

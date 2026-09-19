@@ -3,178 +3,111 @@ define("custom:views/fusanhe/home", [
   "ajax",
   "custom:views/fusanhe/common",
 ], function (Dep, Ajax, U) {
+  // Dual-module entry point: CRM and AI customer service are sibling
+  // workspaces sharing one login, one customer identity and one permission
+  // model. Detailed metrics live inside each workspace.
   return class extends Dep {
     templateContent =
-      '<div class="fsh-shell"><header class="fsh-header"><div><h1>外贸工作台</h1><div class="fsh-subtitle">广州福三和食品有限公司 · 询盘、回复与客户跟进</div></div><button class="btn btn-default fsh-refresh">刷新</button></header><div class="fsh-dashboard-body" aria-live="polite"></div></div>';
+      '<div class="fsh-shell"><header class="fsh-header"><div><h1>福三和工作台</h1><div class="fsh-subtitle">广州福三和食品有限公司 · 请选择工作模块</div></div></header><div class="fsh-entry-body" aria-live="polite"></div></div>';
     updatePageTitle() {
       this.getHelper().pageTitle.setTitle(
-        this.translate("外贸工作台", "labels", "Fusanhe"),
+        this.translate("选择工作模块", "labels", "Fusanhe"),
       );
     }
     afterRender() {
       super.afterRender();
-      this.$el.find(".fsh-refresh").on("click", () => this.load());
-      this.load();
-    }
-    async fetchAll(entity, select) {
-      if (!this.getAcl().checkScope(entity, "read")) return null;
-      const list = [];
-      let offset = 0;
-      while (true) {
-        const r = await Ajax.getRequest(entity, {
-          maxSize: 200,
-          offset,
-          select: select.join(","),
-        });
-        list.push(...r.list);
-        if (r.list.length < 200 || (r.total >= 0 && list.length >= r.total))
-          break;
-        offset += 200;
-      }
-      return list;
-    }
-    async load() {
-      if (this.busy) return;
-      this.busy = true;
-      this.$el.find(".fsh-refresh").prop("disabled", true);
       this.$el
-        .find(".fsh-dashboard-body")
-        .html('<div class="fsh-empty">正在加载运营数据…</div>');
-      const specs = [
+        .find(".fsh-entry-body")
+        .html('<div class="fsh-empty" role="status">正在加载模块入口…</div>');
+      this.render();
+    }
+    async render() {
+      const canCrm =
+        this.getAcl().checkScope("Account", "read") ||
+        this.getAcl().checkScope("Contact", "read") ||
+        this.getAcl().checkScope("Lead", "read");
+      const canService = this.getAcl().checkScope("ExternalConversation", "read");
+      const crmCounts = await this.counts([
+        ["Account", null],
+        ["Contact", null],
+        ["Lead", null],
+        ["Task", { type: "equals", attribute: "assignedUserId", value: this.getUser().id }],
+      ]);
+      const serviceCounts = await this.counts([
         [
           "ExternalConversation",
-          [
-            "id",
-            "name",
-            "createdAt",
-            "status",
-            "lastInboundAt",
-            "lastMessageAt",
-            "lastMessagePreview",
-            "firstResponseMinutes",
-            "assignedUserId",
-            "assignedUserName",
-            "channelName",
-          ],
+          {
+            type: "in",
+            attribute: "status",
+            value: ["new", "pending", "drafted", "waitingApproval"],
+          },
         ],
         [
           "AIReplyDraft",
-          [
-            "id",
-            "name",
-            "status",
-            "wasEdited",
-            "createdAt",
-            "conversationId",
-            "conversationName",
-            "riskLevel",
-            "summaryZh",
-          ],
+          { type: "in", attribute: "status", value: ["generated", "edited"] },
         ],
+        this.getAcl().checkScope("ExternalIdentity", "read")
+          ? [
+              "ExternalIdentity",
+              { type: "equals", attribute: "linkStatus", value: "unlinked" },
+            ]
+          : null,
         [
           "OutboundTask",
-          [
-            "id",
-            "name",
-            "status",
-            "errorMessage",
-            "conversationName",
-            "createdAt",
-          ],
+          { type: "in", attribute: "status", value: ["failed", "sending"] },
         ],
-        ["Task", ["id", "name", "status", "dateEnd", "assignedUserId"]],
-        ["ExternalChannel", ["id", "name", "type", "connectionStatus"]],
-        [
-          "AutomationAgent",
-          ["id", "name", "status", "lastHeartbeatAt", "lastError"],
-        ],
-      ];
-      const results = await Promise.allSettled(
-        specs.map((s) => this.fetchAll(...s)),
+      ]);
+      const entry = (href, title, desc, rows, allowed) =>
+        allowed
+          ? `<a class="fsh-entry" href="${href}"><h2>${title}</h2><p>${desc}</p><div class="fsh-entry-counts">${rows
+              .map(([k, v]) => `${k}：<strong>${U.escape(v)}</strong>`)
+              .join(" · ")}</div></a>`
+          : "";
+      this.$el.find(".fsh-entry-body").html(
+        U.pause +
+          `<div class="fsh-entry-grid">${entry(
+            "#Home/crm",
+            "CRM 工作台",
+            "客户、联系人、线索与跟进任务；商机请使用左侧导航原生入口。",
+            [
+              ["客户", crmCounts[0]],
+              ["联系人", crmCounts[1]],
+              ["线索", crmCounts[2]],
+              ["我的待办", crmCounts[3]],
+            ],
+            canCrm,
+          )}${entry(
+            "#Home/service",
+            "AI 客服工作台",
+            "统一收件箱、草稿审核、身份确认与发送异常。",
+            [
+              ["进行中会话", serviceCounts[0]],
+              ["待审核草稿", serviceCounts[1]],
+              ["身份待确认", serviceCounts[2] === null ? "无权限" : serviceCounts[2]],
+              ["发送异常", serviceCounts[3]],
+            ],
+            canService,
+          )}</div>`,
       );
-      const data = results.map((x) =>
-        x.status === "fulfilled" ? x.value : null,
-      );
-      const [cs, ds, ts, todos, channels, agents] = data;
-      if (agents)
-        agents.forEach((a) => {
-          if (a.status === "online" && (U.wait(a.lastHeartbeatAt) ?? 999) > 5)
-            a.status = "heartbeatStale";
-        });
-      const today = new Date().toLocaleDateString();
-      const count = (rows, fn) =>
-        rows ? rows.filter(fn || (() => true)).length : "—";
-      const rates = (rows, fn) =>
-        rows && rows.length
-          ? Math.round((rows.filter(fn).length / rows.length) * 100) + "%"
-          : "—";
-      const responded = (cs || []).filter(
-        (c) => c.firstResponseMinutes != null,
-      );
-      const values = [
-        [
-          "今日新增询盘",
-          count(
-            cs,
-            (c) =>
-              new Date(
-                c.createdAt.replace(" ", "T") + "Z",
-              ).toLocaleDateString() === today,
-          ),
-        ],
-        ["待回复", count(cs, (c) => ["new", "pending"].includes(c.status))],
-        [
-          "待审核",
-          count(ds, (d) => ["generated", "edited"].includes(d.status)),
-        ],
-        [
-          "超时未回复",
-          count(
-            cs,
-            (c) =>
-              ["new", "pending", "drafted", "waitingApproval"].includes(
-                c.status,
-              ) && U.wait(c.lastInboundAt) >= 120,
-          ),
-        ],
-        ["未分配", count(cs, (c) => !c.assignedUserId)],
-        ["AI 草稿", count(ds)],
-        [
-          "平均首次响应",
-          responded.length
-            ? (
-                responded.reduce((n, c) => n + c.firstResponseMinutes, 0) /
-                responded.length
-              ).toFixed(1) + " 分钟"
-            : "—",
-        ],
-        ["人工修改率", rates(ds, (d) => d.wasEdited || d.status === "edited")],
-        ["发送成功率", rates(ts, (t) => t.status === "sent")],
-        ["失败任务", count(ts, (t) => t.status === "failed")],
-      ];
-      const section = (title, entity, rows, columns) =>
-        `<section class="fsh-section"><h2>${title}<a href="#${entity}">查看全部</a></h2>${
-          rows === null
-            ? '<div class="fsh-empty">暂不可用或没有读取权限。</div>'
-            : !rows.length
-              ? '<div class="fsh-empty">暂无记录。收到相关业务数据后将在这里显示。</div>'
-              : `<div class="fsh-table-scroll"><table class="fsh-table"><tbody>${rows
-                  .slice(0, 6)
-                  .map(
-                    (row) =>
-                      `<tr><td>${U.link(entity, row.id, row.name)}</td>${columns.map((k) => `<td title="${U.escape(["status", "connectionStatus"].includes(k) ? U.status(row[k]) : row[k])}">${["status", "connectionStatus"].includes(k) ? U.badge(row[k]) : U.escape(row[k])}</td>`).join("")}</tr>`,
-                  )
-                  .join("")}</tbody></table></div>`
-        }</section>`;
-      this.$el
-        .find(".fsh-dashboard-body")
-        .html(
-          U.pause +
-            `<div class="fsh-metric-strip">${values.map(([k, v]) => `<div class="fsh-metric"><div class="fsh-metric-label">${k}</div><div class="fsh-metric-value">${U.escape(v)}</div></div>`).join("")}</div><p class="fsh-subtitle">今日按本地日期统计，其余指标为当前权限范围内的全部记录；比例无样本时显示 —。超时阈值 120 分钟。</p><div class="fsh-dashboard-sections">${section("最近询盘", "ExternalConversation", cs && cs.sort((a, b) => (b.lastMessageAt || "").localeCompare(a.lastMessageAt || "")), ["status", "lastMessageAt"])}${section("我的待办", "Task", todos && todos.filter((t) => t.assignedUserId === this.getUser().id && !["Completed", "Canceled"].includes(t.status)), ["status", "dateEnd"])}${section("需要审核的 AI 草稿", "AIReplyDraft", ds && ds.filter((d) => ["generated", "edited"].includes(d.status)), ["conversationName", "status"])}${section("失败或异常发送任务", "OutboundTask", ts && ts.filter((t) => t.status === "failed"), ["status", "errorMessage"])}${section("渠道状态", "ExternalChannel", channels, ["connectionStatus"])}${section("执行端状态", "AutomationAgent", agents, ["status", "lastHeartbeatAt"])}</div>`,
-        );
       U.localize(this);
-      this.busy = false;
-      this.$el.find(".fsh-refresh").prop("disabled", false);
+    }
+    async counts(specs) {
+      return Promise.all(
+        specs.map(async (spec) => {
+          if (!spec) return null;
+          const [entity, where] = spec;
+          if (!this.getAcl().checkScope(entity, "read")) return "无权限";
+          try {
+            const r = await Ajax.getRequest(entity, {
+              maxSize: 1,
+              where: where ? [where] : [],
+            });
+            return r.total >= 0 ? r.total : "—";
+          } catch (e) {
+            return "—";
+          }
+        }),
+      );
     }
   };
 });

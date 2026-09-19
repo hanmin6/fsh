@@ -15,8 +15,9 @@ define("custom:views/fusanhe/list", [
         ["lastMessagePreview", "最后消息"],
         ["unreadCount", "未读"],
         ["waiting", "等待时间"],
-        ["assignedUserName", "负责人"],
-        ["status", "状态"],
+        ["assignedUserName", "接待人"],
+        ["status", "接待状态"],
+        ["controlMode", "控制模式"],
         ["lastMessageAt", "最后消息时间"],
       ],
       sort: "lastMessageAt",
@@ -63,6 +64,7 @@ define("custom:views/fusanhe/list", [
         ["customer", "客户"],
         ["channelName", "渠道"],
         ["status", "状态"],
+        ["executionMode", "执行模式"],
         ["idempotencyKey", "幂等键"],
         ["claimedBy", "执行端"],
         ["retryCount", "重试"],
@@ -401,7 +403,7 @@ define("custom:views/fusanhe/list", [
           row.conversationId,
           "打开会话审核",
         );
-      else if (["status", "approvalStatus", "riskLevel"].includes(field))
+      else if (["status", "approvalStatus", "riskLevel", "controlMode", "executionMode"].includes(field))
         html =
           field === "status" &&
           value === "pending" &&
@@ -414,7 +416,7 @@ define("custom:views/fusanhe/list", [
             ? row.lastInboundAt
             : row.createdAt,
         );
-        const closed = ["sent", "closed", "approved", "rejected"].includes(
+        const closed = ["sent", "replied", "closed", "approved", "rejected"].includes(
           row.status,
         );
         value = closed ? "—" : n == null ? "—" : `${n} 分钟`;
