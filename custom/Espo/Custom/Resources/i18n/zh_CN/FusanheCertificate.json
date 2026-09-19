@@ -1,0 +1,58 @@
+{
+  "scopeName": "证书与报告",
+  "labels": {
+    "Create FusanheCertificate": "新建证书/报告"
+  },
+  "fields": {
+    "name": "证书名称",
+    "type": "类型",
+    "scopeLevel": "适用范围",
+    "factoryName": "工厂名称",
+    "product": "产品",
+    "productSpec": "规格版本",
+    "batchCode": "批次号",
+    "issuer": "签发方",
+    "certificateNo": "证书编号",
+    "issueDate": "签发日期",
+    "validFrom": "生效日期",
+    "validTo": "有效期至",
+    "status": "状态",
+    "reviewer": "审核人",
+    "reviewedAt": "审核时间",
+    "files": "附件",
+    "markets": "适用市场",
+    "notes": "备注",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "description": "说明"
+  },
+  "options": {
+    "type": {
+      "businessLicense": "营业执照",
+      "iso22000": "ISO 22000",
+      "haccp": "HACCP",
+      "brc": "BRC",
+      "ifs": "IFS",
+      "halal": "清真（Halal）",
+      "kosher": "犹太（Kosher）",
+      "fdaRegistration": "FDA 注册",
+      "healthCertificate": "卫生/健康证书",
+      "testReport": "检测报告",
+      "other": "其他"
+    },
+    "scopeLevel": {
+      "factory": "工厂级",
+      "product": "产品级",
+      "batch": "批次级"
+    },
+    "status": {
+      "draft": "待审核",
+      "approved": "已审核",
+      "revoked": "已撤销"
+    }
+  }
+}

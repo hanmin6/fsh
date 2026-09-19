@@ -113,5 +113,20 @@
         "route": "/Fusanhe/product-spec/:id/retire",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostProductSpecRetire"
+    },
+    {
+        "route": "/Fusanhe/certificate/:id/approve",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostCertificateApprove"
+    },
+    {
+        "route": "/Fusanhe/certificate/:id/revoke",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostCertificateRevoke"
+    },
+    {
+        "route": "/Fusanhe/certificates/expiring",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCertificatesExpiring"
     }
 ]

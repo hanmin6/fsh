@@ -10,7 +10,8 @@
     "AutomationAudit": "AutomationAudit",
     "ExternalIdentity": "External identity",
     "FusanheProduct": "Products",
-    "FusanheProductSpec": "Product Spec Versions"
+    "FusanheProductSpec": "Product Spec Versions",
+    "FusanheCertificate": "Certificates & Reports"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "ExternalChannel",

@@ -1,0 +1,58 @@
+{
+  "scopeName": "Certificates & Reports",
+  "labels": {
+    "Create FusanheCertificate": "Create Certificate/Report"
+  },
+  "fields": {
+    "name": "Certificate Name",
+    "type": "Type",
+    "scopeLevel": "Scope",
+    "factoryName": "Factory Name",
+    "product": "Product",
+    "productSpec": "Spec Version",
+    "batchCode": "Batch Code",
+    "issuer": "Issuer",
+    "certificateNo": "Certificate No.",
+    "issueDate": "Issue Date",
+    "validFrom": "Valid From",
+    "validTo": "Valid To",
+    "status": "Status",
+    "reviewer": "Reviewer",
+    "reviewedAt": "Reviewed At",
+    "files": "Files",
+    "markets": "Markets",
+    "notes": "Notes",
+    "assignedUser": "Assigned User",
+    "teams": "Teams",
+    "createdAt": "Created At",
+    "modifiedAt": "Modified At",
+    "createdBy": "Created By",
+    "modifiedBy": "Modified By",
+    "description": "Description"
+  },
+  "options": {
+    "type": {
+      "businessLicense": "Business License",
+      "iso22000": "ISO 22000",
+      "haccp": "HACCP",
+      "brc": "BRC",
+      "ifs": "IFS",
+      "halal": "Halal",
+      "kosher": "Kosher",
+      "fdaRegistration": "FDA Registration",
+      "healthCertificate": "Health Certificate",
+      "testReport": "Test Report",
+      "other": "Other"
+    },
+    "scopeLevel": {
+      "factory": "Factory",
+      "product": "Product",
+      "batch": "Batch"
+    },
+    "status": {
+      "draft": "Draft",
+      "approved": "Approved",
+      "revoked": "Revoked"
+    }
+  }
+}

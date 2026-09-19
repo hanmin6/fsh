@@ -168,6 +168,30 @@ final class WorkflowService
             throw new Conflict('No inbound message available.');
         }
         $knowledge = $this->collectKnowledge();
+        // Approved and still-valid certificates may back factual claims; every
+        // item carries a source id so citations survive into the draft.
+        if (Features::enabled('certificates')) {
+            $certs = $this->repo('FusanheCertificate')->where([
+                'status' => 'approved',
+                'OR' => [['validTo' => null], ['validTo>=' => date('Y-m-d')]],
+            ])->limit(3)->find();
+            foreach ($certs as $cert) {
+                $scope = (string) $cert->get('scopeLevel');
+                $subject = $cert->get('productName') ?: ($cert->get('factoryName') ?: $cert->get('batchCode') ?: '');
+                $text = sprintf(
+                    '[%s] Issued by %s, No. %s, valid %s..%s, scope: %s (%s). Markets: %s',
+                    (string) $cert->get('type'),
+                    (string) ($cert->get('issuer') ?: 'n/a'),
+                    (string) ($cert->get('certificateNo') ?: 'n/a'),
+                    (string) ($cert->get('validFrom') ?: '?'),
+                    (string) ($cert->get('validTo') ?: 'open'),
+                    $scope,
+                    (string) $subject,
+                    (string) ($cert->get('markets') ?: 'n/a')
+                );
+                $knowledge[] = ['id' => 'cert:' . $cert->getId(), 'title' => (string) $cert->get('name'), 'text' => $text];
+            }
+        }
         $history = [];
         foreach ($this->repo('ExternalMessage')->where(['conversationId' => $conversationId])->order('sentAt', 'ASC')->limit(20)->find() as $item) {
             $history[] = ['direction' => $item->get('direction'), 'body' => $item->get('body'), 'sentAt' => $item->get('sentAt')];

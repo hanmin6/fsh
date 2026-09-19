@@ -382,15 +382,22 @@ define("custom:views/external-conversation/record/detail", [
         this.getAcl().checkScope("AIReplyDraft", "edit");
       const citations =
         (d.citedKnowledge || [])
-          .map((k) =>
-            typeof k === "string"
+          .map((k) => {
+            if (typeof k === "string" && k.startsWith("cert:")) {
+              return U.link(
+                "FusanheCertificate",
+                k.slice(5),
+                "查看证书",
+              );
+            }
+            return typeof k === "string"
               ? U.link("KnowledgeDocument", k, "查看引用资料")
               : U.link(
                   "KnowledgeDocument",
                   k.id || k.documentId,
                   k.name || k.title || "引用资料",
-                ),
-          )
+                );
+          })
           .join("<br>") || "无引用资料，请人工核实";
       const missing =
         (d.missingInformation || [])

@@ -1,0 +1,20 @@
+{
+  "layout": [
+    [
+      {
+        "name": "name"
+      },
+      {
+        "name": "status"
+      }
+    ],
+    [
+      {
+        "name": "type"
+      },
+      {
+        "name": "validTo"
+      }
+    ]
+  ]
+}
