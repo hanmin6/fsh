@@ -1,0 +1,98 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "shipment": {
+      "type": "link",
+      "required": true
+    },
+    "orderLine": {
+      "type": "link",
+      "required": true
+    },
+    "quantity": {
+      "type": "float",
+      "required": true,
+      "min": 0
+    },
+    "unit": {
+      "type": "enum",
+      "required": true,
+      "options": [
+        "carton",
+        "ctn",
+        "kg",
+        "g",
+        "ton",
+        "pcs",
+        "set",
+        "box",
+        "bottle",
+        "can",
+        "bag",
+        "container20",
+        "container40"
+      ]
+    },
+    "batchCode": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "note": {
+      "type": "varchar",
+      "maxLength": 500
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "shipment": {
+      "type": "belongsTo",
+      "entity": "FusanheOrderShipment",
+      "foreign": "items"
+    },
+    "orderLine": {
+      "type": "belongsTo",
+      "entity": "FusanheOrderLine"
+    },
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "asc",
+    "textFilterFields": [
+      "name",
+      "batchCode"
+    ]
+  },
+  "indexes": {
+    "batch": {
+      "columns": [
+        "batchCode"
+      ]
+    }
+  }
+}

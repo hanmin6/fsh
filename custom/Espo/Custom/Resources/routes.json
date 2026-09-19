@@ -155,8 +155,28 @@
     "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInquiryMissing"
   },
   {
+    "route": "/Fusanhe/quote/:id/create-order",
+    "method": "post",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostQuoteCreateOrder"
+  },
+  {
     "route": "/Fusanhe/quote/:id/:action",
     "method": "post",
     "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostQuoteTransition"
+  },
+  {
+    "route": "/Fusanhe/order/:id/:action",
+    "method": "post",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostOrderTransition"
+  },
+  {
+    "route": "/Fusanhe/shipment/:id/:action",
+    "method": "post",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostShipmentTransition"
+  },
+  {
+    "route": "/Fusanhe/orders/by-batch",
+    "method": "get",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetOrdersByBatch"
   }
 ]

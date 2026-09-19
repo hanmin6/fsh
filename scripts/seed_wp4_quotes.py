@@ -101,3 +101,47 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# ---------------------------------------------------------------------------
+# WP7 demo: create a confirmed order with shipments from the accepted quote.
+# Kept in this script so a single seed run provisions the whole quote->order chain.
+def seed_order():
+    from datetime import timedelta as _td
+    quote = None
+    q = urllib.parse.urlencode({'where[0][type]': 'equals', 'where[0][attribute]': 'name', 'where[0][value]': 'DEMO-报价-甜玉米 迪拜 2026Q4'})
+    s, r = call('GET', f'/FusanheQuote?{q}&maxSize=10')
+    if s == 200:
+        for candidate in r.get('list', []):
+            if candidate.get('status') == 'accepted':
+                quote = candidate
+                break
+    if not quote:
+        print(json.dumps({'order': 'skipped: accepted demo quote not found'}))
+        return
+    existing = find('FusanheSalesOrder', 'name', 'DEMO-订单-甜玉米 迪拜 2026Q4')
+    if existing:
+        return
+    s, order = call('POST', f"/Fusanhe/quote/{quote['id']}/create-order", {
+        'name': 'DEMO-订单-甜玉米 迪拜 2026Q4',
+        'customerRequiredDate': (UTC_DAY + _td(days=60)).isoformat(),
+    })
+    assert s == 200, order
+    s, r = call('POST', f"/Fusanhe/order/{order['id']}/confirm",
+                {'internalConfirmedDate': (UTC_DAY + _td(days=50)).isoformat()})
+    assert s == 200, r
+    s, lines = call('GET', f"/FusanheOrderLine?maxSize=5&where[0][type]=equals&where[0][attribute]=orderId&where[0][value]={order['id']}")
+    line = lines['list'][0]
+    s, shp = call('POST', '/FusanheOrderShipment', {
+        'name': '首批 60%', 'orderId': order['id'], 'sequence': 1,
+        'plannedShipDate': (UTC_DAY + _td(days=25)).isoformat(),
+        'plannedArrivalDate': (UTC_DAY + _td(days=40)).isoformat(),
+    })
+    s, si = call('POST', '/FusanheShipmentItem', {
+        'shipmentId': shp['id'], 'orderLineId': line['id'],
+        'quantity': 960, 'unit': 'carton', 'batchCode': 'DEMO-BATCH-SO01',
+    })
+    assert s == 200, si
+    print(json.dumps({'order': order['id'], 'firstShipment': shp['id']}))
+
+
+seed_order()

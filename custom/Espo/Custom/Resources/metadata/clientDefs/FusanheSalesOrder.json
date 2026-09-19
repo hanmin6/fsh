@@ -1,0 +1,13 @@
+{
+  "controller": "controllers/record",
+  "relationshipPanels": {
+    "lines": {
+      "layout": "list",
+      "create": true
+    },
+    "shipments": {
+      "layout": "list",
+      "create": true
+    }
+  }
+}

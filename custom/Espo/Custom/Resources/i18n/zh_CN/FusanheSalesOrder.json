@@ -1,0 +1,55 @@
+{
+  "scopeName": "销售订单",
+  "labels": {
+    "Create FusanheSalesOrder": "新建订单"
+  },
+  "fields": {
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "name": "订单主题",
+    "number": "订单编号",
+    "status": "状态",
+    "quote": "来源报价（快照）",
+    "account": "客户公司",
+    "contact": "联系人",
+    "currency": "币种",
+    "tradeTerm": "贸易术语",
+    "tradeTermPlace": "术语地点",
+    "tradeTermVersion": "术语版本",
+    "paymentTerms": "付款方式（快照）",
+    "leadTimeText": "交期说明（快照）",
+    "exchangeRate": "人工汇率",
+    "exchangeRateDate": "汇率日期",
+    "exchangeRateSource": "汇率来源",
+    "quoteAcceptedAt": "报价客户接受日",
+    "quoteAcceptedByRef": "报价客户接受人",
+    "customerRequiredDate": "客户要求交期",
+    "internalConfirmedDate": "内部确认交期",
+    "cancelReason": "取消原因",
+    "notesInternal": "内部备注",
+    "assignedUser": "负责人",
+    "teams": "团队",
+    "description": "说明",
+    "lines": "订单行",
+    "shipments": "出货记录"
+  },
+  "options": {
+    "status": {
+      "draft": "待确认",
+      "confirmed": "已确认",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    },
+    "currency": {
+      "USD": "美元 USD",
+      "CNY": "人民币 CNY",
+      "EUR": "欧元 EUR"
+    }
+  },
+  "tooltips": {
+    "customerRequiredDate": "客户要求交期",
+    "internalConfirmedDate": "内部确认交期，与客户要求分开管理"
+  }
+}

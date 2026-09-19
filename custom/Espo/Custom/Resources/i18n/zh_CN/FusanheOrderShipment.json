@@ -1,0 +1,32 @@
+{
+  "scopeName": "出货记录",
+  "labels": {
+    "Create FusanheOrderShipment": "新建出货"
+  },
+  "fields": {
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "name": "出货名称",
+    "number": "出货编号",
+    "order": "订单",
+    "sequence": "批次序号",
+    "status": "状态",
+    "plannedShipDate": "预计发运",
+    "actualShipDate": "实际发运",
+    "plannedArrivalDate": "预计到达",
+    "actualArrivalDate": "实际到达",
+    "note": "备注",
+    "assignedUser": "负责人",
+    "items": "出货明细"
+  },
+  "options": {
+    "status": {
+      "planned": "计划中",
+      "shipped": "已发运",
+      "arrived": "已到达",
+      "cancelled": "已取消"
+    }
+  }
+}

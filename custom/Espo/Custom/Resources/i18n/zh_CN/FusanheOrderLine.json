@@ -1,0 +1,40 @@
+{
+  "scopeName": "订单行",
+  "labels": {
+    "Create FusanheOrderLine": "新建订单行"
+  },
+  "fields": {
+    "createdAt": "创建时间",
+    "modifiedAt": "修改时间",
+    "createdBy": "创建人",
+    "modifiedBy": "修改人",
+    "name": "行名称",
+    "order": "订单",
+    "position": "行号",
+    "product": "产品",
+    "productSpec": "规格版本",
+    "description": "行描述",
+    "quantity": "数量",
+    "unit": "单位",
+    "unitPrice": "单价",
+    "amount": "行金额",
+    "packingSpec": "包装"
+  },
+  "options": {
+    "unit": {
+      "carton": "纸箱",
+      "ctn": "箱",
+      "kg": "千克",
+      "g": "克",
+      "ton": "吨",
+      "pcs": "件",
+      "set": "套",
+      "box": "盒",
+      "bottle": "瓶",
+      "can": "罐",
+      "bag": "袋",
+      "container20": "20尺柜",
+      "container40": "40尺柜"
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "number": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "order": {
+      "type": "link",
+      "required": true
+    },
+    "sequence": {
+      "type": "int",
+      "default": 1,
+      "min": 1
+    },
+    "status": {
+      "type": "enum",
+      "options": [
+        "planned",
+        "shipped",
+        "arrived",
+        "cancelled"
+      ],
+      "default": "planned",
+      "displayAsLabel": true,
+      "audited": true
+    },
+    "plannedShipDate": {
+      "type": "date"
+    },
+    "actualShipDate": {
+      "type": "date"
+    },
+    "plannedArrivalDate": {
+      "type": "date"
+    },
+    "actualArrivalDate": {
+      "type": "date"
+    },
+    "note": {
+      "type": "text"
+    },
+    "assignedUser": {
+      "type": "link",
+      "view": "views/fields/assigned-user"
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "order": {
+      "type": "belongsTo",
+      "entity": "FusanheSalesOrder",
+      "foreign": "shipments"
+    },
+    "items": {
+      "type": "hasMany",
+      "entity": "FusanheShipmentItem",
+      "foreign": "shipment"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "sequence",
+    "order": "asc",
+    "textFilterFields": [
+      "name",
+      "number"
+    ]
+  },
+  "indexes": {
+    "number": {
+      "columns": [
+        "number"
+      ],
+      "unique": true
+    }
+  }
+}

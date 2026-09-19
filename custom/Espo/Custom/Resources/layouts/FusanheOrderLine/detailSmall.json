@@ -1,0 +1,20 @@
+{
+  "layout": [
+    [
+      {
+        "name": "order"
+      },
+      {
+        "name": "position"
+      }
+    ],
+    [
+      {
+        "name": "quantity"
+      },
+      {
+        "name": "unit"
+      }
+    ]
+  ]
+}

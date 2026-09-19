@@ -1,0 +1,190 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text"
+    },
+    "number": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "status": {
+      "type": "enum",
+      "options": [
+        "draft",
+        "confirmed",
+        "completed",
+        "cancelled"
+      ],
+      "default": "draft",
+      "displayAsLabel": true,
+      "audited": true
+    },
+    "quote": {
+      "type": "link"
+    },
+    "account": {
+      "type": "link",
+      "required": true
+    },
+    "contact": {
+      "type": "link"
+    },
+    "currency": {
+      "type": "enum",
+      "options": [
+        "USD",
+        "CNY",
+        "EUR"
+      ],
+      "default": "USD"
+    },
+    "tradeTerm": {
+      "type": "enum",
+      "options": [
+        "EXW",
+        "FCA",
+        "FOB",
+        "CFR",
+        "CIF",
+        "DAP",
+        "DPU",
+        "DDP"
+      ]
+    },
+    "tradeTermPlace": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "tradeTermVersion": {
+      "type": "varchar",
+      "maxLength": 100
+    },
+    "paymentTerms": {
+      "type": "varchar",
+      "maxLength": 500
+    },
+    "leadTimeText": {
+      "type": "varchar",
+      "maxLength": 500
+    },
+    "exchangeRate": {
+      "type": "float",
+      "min": 0
+    },
+    "exchangeRateDate": {
+      "type": "date"
+    },
+    "exchangeRateSource": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "quoteAcceptedAt": {
+      "type": "date"
+    },
+    "quoteAcceptedByRef": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "customerRequiredDate": {
+      "type": "date",
+      "tooltip": "客户要求交期"
+    },
+    "internalConfirmedDate": {
+      "type": "date",
+      "tooltip": "内部确认交期，与客户要求分开管理"
+    },
+    "cancelReason": {
+      "type": "text"
+    },
+    "notesInternal": {
+      "type": "text"
+    },
+    "assignedUser": {
+      "type": "link",
+      "view": "views/fields/assigned-user"
+    },
+    "teams": {
+      "type": "linkMultiple",
+      "view": "views/fields/teams"
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "quote": {
+      "type": "belongsTo",
+      "entity": "FusanheQuote"
+    },
+    "account": {
+      "type": "belongsTo",
+      "entity": "Account"
+    },
+    "contact": {
+      "type": "belongsTo",
+      "entity": "Contact"
+    },
+    "lines": {
+      "type": "hasMany",
+      "entity": "FusanheOrderLine",
+      "foreign": "order"
+    },
+    "shipments": {
+      "type": "hasMany",
+      "entity": "FusanheOrderShipment",
+      "foreign": "order"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "teams": {
+      "type": "hasMany",
+      "entity": "Team",
+      "relationName": "entityTeam",
+      "layoutRelationshipsDisabled": true
+    },
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name",
+      "number"
+    ]
+  },
+  "indexes": {
+    "number": {
+      "columns": [
+        "number"
+      ],
+      "unique": true
+    }
+  }
+}

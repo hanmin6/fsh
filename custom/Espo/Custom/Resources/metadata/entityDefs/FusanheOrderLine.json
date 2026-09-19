@@ -1,0 +1,113 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "order": {
+      "type": "link",
+      "required": true
+    },
+    "position": {
+      "type": "int",
+      "default": 1,
+      "min": 1
+    },
+    "product": {
+      "type": "link"
+    },
+    "productSpec": {
+      "type": "link"
+    },
+    "description": {
+      "type": "varchar",
+      "maxLength": 500
+    },
+    "quantity": {
+      "type": "float",
+      "required": true,
+      "min": 0
+    },
+    "unit": {
+      "type": "enum",
+      "required": true,
+      "options": [
+        "carton",
+        "ctn",
+        "kg",
+        "g",
+        "ton",
+        "pcs",
+        "set",
+        "box",
+        "bottle",
+        "can",
+        "bag",
+        "container20",
+        "container40"
+      ]
+    },
+    "unitPrice": {
+      "type": "float",
+      "required": true,
+      "min": 0
+    },
+    "amount": {
+      "type": "float",
+      "min": 0,
+      "readOnly": true
+    },
+    "packingSpec": {
+      "type": "varchar",
+      "maxLength": 255
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "order": {
+      "type": "belongsTo",
+      "entity": "FusanheSalesOrder",
+      "foreign": "lines"
+    },
+    "product": {
+      "type": "belongsTo",
+      "entity": "FusanheProduct"
+    },
+    "productSpec": {
+      "type": "belongsTo",
+      "entity": "FusanheProductSpec"
+    },
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "position",
+    "order": "asc",
+    "textFilterFields": [
+      "name",
+      "description"
+    ]
+  },
+  "indexes": {}
+}

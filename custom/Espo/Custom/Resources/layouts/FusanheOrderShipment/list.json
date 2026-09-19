@@ -1,0 +1,26 @@
+{
+  "layout": [
+    {
+      "name": "number",
+      "link": true
+    },
+    {
+      "name": "order"
+    },
+    {
+      "name": "sequence"
+    },
+    {
+      "name": "status"
+    },
+    {
+      "name": "plannedShipDate"
+    },
+    {
+      "name": "actualShipDate"
+    },
+    {
+      "name": "actualArrivalDate"
+    }
+  ]
+}

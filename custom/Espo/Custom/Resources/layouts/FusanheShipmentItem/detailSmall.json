@@ -1,0 +1,20 @@
+{
+  "layout": [
+    [
+      {
+        "name": "shipment"
+      },
+      {
+        "name": "orderLine"
+      }
+    ],
+    [
+      {
+        "name": "quantity"
+      },
+      {
+        "name": "unit"
+      }
+    ]
+  ]
+}

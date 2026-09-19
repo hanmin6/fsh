@@ -1,0 +1,26 @@
+{
+  "layout": [
+    {
+      "name": "number",
+      "link": true
+    },
+    {
+      "name": "name"
+    },
+    {
+      "name": "account"
+    },
+    {
+      "name": "currency"
+    },
+    {
+      "name": "customerRequiredDate"
+    },
+    {
+      "name": "internalConfirmedDate"
+    },
+    {
+      "name": "status"
+    }
+  ]
+}

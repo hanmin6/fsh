@@ -15,7 +15,11 @@
     "FusanheSample": "Samples",
     "FusanheInquiry": "Inquiries",
     "FusanheQuote": "Quotes",
-    "FusanheQuoteItem": "Quote Lines"
+    "FusanheQuoteItem": "Quote Lines",
+    "FusanheSalesOrder": "Sales Orders",
+    "FusanheOrderLine": "Order Lines",
+    "FusanheOrderShipment": "Shipments",
+    "FusanheShipmentItem": "Shipment Items"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "ExternalChannel",

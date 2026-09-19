@@ -1,0 +1,108 @@
+{
+  "layout": [
+    [
+      {
+        "name": "name"
+      },
+      {
+        "name": "number"
+      }
+    ],
+    [
+      {
+        "name": "status"
+      },
+      {
+        "name": "assignedUser"
+      }
+    ],
+    [
+      {
+        "name": "quote"
+      },
+      {
+        "name": "account"
+      }
+    ],
+    [
+      {
+        "name": "contact"
+      }
+    ],
+    [
+      {
+        "name": "currency"
+      },
+      {
+        "name": "quoteAcceptedAt"
+      }
+    ],
+    [
+      {
+        "name": "quoteAcceptedByRef"
+      }
+    ],
+    [
+      {
+        "name": "tradeTerm"
+      },
+      {
+        "name": "tradeTermPlace"
+      }
+    ],
+    [
+      {
+        "name": "tradeTermVersion"
+      },
+      {
+        "name": "paymentTerms"
+      }
+    ],
+    [
+      {
+        "name": "leadTimeText"
+      }
+    ],
+    [
+      {
+        "name": "exchangeRate"
+      },
+      {
+        "name": "exchangeRateDate"
+      }
+    ],
+    [
+      {
+        "name": "exchangeRateSource"
+      }
+    ],
+    [
+      {
+        "name": "customerRequiredDate"
+      },
+      {
+        "name": "internalConfirmedDate"
+      }
+    ],
+    [
+      {
+        "name": "cancelReason"
+      }
+    ],
+    [
+      {
+        "name": "notesInternal"
+      }
+    ],
+    [
+      {
+        "name": "teams"
+      }
+    ],
+    [
+      {
+        "name": "description"
+      }
+    ]
+  ]
+}

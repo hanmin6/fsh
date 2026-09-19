@@ -22,7 +22,11 @@
     "FusanheSample": "样品管理",
     "FusanheInquiry": "询价登记",
     "FusanheQuote": "报价单",
-    "FusanheQuoteItem": "报价行"
+    "FusanheQuoteItem": "报价行",
+    "FusanheSalesOrder": "销售订单",
+    "FusanheOrderLine": "订单行",
+    "FusanheOrderShipment": "出货记录",
+    "FusanheShipmentItem": "出货明细"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "外部渠道",
