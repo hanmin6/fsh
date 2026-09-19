@@ -8,7 +8,7 @@ headers={'Content-Type':'application/json','X-Automation-Token':token}
 def post(path,data):
  req=urllib.request.Request(base+path,json.dumps(data).encode(),headers,method='POST')
  with urllib.request.urlopen(req) as r:return json.load(r)
-post('/Fusanhe/agent/register',{'agentKey':agent,'name':'广州模拟执行端','capabilities':['Alibaba','MadeInChina']})
+post('/Fusanhe/agent/register',{'agentKey':agent,'name':'广州模拟执行端','mode':'mock','capabilities':['Alibaba','MadeInChina']})
 claimed=post('/Fusanhe/agent/claim',{'agentKey':agent})
 if claimed.get('paused'):
  print('Outbound is globally paused.');sys.exit(2)

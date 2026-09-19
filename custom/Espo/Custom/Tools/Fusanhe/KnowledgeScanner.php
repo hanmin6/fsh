@@ -13,7 +13,13 @@ final class KnowledgeScanner
         $allowed=['pdf'=>'PDF','docx'=>'DOCX','xlsx'=>'XLSX','txt'=>'TXT','md'=>'Markdown'];$scanned=0;$updated=0;$errors=[];
         $it=new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root,\FilesystemIterator::SKIP_DOTS));
         foreach($it as $file){if(!$file->isFile())continue;$ext=strtolower($file->getExtension());if(!isset($allowed[$ext]))continue;$scanned++;$path=$file->getPathname();$checksum=hash_file('sha256',$path);
-            try{$doc=$this->em->getRDBRepository('KnowledgeDocument')->where(['filePath'=>$path])->findOne();if($doc&&$doc->get('checksum')===$checksum)continue;if(!$doc){$doc=$this->em->getNewEntity('KnowledgeDocument');$doc->set(['name'=>$file->getBasename(),'filePath'=>$path,'sourceType'=>$allowed[$ext],'approvalStatus'=>'draft','version'=>'1']);}$doc->set(['checksum'=>$checksum,'indexedAt'=>gmdate('Y-m-d H:i:s'),'extractedText'=>$this->extract($path,$ext)]);$this->em->saveEntity($doc);$updated++;}catch(\Throwable $e){$errors[]=$path.': '.$e->getMessage();}
+            try{$doc=$this->em->getRDBRepository('KnowledgeDocument')->where(['filePath'=>$path])->findOne();
+            $contentChanged=$doc&&$doc->get('checksum')!==$checksum;
+            if($doc&&!$contentChanged)continue;
+            if(!$doc){$doc=$this->em->getNewEntity('KnowledgeDocument');$doc->set(['name'=>$file->getBasename(),'filePath'=>$path,'sourceType'=>$allowed[$ext],'approvalStatus'=>'draft','version'=>'1']);}
+            $doc->set(['checksum'=>$checksum,'indexedAt'=>gmdate('Y-m-d H:i:s'),'extractedText'=>$this->extract($path,$ext)]);
+            if($contentChanged&&$doc->get('approvalStatus')==='approved'){$doc->set('approvalStatus','draft');}
+            $this->em->saveEntity($doc);$updated++;}catch(\Throwable $e){$errors[]=$path.': '.$e->getMessage();}
         }
         return compact('scanned','updated','errors');
     }

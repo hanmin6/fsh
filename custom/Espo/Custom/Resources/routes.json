@@ -15,6 +15,46 @@
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostApproveDraft"
     },
     {
+        "route": "/Fusanhe/conversation/:id/manual-draft",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostManualDraft"
+    },
+    {
+        "route": "/Fusanhe/conversation/:id/control",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostConversationControl"
+    },
+    {
+        "route": "/Fusanhe/conversation/:id/handoff",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostHandoff"
+    },
+    {
+        "route": "/Fusanhe/conversation/:id/handoff-tasks",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetHandoffTasks"
+    },
+    {
+        "route": "/Fusanhe/task/:id/cancel",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostTaskCancel"
+    },
+    {
+        "route": "/Fusanhe/identity/:id/candidates",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetIdentityCandidates"
+    },
+    {
+        "route": "/Fusanhe/identity/:id/link",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostIdentityLink"
+    },
+    {
+        "route": "/Fusanhe/identity/:id/create-customer",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostIdentityCreateCustomer"
+    },
+    {
         "route": "/Fusanhe/agent/register",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostAgentRegister",

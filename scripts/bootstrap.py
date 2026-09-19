@@ -11,7 +11,7 @@ settings=request('/Settings');tabs=settings.get('tabList',[])
 for item in ('ExternalConversation','KnowledgeDocument','OutboundTask'):
  if item not in tabs:tabs.append(item)
 request('/Settings','PUT',{'tabList':tabs})
-entities=('Account','Contact','Lead','Opportunity','ExternalConversation','ExternalMessage','AIReplyDraft','OutboundTask','KnowledgeDocument')
+entities=('Account','Contact','Lead','Opportunity','Task','ExternalConversation','ExternalIdentity','ExternalMessage','AIReplyDraft','OutboundTask','KnowledgeDocument')
 def acl(read='all',edit='no',create='no',delete='no'):
  return {e:{'create':create,'read':read,'edit':edit,'delete':delete,'stream':read} for e in entities}
 roles={
@@ -24,6 +24,9 @@ roles={
 roles['老板']['OutboundTask']['create']='yes'
 roles['业务主管']['OutboundTask']['create']='yes'
 roles['业务员']['OutboundTask']['create']='no'
+# Sales handoff creates native Tasks; identities are confirmed from the conversation workspace.
+roles['老板']['Task']['edit']='no'
+roles['老板']['ExternalIdentity']['edit']='no'
 existing=request('/Role?maxSize=100').get('list',[]);by_name={x['name']:x for x in existing}
 for name,data in roles.items():
  if name in by_name:request('/Role/'+by_name[name]['id'],'PATCH',{'data':data})
