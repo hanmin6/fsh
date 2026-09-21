@@ -1,8 +1,8 @@
 # 福三和外贸 CRM 与 AI 回复工作台
 
-基于 EspoCRM 10.0.8 的本地部署及“统一询盘工作台”MVP。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核和广州 Windows 平台执行端放在一个可审计的流程里。
+基于 EspoCRM 10.0.8 的外贸业务软件，包含两个并列入口：CRM 客户关系与销售推进、AI 客服统一收件与回复协作。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核、食品外贸业务记录和广州 Windows 平台执行端放在一个可审计的流程里。
 
-当前环境默认禁止自动外发。Alibaba Bridge 只完成健康检查，真实消息同步和发送尚未接入；其他渠道使用占位连接器演示完整闭环。
+当前环境默认禁止自动外发。Alibaba Bridge 只完成健康检查，真实消息同步和发送尚未接入；其他渠道使用占位连接器演示完整闭环。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
 
 ## 架构
 
@@ -26,9 +26,10 @@ flowchart LR
 ## 已实现
 
 - 8 个 EspoCRM 实体：渠道、会话、消息、AI 草稿、发送任务、知识文档、执行端、审计日志。
+- CRM 与 AI 客服双模块入口、共享客户身份、人工身份确认、客服转销售、人工接管和双向跳转；会话状态、销售阶段、发送任务状态分别维护。
 - 统一询盘列表的渠道、负责人、状态、国家和未读字段，以及按最后消息时间排序的数据基础。
 - 会话详情工作台：客户资料、消息时间线、AI 草稿编辑和人工批准区。
-- 客户匹配顺序：平台用户 ID、邮箱、手机号、公司加国家、姓名加公司；无法可靠匹配时创建待确认 Lead。
+- 客户匹配顺序：平台用户 ID、邮箱、手机号、公司加国家、姓名加公司；无法可靠匹配时保留待确认身份，必须由人工显式关联或建档。
 - 消息、会话和发送任务的数据库唯一约束。
 - OpenAI Compatible Provider；未配置 Key 时使用确定性的 Mock AI。
 - PDF、DOCX、XLSX、TXT、Markdown 扫描和校验值更新。PDF 文本提取在容器存在 `pdftotext` 时启用。
@@ -37,6 +38,7 @@ flowchart LR
 - 全局停发开关，默认 `true`。
 - “外贸运营概览”Dashlet，展示询盘、待回复、待审核、超时、负责人、响应时间、AI 修改率和发送结果。
 - 老板、业务主管、业务员和平台执行端的权限基线；管理员使用 EspoCRM 内置管理员权限。
+- 食品外贸业务模块：产品与规格版本、证书与检测报告、样品、询价、报价/PI、轻量销售订单和分批交付；每个模块有服务端状态机、权限保护、幂等或冻结规则及 Feature Flag。
 - Android `1.0.0` UI 演示版：客户新增、客户历史、询盘会话、翻译和 AI 回复建议，当前使用本地 Mock Repository。
 
 ## 目录
@@ -53,6 +55,7 @@ scripts/restore.sh                  备份恢复（需明确传入备份目录�
 docs/permissions.md                 角色权限说明
 docs/API_AGENT_HANDOFF.md           接口开发交接与技术债
 docs/PROJECT_STATUS.md              项目完成度与版本基线
+docs/RELEASE_HANDOFF_2026-09-21.md  本次整合发布、验证、回退和分支说明
 android-client/                     Android 1.0.0 UI 演示版
 ```
 
@@ -67,7 +70,7 @@ set -a; source .env; set +a
 python3 scripts/bootstrap.py
 ```
 
-打开 <http://localhost:8080>。左侧导航包含“统一询盘”“知识文档”和“发送任务”。老板看板可在首页添加 Dashlet“外贸运营概览”。
+打开 <http://localhost:8080>。左侧导航包含 CRM、AI 客服、统一询盘、知识文档和发送任务；食品外贸实体是否显示由 `.env` 中的 Feature Flag 决定。老板看板可在首页添加 Dashlet“外贸运营概览”。
 
 升级自定义代码后执行：
 
@@ -89,6 +92,11 @@ docker compose exec espocrm bin/command rebuild
 | `FUSANHE_OUTBOUND_PAUSED` | 全局停发开关，生产初始化为 `true` |
 | `ALIBABA_BRIDGE_URL` | Alibaba Bridge 地址 |
 | `ALIBABA_BRIDGE_TOKEN` | Alibaba Bridge Token，不得提交到 Git |
+| `FUSANHE_FEATURE_PRODUCTS` | 产品与规格模块开关，默认关闭 |
+| `FUSANHE_FEATURE_CERTIFICATES` | 证书与检测报告模块开关，默认关闭 |
+| `FUSANHE_FEATURE_SAMPLES` | 样品模块开关，默认关闭 |
+| `FUSANHE_FEATURE_QUOTES` | 询价、报价和 PI 模块开关，默认关闭 |
+| `FUSANHE_FEATURE_ORDERS` | 销售订单和分批交付模块开关，默认关闭 |
 
 修改环境变量后使用 `docker compose up -d --force-recreate espocrm` 使 Apache 进程读取新值。
 
@@ -148,6 +156,7 @@ docker compose exec espocrm bin/command rebuild
 
 - Alibaba 目前只完成 Bridge 健康检查；Made-in-China、独立站和邮件仍是接口骨架，所有渠道均未从 CRM 执行真实平台发送。
 - 浏览器或 Windows UI 自动化执行程序尚未实现。
+- 食品外贸模块目前是 CRM 内的结构化业务记录与工作流，尚未连接 ERP、工厂排产、物流承运商或真实收付款系统；Feature Flag 只控制可见性，不替代权限。
 - Android 1.0.0 使用本地 Mock 数据，真实认证、数据库、WebSocket、离线同步和消息发送尚未接入。
 - DOCX/XLSX 使用轻量文本提取；复杂表格和扫描 PDF 后续应接专业解析/OCR 服务。
 - 当前共享目录为本地演示挂载，部署到广州 Windows 时需替换为实际共享盘路径并配置只读权限。

@@ -17,7 +17,9 @@ class GuardSendStates implements BeforeSave
 
     public function beforeSave(Entity $entity, SaveOptions $options): void
     {
-        if ($entity->isNew() || \Espo\Custom\Tools\Fusanhe\InternalWrite::isFlagged()) {
+        if ($entity->isNew()
+            || $options->get('fusanheService')
+            || \Espo\Custom\Tools\Fusanhe\InternalWrite::isFlagged()) {
             return;
         }
         if ($entity->isAttributeChanged('status')

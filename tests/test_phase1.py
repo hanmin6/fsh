@@ -123,8 +123,7 @@ class GuardContract(unittest.TestCase):
         for entity_type in ("AIReplyDraft", "OutboundTask", "ExternalConversation", "ExternalMessage"):
             path = HOOKS / entity_type
             self.assertTrue(path.is_dir(), f"missing guard hook for {entity_type}")
-            php = next(path.glob("*.php"))
-            source = php.read_text()
+            source = "\n".join(php.read_text() for php in path.glob("*.php"))
             self.assertIn("BeforeSave", source)
             self.assertIn("fusanheService", source, "service writes must bypass the guard")
 
