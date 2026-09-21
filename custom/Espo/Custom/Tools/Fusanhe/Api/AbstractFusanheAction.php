@@ -59,4 +59,35 @@ abstract class AbstractFusanheAction implements Action
         if (!$entity) throw new NotFound("{$type} not found.");
         return $entity;
     }
+
+    /** Correlation id accepted only in a conservative format to prevent log injection. */
+    protected function requestId(Request $request): string
+    {
+        $incoming = trim((string) ($request->getHeader('X-Request-Id') ?? ''));
+        if ($incoming !== '' && preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/', $incoming)) {
+            return $incoming;
+        }
+        return bin2hex(random_bytes(16));
+    }
+
+    /** Successful custom responses always expose the same correlation id. */
+    protected function json(Request $request, array $payload, int $status = 200): Response
+    {
+        $requestId = $this->requestId($request);
+        $response = ResponseComposer::json(['requestId' => $requestId] + $payload);
+        $response->setStatus($status);
+        $response->setHeader('X-Request-Id', $requestId);
+        return $response;
+    }
+
+    /** Stable, non-sensitive public error codes for API clients and support. */
+    protected function errorCode(\Throwable $error): string
+    {
+        return match (true) {
+            $error instanceof BadRequest => 'invalid_request',
+            $error instanceof Forbidden => 'forbidden',
+            $error instanceof NotFound => 'not_found',
+            default => 'internal_error',
+        };
+    }
 }

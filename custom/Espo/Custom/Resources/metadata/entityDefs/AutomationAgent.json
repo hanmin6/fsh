@@ -69,6 +69,32 @@
     },
     "lastError": {
       "type": "text"
+    },
+    "credentialHash": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "credentialVersion": {
+      "type": "int",
+      "default": 0,
+      "readOnly": true
+    },
+    "credentialIssuedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "credentialExpiresAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "credentialRevokedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "credentialLastUsedAt": {
+      "type": "datetime",
+      "readOnly": true
     }
   },
   "links": {

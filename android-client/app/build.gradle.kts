@@ -7,6 +7,9 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+val fusanheUseRemote = providers.gradleProperty("FUSANHE_USE_REMOTE").orElse("false")
+val fusanheApiBaseUrl = providers.gradleProperty("FUSANHE_API_BASE_URL").orElse("http://10.0.2.2:8080/api/v1/")
+
 android {
     namespace = "com.fusanhe.crm"
     compileSdk = 35
@@ -17,6 +20,8 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
+        buildConfigField("boolean", "FUSANHE_USE_REMOTE", fusanheUseRemote.get())
+        buildConfigField("String", "FUSANHE_API_BASE_URL", "\"${fusanheApiBaseUrl.get()}\"")
     }
 
     buildTypes {
@@ -34,6 +39,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -75,4 +81,5 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockwebserver)
 }

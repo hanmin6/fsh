@@ -2,6 +2,8 @@
 .DS_Store
 backups/
 *.log
+__pycache__/
+*.py[cod]
 knowledge/*
 !knowledge/.gitkeep
 !knowledge/demo/

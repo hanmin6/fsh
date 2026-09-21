@@ -4,11 +4,13 @@ import com.fusanhe.crm.data.remote.dto.AccountCreateRequest
 import com.fusanhe.crm.data.remote.dto.AccountDto
 import com.fusanhe.crm.data.remote.dto.AccountListResponse
 import com.fusanhe.crm.data.remote.dto.AIReplyDraftDto
-import com.fusanhe.crm.data.remote.dto.AIReplyGenerateRequest
+import com.fusanhe.crm.data.remote.dto.AppUserDto
+import com.fusanhe.crm.data.remote.dto.DraftApproveRequest
+import com.fusanhe.crm.data.remote.dto.DraftApproveResponse
 import com.fusanhe.crm.data.remote.dto.ExternalConversationDto
 import com.fusanhe.crm.data.remote.dto.ExternalConversationListResponse
 import com.fusanhe.crm.data.remote.dto.ExternalMessageDto
-import com.fusanhe.crm.data.remote.dto.ExternalMessageSendRequest
+import com.fusanhe.crm.data.remote.dto.ExternalMessageListResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -17,11 +19,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * EspoCRM 后端 API 占位接口（base: http://localhost:8080/api/v1）。
- *
- * 当前阶段【不会】调用这些接口：Hilt 中绑定的全部是 Mock Repository。
- * 接入真实后端时，实现 RemoteRepository 并在 DataModule 中替换绑定即可，
- * UI 与 ViewModel 无需改动。字段映射详见 docs/BACKEND_API_MAPPING.md。
+ * EspoCRM production API. Channel sending is intentionally absent.
  */
 interface CrmApiService {
 
@@ -63,16 +61,16 @@ interface CrmApiService {
         @Path("id") conversationId: String,
         @Query("offset") offset: Int = 0,
         @Query("maxSize") maxSize: Int = 50,
-    ): List<ExternalMessageDto>
-
-    @POST("ExternalMessage")
-    suspend fun sendMessage(@Body body: ExternalMessageSendRequest): ExternalMessageDto
+    ): ExternalMessageListResponse
 
     // ---- AI 回复草稿（AIReplyDraft） ----
 
-    @POST("AIReplyDraft/action/generateReply")
-    suspend fun generateReply(@Body body: AIReplyGenerateRequest): AIReplyDraftDto
+    @POST("Fusanhe/conversation/{id}/generate-draft")
+    suspend fun generateReply(@Path("id") conversationId: String): AIReplyDraftDto
 
-    @POST("AIReplyDraft/{id}")
-    suspend fun acceptDraft(@Path("id") id: String, @Body body: AIReplyDraftDto): AIReplyDraftDto
+    @POST("Fusanhe/draft/{id}/approve")
+    suspend fun acceptDraft(@Path("id") id: String, @Body body: DraftApproveRequest): DraftApproveResponse
+
+    @GET("App/user")
+    suspend fun getCurrentUser(): AppUserDto
 }

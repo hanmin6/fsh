@@ -73,6 +73,16 @@
         "noAuth": true
     },
     {
+        "route": "/Fusanhe/agent/:id/credential/rotate",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostAgentCredentialRotate"
+    },
+    {
+        "route": "/Fusanhe/agent/:id/credential/revoke",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostAgentCredentialRevoke"
+    },
+    {
         "route": "/Fusanhe/agent/task/:id/sending",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostTaskSending",

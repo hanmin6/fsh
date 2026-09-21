@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "福三和外贸 CRM 运行时架构",
+    "locale": "zh-CN",
+    "output": "fusanhe-crm.architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/hanmin6/fsh.git",
+      "provider": "github",
+      "revision": "b40f176173d7ff486f572cc1cf2450f5f82838b4"
+    },
+    "views": [
+      {
+        "id": "inquiry-path",
+        "label": "询盘入库",
+        "focus": ["channels", "espocrm", "workflow", "mariadb"],
+        "note": "外部询盘经连接器进入 EspoCRM，完成去重、客户匹配与会话入库。"
+      },
+      {
+        "id": "ai-review-path",
+        "label": "AI 草稿与审批",
+        "focus": ["workbench", "workflow", "knowledge", "ai-provider", "mariadb"],
+        "note": "只把已审核知识与最近会话传给 AI，草稿必须由业务人员审核。"
+      },
+      {
+        "id": "send-path",
+        "label": "受控外发",
+        "focus": ["workbench", "workflow", "mariadb", "automation-agent", "channels"],
+        "note": "审批后才创建幂等发送任务；执行端领取、回写结果并留存审计记录。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "sales-users",
+      "type": "external",
+      "label": "外贸业务团队",
+      "sublabel": "老板 / 主管 / 业务员",
+      "pos": [40, 290],
+      "size": [150, 68]
+    },
+    {
+      "id": "workbench",
+      "type": "frontend",
+      "label": "统一询盘工作台",
+      "sublabel": "EspoCRM Web 自定义前端",
+      "tag": "客户·会话·草稿·审批",
+      "sources": [
+        {"path": "client/custom/src/views/fusanhe/context-detail.js", "label": "会话工作台"},
+        {"path": "client/custom/src/views/fusanhe/home.js", "label": "首页"}
+      ],
+      "pos": [250, 290],
+      "size": [180, 76]
+    },
+    {
+      "id": "android-demo",
+      "type": "frontend",
+      "label": "Android 客户端",
+      "sublabel": "Jetpack Compose UI 演示版",
+      "tag": "当前使用 Mock Repository",
+      "sources": [
+        {"path": "android-client/README.md", "label": "Android 状态"}
+      ],
+      "pos": [250, 110],
+      "size": [180, 68]
+    },
+    {
+      "id": "espocrm",
+      "type": "backend",
+      "label": "EspoCRM API",
+      "sublabel": "10.0.8 Apache / PHP",
+      "tag": "REST 路由·权限·实体",
+      "sources": [
+        {"path": "custom/Espo/Custom/Resources/routes.json", "label": "自定义路由"},
+        {"path": "custom/Espo/Custom/Controllers/ExternalConversation.php", "label": "会话控制器"}
+      ],
+      "pos": [500, 290],
+      "size": [170, 76]
+    },
+    {
+      "id": "workflow",
+      "type": "backend",
+      "label": "Fusanhe WorkflowService",
+      "sublabel": "询盘·草稿·任务·审计",
+      "tag": "幂等 + 状态机",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php", "label": "业务闭环"}
+      ],
+      "pos": [750, 290],
+      "size": [190, 76]
+    },
+    {
+      "id": "mariadb",
+      "type": "database",
+      "label": "MariaDB",
+      "sublabel": "CRM 数据与审计记录",
+      "tag": "Docker volume",
+      "sources": [
+        {"path": "compose.yaml", "label": "db 服务"}
+      ],
+      "pos": [1010, 290],
+      "size": [160, 68]
+    },
+    {
+      "id": "knowledge",
+      "type": "database",
+      "label": "已审核知识库",
+      "sublabel": "PDF / DOCX / XLSX / TXT / Markdown",
+      "tag": "只读挂载",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/KnowledgeScanner.php", "label": "知识扫描"},
+        {"path": "knowledge/demo/hydraulic-fittings.md", "label": "演示知识"}
+      ],
+      "pos": [750, 100],
+      "size": [190, 68]
+    },
+    {
+      "id": "ai-provider",
+      "type": "external",
+      "label": "OpenAI Compatible API",
+      "sublabel": "结构化回复草稿",
+      "tag": "无 Key 时使用 Mock AI",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/AiProvider.php", "label": "AI Provider"}
+      ],
+      "pos": [1010, 100],
+      "size": [180, 68]
+    },
+    {
+      "id": "automation-agent",
+      "type": "backend",
+      "label": "广州 Windows 执行端",
+      "sublabel": "注册·心跳·领取·结果回写",
+      "tag": "全局默认停发",
+      "sources": [
+        {"path": "scripts/mock-agent.py", "label": "Mock Agent"},
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/AutomationAuth.php", "label": "Token 校验"}
+      ],
+      "pos": [750, 480],
+      "size": [200, 76]
+    },
+    {
+      "id": "channels",
+      "type": "external",
+      "label": "外部询盘渠道",
+      "sublabel": "Alibaba·Made-in-China·独立站·Email",
+      "tag": "真实同步/发送待接入",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/Connector/Connector.php", "label": "连接器契约"},
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/Connector/MockConnector.php", "label": "Mock 连接器"}
+      ],
+      "pos": [500, 480],
+      "size": [190, 76]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "福三和 CRM Docker 运行区",
+      "wraps": ["workbench", "espocrm", "workflow", "mariadb", "knowledge"]
+    },
+    {
+      "kind": "security-group",
+      "label": "人工审核与停发控制",
+      "wraps": ["workbench", "workflow", "automation-agent"]
+    }
+  ],
+  "connections": [
+    {"id": "user-workbench", "from": "sales-users", "to": "workbench", "label": "浏览器操作", "variant": "emphasis"},
+    {"id": "workbench-api", "from": "workbench", "to": "espocrm", "label": "REST /api/v1", "variant": "emphasis"},
+    {"id": "api-workflow", "from": "espocrm", "to": "workflow", "label": "业务命令", "variant": "emphasis"},
+    {"id": "workflow-db", "from": "workflow", "to": "mariadb", "label": "ORM 持久化", "variant": "emphasis", "labelDy": 24},
+    {"id": "knowledge-context", "from": "knowledge", "to": "workflow", "label": "已审核上下文", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelAt": [845, 190]},
+    {"id": "workflow-ai", "from": "workflow", "to": "ai-provider", "label": "HTTPS /chat/completions", "variant": "dashed"},
+    {"id": "workflow-agent", "from": "workflow", "to": "automation-agent", "label": "Token 鉴权·任务领取", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelAt": [845, 425]},
+    {"id": "agent-channels", "from": "automation-agent", "to": "channels", "label": "审批后发送 / 结果", "variant": "dashed", "fromSide": "left", "toSide": "right", "labelAt": [720, 575]},
+    {"id": "channels-intake", "from": "channels", "to": "espocrm", "label": "询盘拉取 / 幂等入库", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "labelAt": [595, 425]}
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "核心闭环",
+      "items": ["询盘入库→客户匹配→AI 草稿→人工审批→发送任务", "8 个自定义实体记录会话、消息、草稿、任务与审计"]
+    },
+    {
+      "dot": "rose",
+      "title": "安全闸门",
+      "items": ["只有已审核知识进入 AI 上下文", "FUSANHE_OUTBOUND_PAUSED 默认为 true", "执行端按 Token、在线状态和渠道能力领取任务"]
+    },
+    {
+      "dot": "amber",
+      "title": "当前边界",
+      "items": ["Alibaba 仅实现 Bridge 健康检查，其他真实渠道仍是连接器骨架", "Windows 执行端目前是一次性 Mock 脚本", "Android 1.0.0 仍使用本地 Mock 数据"]
+    }
+  ]
+}

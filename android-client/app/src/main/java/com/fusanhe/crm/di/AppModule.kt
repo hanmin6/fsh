@@ -2,6 +2,8 @@ package com.fusanhe.crm.di
 
 import android.content.Context
 import androidx.room.Room
+import com.fusanhe.crm.BuildConfig
+import com.fusanhe.crm.data.auth.AuthSession
 import com.fusanhe.crm.data.local.CrmDatabase
 import com.fusanhe.crm.data.remote.api.CrmApiService
 import dagger.Module
@@ -44,13 +46,11 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): CrmDatabase =
         Room.databaseBuilder(context, CrmDatabase::class.java, "fusanhe_crm.db")
-            .fallbackToDestructiveMigration()
             .build()
 }
 
 /**
- * 网络层占位：Retrofit 与 CrmApiService 已配置但【未被任何仓库使用】。
- * 接入真实后端时在 DataModule 中把绑定切换为 Remote 实现即可。
+ * Network layer with explicit build-time endpoint and runtime-only auth.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -59,7 +59,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @ApiBaseUrl
-    fun provideApiBaseUrl(): String = "http://localhost:8080/api/v1/"
+    fun provideApiBaseUrl(): String = BuildConfig.FUSANHE_API_BASE_URL
 
     @Provides
     @Singleton
@@ -70,7 +70,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+    fun provideOkHttpClient(authSession: AuthSession): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .header("X-Request-Id", java.util.UUID.randomUUID().toString())
+            authSession.authorizationHeader()?.let { request.header("X-Espo-Authorization", it) }
+            chain.proceed(request.build()).also { response ->
+                if (response.code == 401) authSession.clear()
+            }
+        }
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()

@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "福三和智能外贸工作台",
+    "locale": "zh-CN",
+    "output": "fusanhe-crm-unified.architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "ssh://git@ssh.github.com:443/hanmin6/fsh.git",
+      "link_mode": "local-only",
+      "revision": "b40f176173d7ff486f572cc1cf2450f5f82838b4"
+    },
+    "views": [
+      {
+        "id": "two-centers",
+        "label": "CRM + AI 客服",
+        "focus": ["shell", "crm-center", "ai-center", "shared-core"],
+        "note": "一个外贸工作台内的两个并列业务中心，共用客户和消息数据。"
+      },
+      {
+        "id": "crm-path",
+        "label": "CRM 业务路径",
+        "focus": ["shell", "crm-center", "shared-core", "mariadb"],
+        "note": "从客户、联系人和跟进到商机和经营数据。"
+      },
+      {
+        "id": "ai-service-path",
+        "label": "AI 客服路径",
+        "focus": ["channels", "ai-center", "knowledge", "ai-provider", "agent"],
+        "note": "外部消息进入 AI 客服中心，经知识检索和审核后发送。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "业务团队",
+      "sublabel": "老板 / 主管 / 业务员",
+      "pos": [40, 300],
+      "size": [150, 68]
+    },
+    {
+      "id": "shell",
+      "type": "frontend",
+      "label": "统一工作台",
+      "sublabel": "EspoCRM 登录、导航与权限",
+      "tag": "一个软件",
+      "sources": [
+        {"path": "client/custom/src/views/fusanhe/home.js", "label": "首页工作台"},
+        {"path": "custom/Espo/Custom/Resources/metadata/app/client.json", "label": "客户端配置"}
+      ],
+      "pos": [260, 300],
+      "size": [180, 76]
+    },
+    {
+      "id": "crm-center",
+      "type": "frontend",
+      "label": "CRM 中心",
+      "sublabel": "客户·联系人·商机·跟进",
+      "tag": "销售关系管理",
+      "sources": [
+        {"path": "client/custom/src/views/fusanhe/customer-detail.js", "label": "客户详情"},
+        {"path": "client/custom/src/views/fusanhe/list.js", "label": "询盘列表"}
+      ],
+      "pos": [500, 160],
+      "size": [200, 76]
+    },
+    {
+      "id": "ai-center",
+      "type": "frontend",
+      "label": "AI 客服中心",
+      "sublabel": "收件箱·翻译·草稿·转人",
+      "tag": "消息与客服处理",
+      "sources": [
+        {"path": "client/custom/src/views/fusanhe/context-detail.js", "label": "会话详情"},
+        {"path": "client/custom/src/views/external-conversation/record/detail.js", "label": "外部会话"}
+      ],
+      "pos": [500, 430],
+      "size": [200, 76]
+    },
+    {
+      "id": "shared-core",
+      "type": "backend",
+      "label": "Fusanhe 共享业务层",
+      "sublabel": "客户匹配·会话·草稿·审批·审计",
+      "tag": "WorkflowService + EspoCRM API",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php", "label": "共享业务闭环"},
+        {"path": "custom/Espo/Custom/Resources/routes.json", "label": "API 路由"}
+      ],
+      "pos": [760, 300],
+      "size": [220, 84]
+    },
+    {
+      "id": "mariadb",
+      "type": "database",
+      "label": "MariaDB CRM 数据库",
+      "sublabel": "客户·消息·商机·审计",
+      "tag": "Docker volume",
+      "sources": [
+        {"path": "compose.yaml", "label": "MariaDB 服务"},
+        {"path": "custom/Espo/Custom/Resources/metadata/entityDefs/ExternalConversation.json", "label": "会话实体"}
+      ],
+      "pos": [1050, 300],
+      "size": [180, 76]
+    },
+    {
+      "id": "knowledge",
+      "type": "database",
+      "label": "知识中心",
+      "sublabel": "产品、规则与已审核资料",
+      "tag": "AI 可用知识",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/KnowledgeScanner.php", "label": "知识扫描"},
+        {"path": "custom/Espo/Custom/Resources/metadata/entityDefs/KnowledgeDocument.json", "label": "知识实体"}
+      ],
+      "pos": [760, 100],
+      "size": [210, 76]
+    },
+    {
+      "id": "ai-provider",
+      "type": "external",
+      "label": "AI Provider",
+      "sublabel": "OpenAI Compatible API / Mock AI",
+      "tag": "生成、翻译与分析",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/AiProvider.php", "label": "AI 提供方"}
+      ],
+      "pos": [1120, 100],
+      "size": [190, 76]
+    },
+    {
+      "id": "channels",
+      "type": "external",
+      "label": "外部消息渠道",
+      "sublabel": "Alibaba·MIC·独立站·Email",
+      "tag": "当前主要为连接器骨架",
+      "sources": [
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/Connector/Connector.php", "label": "连接器契约"},
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/Connector/MockConnector.php", "label": "Mock 连接器"}
+      ],
+      "pos": [1050, 540],
+      "size": [190, 76]
+    },
+    {
+      "id": "agent",
+      "type": "backend",
+      "label": "Windows 执行端",
+      "sublabel": "注册·心跳·领取·回写结果",
+      "tag": "当前为 Mock Agent",
+      "sources": [
+        {"path": "scripts/mock-agent.py", "label": "Mock Agent"},
+        {"path": "custom/Espo/Custom/Tools/Fusanhe/AutomationAuth.php", "label": "执行端认证"}
+      ],
+      "pos": [800, 540],
+      "size": [210, 76]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "福三和智能外贸工作台",
+      "wraps": ["shell", "crm-center", "ai-center", "shared-core", "mariadb", "knowledge"]
+    }
+  ],
+  "connections": [
+    {"id": "users-shell", "from": "users", "to": "shell", "label": "登录 / 工作台", "variant": "emphasis"},
+    {"id": "shell-crm", "from": "shell", "to": "crm-center", "label": "CRM 导航", "variant": "emphasis"},
+    {"id": "shell-ai", "from": "shell", "to": "ai-center", "label": "AI 客服导航", "variant": "emphasis"},
+    {"id": "crm-shared", "from": "crm-center", "to": "shared-core", "label": "客户 / 商机 / 跟进", "variant": "emphasis"},
+    {"id": "ai-shared", "from": "ai-center", "to": "shared-core", "label": "会话 / 草稿 / 审批", "variant": "emphasis", "labelAt": [730, 398]},
+    {"id": "shared-db", "from": "shared-core", "to": "mariadb", "label": "ORM 持久化", "variant": "emphasis", "labelDy": 48},
+    {"id": "knowledge-shared", "from": "knowledge", "to": "shared-core", "label": "已审核知识", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": 24},
+    {"id": "ai-provider-call", "from": "shared-core", "to": "ai-provider", "label": "草稿 / 翻译 / 意图", "variant": "dashed"},
+    {"id": "channels-ai", "from": "channels", "to": "ai-center", "label": "询盘与新消息", "variant": "dashed"},
+    {"id": "ai-agent", "from": "ai-center", "to": "agent", "label": "人工批准后的发送任务", "variant": "security", "labelAt": [750, 520]}
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "产品形态",
+      "items": ["一个统一工作台，CRM 中心与 AI 客服中心并列", "两个中心共用客户、消息、知识、权限和审计"]
+    },
+    {
+      "dot": "emerald",
+      "title": "已有实现",
+      "items": ["EspoCRM Web 工作台、外部会话、AIReplyDraft 和发送任务已在当前代码中", "WorkflowService 已经承担客户匹配、草稿、批准与审计"]
+    },
+    {
+      "dot": "amber",
+      "title": "当前边界",
+      "items": ["Alibaba 、MIC、独立站和邮件仍主要是连接器骨架", "Android 当前是 Mock UI，真实接口接入属于后续阶段", "AI 自动外发应保持人工批准和停发控制"]
+    }
+  ]
+}

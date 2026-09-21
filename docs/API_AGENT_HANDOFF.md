@@ -165,7 +165,7 @@ Windows 或浏览器执行端登记和心跳状态。状态包括 `online`、`of
 API 前缀为 `/api/v1`。普通业务接口使用 EspoCRM 登录认证；执行端接口使用请求头：
 
 ```http
-X-Automation-Token: <FUSANHE_AUTOMATION_TOKEN>
+X-Automation-Token: <注册时使用 FUSANHE_AUTOMATION_TOKEN；后续使用注册响应的一次性 Agent credential>
 Content-Type: application/json
 ```
 
@@ -352,7 +352,7 @@ GET    /api/v1/AutomationAudit
 ### P0
 
 1. `mock/intake`、`generate-draft`、`knowledge/scan` 只有登录认证，没有明确的 scope/action ACL。需要定义并实施各接口权限。
-2. 执行端接口使用所有 Agent 共用的 `FUSANHE_AUTOMATION_TOKEN`。拿到 Token 的客户端可声明任意 `agentKey`。需要改为单 Agent 凭证、哈希存储、轮换和撤销。
+2. 注册接口使用 `FUSANHE_AUTOMATION_TOKEN` 作为引导凭证；注册响应一次性返回绑定 `agentKey` 的独立凭证。服务端只保存密码哈希，并校验版本、过期与撤销状态。再次注册同一 Agent 即轮换旧凭证。旧共享凭证回退由 `FUSANHE_AUTOMATION_LEGACY_UNTIL` 限时控制，最迟 2026-10-31 移除。
 
 ### P1
 

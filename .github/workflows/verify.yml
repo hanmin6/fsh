@@ -1,0 +1,35 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  spec-python-php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        run: docker compose config --quiet
+      - name: Validate Spec Kit and offline contracts
+        run: |
+          make spec-check
+          make verify-offline
+      - name: Lint custom PHP
+        run: find custom -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Test, lint and assemble Android
+        working-directory: android-client
+        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug

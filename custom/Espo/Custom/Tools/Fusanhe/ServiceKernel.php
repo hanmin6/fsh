@@ -1,6 +1,8 @@
 <?php
 namespace Espo\Custom\Tools\Fusanhe;
 
+use Espo\Custom\Tools\Fusanhe\Api\RequestContext;
+
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
@@ -38,6 +40,10 @@ final class ServiceKernel
         string $result = 'success',
         array $details = [],
     ): void {
+        $requestId = RequestContext::requestId();
+        if ($requestId !== null) {
+            $details = ['requestId' => $requestId] + $details;
+        }
         $this->create('AutomationAudit', [
             'name' => $event . ' ' . gmdate('H:i:s'),
             'eventType' => $event,
