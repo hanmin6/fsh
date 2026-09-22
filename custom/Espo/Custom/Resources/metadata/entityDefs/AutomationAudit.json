@@ -54,6 +54,11 @@
       "type": "varchar",
       "maxLength": 100
     },
+    "requestId": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true
+    },
     "result": {
       "type": "enum",
       "options": [
@@ -100,6 +105,12 @@
       "columns": [
         "createdAt"
       ]
+    },
+    "requestId": {
+      "columns": [
+        "requestId"
+      ],
+      "unique": true
     }
   }
 }

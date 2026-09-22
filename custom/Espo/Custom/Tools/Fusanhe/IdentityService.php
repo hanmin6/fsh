@@ -118,6 +118,122 @@ final class IdentityService
     }
 
     /**
+     * Refreshes only missing integration profile values for an already-linked
+     * conversation identity.  The identity key is immutable: a later stable
+     * platform id is recorded when absent but never repartitions old history.
+     */
+    public function refreshIntegrationProfile(Entity $identity, string $externalUserId, array $profile): Entity
+    {
+        $updates = ['lastSeenAt' => gmdate('Y-m-d H:i:s')];
+        foreach (['displayName', 'emailAddress', 'phoneNumber', 'country'] as $field) {
+            if (!empty($profile[$field]) && !$identity->get($field)) {
+                $updates[$field] = $profile[$field];
+            }
+        }
+        if (!$identity->get('externalUserId') && trim($externalUserId) !== '') {
+            $updates['externalUserId'] = trim($externalUserId);
+        }
+        $identity->set($updates);
+        $this->kernel->save($identity);
+        return $identity;
+    }
+
+    /**
+     * System-only matching used by the Alibaba importer.  It deliberately
+     * accepts only a unique, exact contact method: names and countries are
+     * useful profile data but are never evidence for merging customers.
+     */
+    public function resolveAutomaticCustomer(Entity $identity, string $conversationExternalId): array
+    {
+        foreach (self::TARGET_MAP as $type => $field) {
+            $id = (string) $identity->get($field);
+            if ($identity->get('linkStatus') === 'confirmed' && $id !== '' && $this->em->getEntityById($type, $id)) {
+                return [
+                    'targetType' => $type,
+                    'targetId' => $id,
+                    'createdLead' => false,
+                    'matchMethod' => 'existingConfirmed',
+                ];
+            }
+        }
+
+        $email = trim((string) $identity->get('emailAddress'));
+        $rawPhone = trim((string) $identity->get('phoneNumber'));
+        $phone = $this->normalisePhone($rawPhone);
+        $emailCandidates = $email === '' ? [] : $this->automaticCandidates('emailAddress', $email);
+        $phoneCandidates = $phone === '' ? [] : $this->phoneCandidates($rawPhone, $phone);
+        $candidates = [];
+        foreach (array_merge($emailCandidates, $phoneCandidates) as $candidate) {
+            $candidates[$candidate['type'] . ':' . $candidate['entity']->getId()] = $candidate;
+        }
+
+        if (count($candidates) === 1) {
+            $candidate = array_values($candidates)[0];
+            $type = $candidate['type'];
+            $field = self::TARGET_MAP[$type];
+            $emailMatches = array_filter($emailCandidates, fn(array $item) => $item['type'] === $type && $item['entity']->getId() === $candidate['entity']->getId());
+            $phoneMatches = array_filter($phoneCandidates, fn(array $item) => $item['type'] === $type && $item['entity']->getId() === $candidate['entity']->getId());
+            $identity->set([
+                $field => $candidate['entity']->getId(),
+                'linkStatus' => 'confirmed',
+                'confirmedAt' => gmdate('Y-m-d H:i:s'),
+            ]);
+            $this->kernel->save($identity);
+            return [
+                'targetType' => $type,
+                'targetId' => $candidate['entity']->getId(),
+                'createdLead' => false,
+                'matchMethod' => $emailMatches && $phoneMatches ? 'uniqueEmailPhone' : ($emailMatches ? 'uniqueEmail' : 'uniquePhone'),
+            ];
+        }
+
+        $lead = $this->ensureLeadForIdentity($identity, $conversationExternalId);
+        return [
+            'targetType' => 'Lead',
+            'targetId' => $lead->getId(),
+            'createdLead' => true,
+            'matchMethod' => count($candidates) === 0 ? 'newLead' : 'ambiguousNewLead',
+        ];
+    }
+
+    /** Creates the narrowest CRM record possible for an unambiguous inquiry. */
+    public function ensureLeadForIdentity(Entity $identity, string $conversationExternalId): Entity
+    {
+        $leadId = (string) $identity->get('leadId');
+        if ($leadId !== '') {
+            $lead = $this->em->getEntityById('Lead', $leadId);
+            if ($lead) {
+                return $lead;
+            }
+        }
+        $displayName = trim((string) $identity->get('displayName'));
+        if ($displayName === '') {
+            throw new Conflict('Identity has no display name to create an Alibaba Lead.');
+        }
+        $nameParts = preg_split('/\\s+/', $displayName, 2) ?: [$displayName];
+        $lead = $this->em->getNewEntity('Lead');
+        $lead->set([
+            'name' => $displayName,
+            'lastName' => $nameParts[count($nameParts) - 1],
+            'firstName' => count($nameParts) > 1 ? $nameParts[0] : null,
+            'status' => 'New',
+            'source' => 'Web Site',
+            'emailAddress' => (string) $identity->get('emailAddress'),
+            'phoneNumber' => (string) $identity->get('phoneNumber'),
+            'addressCountry' => (string) $identity->get('country'),
+            'description' => '来源：Alibaba；询价单；身份key：' . $identity->get('identityKey') . '；询盘：' . $conversationExternalId,
+        ]);
+        $this->kernel->save($lead);
+        $identity->set([
+            'leadId' => $lead->getId(),
+            'linkStatus' => 'confirmed',
+            'confirmedAt' => gmdate('Y-m-d H:i:s'),
+        ]);
+        $this->kernel->save($identity);
+        return $lead;
+    }
+
+    /**
      * Strong-evidence candidates (exact email or phone match) for linking an
      * identity to an existing customer. Candidates are filtered by the
      * caller's read permission, so out-of-scope customers never leak.
@@ -332,5 +448,37 @@ final class IdentityService
     private function repo(string $type = 'ExternalIdentity')
     {
         return $this->em->getRDBRepository($type);
+    }
+
+    private function automaticCandidates(string $field, string $value): array
+    {
+        $candidates = [];
+        foreach (['Account', 'Contact', 'Lead'] as $type) {
+            foreach ($this->repo($type)->where([$field => $value])->find() as $entity) {
+                $candidates[] = ['type' => $type, 'entity' => $entity];
+            }
+        }
+        return $candidates;
+    }
+
+    private function phoneCandidates(string $rawPhone, string $normalisedPhone): array
+    {
+        $candidates = [];
+        foreach (['Account', 'Contact', 'Lead'] as $type) {
+            foreach (array_unique([$rawPhone, $normalisedPhone]) as $queryPhone) {
+                foreach ($this->repo($type)->where(['phoneNumber' => $queryPhone])->find() as $entity) {
+                    if ($this->normalisePhone((string) $entity->get('phoneNumber')) !== $normalisedPhone) {
+                        continue;
+                    }
+                    $candidates[$type . ':' . $entity->getId()] = ['type' => $type, 'entity' => $entity];
+                }
+            }
+        }
+        return array_values($candidates);
+    }
+
+    private function normalisePhone(string $phone): string
+    {
+        return preg_replace('/[^0-9+]/', '', trim($phone)) ?? trim($phone);
     }
 }

@@ -14,8 +14,20 @@
 - Agent 领取任务前会校验注册、在线状态和渠道能力。
 - 成功回写必须提供 `platformMessageId`；已发送任务的重复成功回写按幂等请求处理。
 - Alibaba Bridge 已实现只读健康检查；没有配置 Token 时返回 `configured: false`。
+- CRM 入库端点 `POST /Fusanhe/alibaba/sync` 和每 Agent 独立凭据已实现，包含 capability 校验、受限批次校验、幂等回放与审计。
 
-仍未完成：业务接口细粒度 ACL、每个 Agent 的独立凭证、Alibaba 消息拉取和真实发送、其他渠道连接器、统一请求 Schema 与错误契约。
+### 2026-09-22 状态更新（Alibaba 历史消息同步与时序对齐）
+
+本轮已完成并验证：
+
+- **Alibaba 消息同步基座（Message Sync Foundation）全链路联调闭环**：
+  - 采集端（`alibb`）与 CRM 入库端点（`POST /Fusanhe/alibaba/sync`）全链路贯通，实现了分批入库、断点续传、自动建联与线索关联。
+  - **修复侧边栏挂件噪音污染**：采集器过滤右侧挂件与 Tab 页容器，彻底剔除“未读人脉”、“快速锁定主推款”等非聊天文本，恢复真实的最新消息摘要（`lastMessagePreview`）。
+  - **修复时区与时间戳错乱**：原始北京时间在入库时统一归一化为标准 UTC 存储，消除 8 小时显示漂移；针对低置信度时间采用相对偏移算法，杜绝 `00:00:00` 午夜碰撞。
+  - **保障工作台绝对保序**：工作台详情页（`detail.js`）查询改为按 `sourceSequence ASC` 严格保序呈现，解决同分钟多气泡排序紊乱。
+  - **补齐脱敏 Fixtures 与端到端自动化测试**：新增 `tests/fixtures/alibaba_conversations.json`、`tests/fixtures/alibaba_history_13907077489.json` 以及 `tests/test_sync_e2e.py`，双端测试全部通过（alibb 51/51，CRM runtime 7/7）。
+
+仍未完成：业务接口细粒度 ACL、Alibaba 真实外发执行端、其他渠道连接器；保持 `FUSANHE_OUTBOUND_PAUSED=true`。
 
 ## 1. 可直接发给接手 Agent 的提示词
 
@@ -213,17 +225,22 @@ Content-Type: application/json
 
 ### `POST /Fusanhe/agent/register`
 
+认证头：引导注册使用 `X-Automation-Token`（Bootstrap Token）。
+Agent 凭证认证：注册后生成每个 Agent 的专属凭据，后续请求必须通过请求头携带 `X-Agent-Key` 与 `X-Agent-Token`。
+环境配置：客户端通过环境变量 `FUSANHE_AGENT_TOKEN` 复用最后一次成功轮换的凭据；需要主动更新或轮换时设置 `FUSANHE_ROTATE_AGENT_TOKEN=1`。
+
 请求：
 
 ```json
 {
   "agentKey": "guangzhou-agent-01",
   "name": "广州执行端",
-  "capabilities": ["Alibaba", "MadeInChina"]
+  "capabilities": ["Alibaba", "MadeInChina"],
+  "rotateCredential": true
 }
 ```
 
-响应：`agentId`、`status`。
+响应：`agentId`、`status`、`agentToken`、`credentialIssued`。
 
 ### `POST /Fusanhe/agent/heartbeat`
 

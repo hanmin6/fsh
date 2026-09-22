@@ -111,6 +111,13 @@
       "columns": [
         "type"
       ]
+    },
+    "typeAccountHandle": {
+      "columns": [
+        "type",
+        "accountHandle"
+      ],
+      "unique": true
     }
   }
 }

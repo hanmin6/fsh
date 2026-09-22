@@ -127,6 +127,38 @@
       "type": "varchar",
       "maxLength": 191
     },
+    "sourceCreatedAtRaw": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "sourceUpdatedAtRaw": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "lastSourceSyncAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "backfillCompletedAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "syncError": {
+      "type": "text",
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
     "needsManualMatch": {
       "type": "bool",
       "default": false

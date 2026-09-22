@@ -10,3 +10,6 @@ materials/*
 !materials/.gitkeep
 runtime/
 .env.test
+.gstack/
+__pycache__/
+*.pyc
