@@ -35,8 +35,11 @@ check:
 backup:
 	./scripts/backup.sh
 
+SPECIFY_FEATURE_DIRECTORY ?= specs/002-non-channel-production-readiness
+export SPECIFY_FEATURE_DIRECTORY
+
 spec-check:
-	./.specify/scripts/bash/check-prerequisites.sh --json --require-spec --require-tasks --include-tasks
+	SPECIFY_FEATURE_DIRECTORY=specs/002-non-channel-production-readiness ./.specify/scripts/bash/check-prerequisites.sh --json --require-spec --require-tasks --include-tasks
 	@test -s .specify/memory/constitution.md
 	@test -s specs/001-system-baseline/spec.md
 	@test -s specs/001-system-baseline/plan.md

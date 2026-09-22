@@ -1,0 +1,6 @@
+# Normalize line endings
+* text=auto
+
+# Explicitly maintain LF on all platforms for shell scripts and Makefiles
+*.sh text eol=lf
+Makefile text eol=lf
