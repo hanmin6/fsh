@@ -22,7 +22,7 @@ class TestP0Fixes(unittest.TestCase):
         cls.auto_token = os.environ.get('FUSANHE_AUTOMATION_TOKEN')
         if not cls.auto_token:
             raise unittest.SkipTest('Set FUSANHE_AUTOMATION_TOKEN for runtime tests.')
-        cls.agent_headers = {
+        cls.bootstrap_headers = {
             'X-Automation-Token': cls.auto_token,
             'Content-Type': 'application/json'
         }
@@ -102,16 +102,16 @@ class TestP0Fixes(unittest.TestCase):
         for cid, mod_before in before_convs.items():
             self.assertEqual(mod_before, after_convs.get(cid), f"Conversation {cid} was modified by GET /dashboard")
 
-    def test_claim_validates_agent_registration_and_status(self):
-        """P1 #1: Claim must reject unregistered agents."""
+    def test_bootstrap_credential_cannot_call_protected_agent_endpoints(self):
+        """Per-agent credentials, not the bootstrap token, protect claim."""
         req = urllib.request.Request(
             f"{self.base_url}/Fusanhe/agent/claim",
-            data=json.dumps({'agentKey': 'unregistered-ghost-agent'}).encode('utf-8'),
-            headers=self.agent_headers
+            data=json.dumps({}).encode('utf-8'),
+            headers=self.bootstrap_headers
         )
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             urllib.request.urlopen(req, timeout=10)
-        self.assertEqual(ctx.exception.code, 404)
+        self.assertEqual(ctx.exception.code, 403)
 
 if __name__ == '__main__':
     unittest.main()

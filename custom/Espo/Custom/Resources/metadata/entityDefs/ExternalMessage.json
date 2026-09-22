@@ -91,6 +91,43 @@
       "layoutListDisabled": true,
       "view": "custom:views/fields/structured"
     },
+    "sourceTimestampRaw": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "timestampConfidence": {
+      "type": "enum",
+      "options": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "low",
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "sourceSequence": {
+      "type": "int",
+      "min": 1,
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "messageType": {
+      "type": "enum",
+      "options": [
+        "initialInquiry",
+        "chat"
+      ],
+      "default": "chat",
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
     "contentHash": {
       "type": "varchar",
       "required": true,

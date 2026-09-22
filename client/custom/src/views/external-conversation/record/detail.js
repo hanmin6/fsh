@@ -25,7 +25,7 @@ define("custom:views/external-conversation/record/detail", [
         const [mr, dr, cr, tr, identity] = await Promise.all([
           Ajax.getRequest("ExternalMessage", {
             where,
-            orderBy: "sentAt",
+            orderBy: "sourceSequence",
             order: "asc",
             maxSize: 200,
           }),

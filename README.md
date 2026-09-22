@@ -2,7 +2,7 @@
 
 基于 EspoCRM 10.0.8 的外贸业务软件，包含两个并列入口：CRM 客户关系与销售推进、AI 客服统一收件与回复协作。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核、食品外贸业务记录和广州 Windows 平台执行端放在一个可审计的流程里。
 
-当前环境默认禁止自动外发。Alibaba Bridge 只完成健康检查，真实消息同步和发送尚未接入；其他渠道使用占位连接器演示完整闭环。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
+当前环境默认禁止自动外发。CRM 已实现受独立 Agent 凭据保护的 Alibaba 入库端点，支持受限批次校验、幂等回放和审计；Alibaba Bridge 的完整回填/增量执行端、真实发送仍未接入，且 PHP/Docker 运行时尚未验证。其他渠道使用占位连接器演示完整闭环。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
 
 ## 架构
 
@@ -34,7 +34,8 @@ flowchart LR
 - OpenAI Compatible Provider；未配置 Key 时使用确定性的 Mock AI。
 - PDF、DOCX、XLSX、TXT、Markdown 扫描和校验值更新。PDF 文本提取在容器存在 `pdftotext` 时启用。
 - Alibaba、MadeInChina、Website、Email 的连接器骨架及可演示的 MockConnector。
-- 执行端注册、心跳、任务领取、发送中、成功/失败回写、三次重试、领取超时和审计。
+- 执行端注册、心跳、任务领取、发送中、成功/失败回写、三次重试、领取超时、审计和每 Agent 独立凭据轮换。
+- `POST /Fusanhe/alibaba/sync`：受 Agent capability 约束的 Alibaba 入库、回放冲突保护、身份/Lead 关联和消息去重；这不是完整的平台抓取执行端。
 - 全局停发开关，默认 `true`。
 - “外贸运营概览”Dashlet，展示询盘、待回复、待审核、超时、负责人、响应时间、AI 修改率和发送结果。
 - 老板、业务主管、业务员和平台执行端的权限基线；管理员使用 EspoCRM 内置管理员权限。
@@ -88,7 +89,7 @@ docker compose exec espocrm bin/command rebuild
 | `AI_TIMEOUT` / `AI_MAX_RETRIES` | 超时秒数和重试次数 |
 | `KNOWLEDGE_BASE_PATH` | 容器内知识库目录 |
 | `MATERIAL_LIBRARY_PATH` | 容器内素材目录 |
-| `FUSANHE_AUTOMATION_TOKEN` | Windows 执行端独立 Token |
+| `FUSANHE_AUTOMATION_TOKEN` | Agent 注册/轮换使用的 bootstrap Token；同步与任务接口使用每 Agent 凭据 |
 | `FUSANHE_OUTBOUND_PAUSED` | 全局停发开关，生产初始化为 `true` |
 | `ALIBABA_BRIDGE_URL` | Alibaba Bridge 地址 |
 | `ALIBABA_BRIDGE_TOKEN` | Alibaba Bridge Token，不得提交到 Git |
@@ -154,7 +155,7 @@ docker compose exec espocrm bin/command rebuild
 
 ## 已知限制
 
-- Alibaba 目前只完成 Bridge 健康检查；Made-in-China、独立站和邮件仍是接口骨架，所有渠道均未从 CRM 执行真实平台发送。
+- Alibaba CRM 入库端点与每 Agent 凭据已实现，但 Alibaba 全量/增量抓取执行端、Bridge 实际接通和真实平台发送均未完成；当前 PHP/Docker 运行时也未验证。Made-in-China、独立站和邮件仍是接口骨架。
 - 浏览器或 Windows UI 自动化执行程序尚未实现。
 - 食品外贸模块目前是 CRM 内的结构化业务记录与工作流，尚未连接 ERP、工厂排产、物流承运商或真实收付款系统；Feature Flag 只控制可见性，不替代权限。
 - Android 1.0.0 使用本地 Mock 数据，真实认证、数据库、WebSocket、离线同步和消息发送尚未接入。

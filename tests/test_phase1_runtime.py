@@ -62,6 +62,22 @@ def admin_api(path, method="GET", body=None, expect_error=False):
     return api(path, method, body, auth=(ADMIN_USER, ADMIN_PASS), expect_error=expect_error)
 
 
+def bootstrap_headers():
+    return {"X-Automation-Token": AUTO_TOKEN}
+
+
+def register_agent(agent_key, **extra):
+    payload = {"agentKey": agent_key, "mode": "mock", "capabilities": ["Website"]}
+    payload.update(extra)
+    _, registration = api("/Fusanhe/agent/register", "POST", payload, headers=bootstrap_headers())
+    if not registration.get("credentialIssued") or not registration.get("agentToken"):
+        raise AssertionError("registration must issue a one-time agent credential")
+    return registration, {
+        "X-Agent-Key": agent_key,
+        "X-Agent-Token": registration["agentToken"],
+    }
+
+
 def sp(max_size=100, where=None, text_filter=None):
     """EspoCRM 10 ignores a JSON-string `where` query param; list queries must
     use the `searchParams` JSON parameter instead."""
@@ -311,14 +327,11 @@ class Phase1Runtime(unittest.TestCase):
         _, approved = admin_api(f"/Fusanhe/draft/{draft['draftId']}/approve", "POST", {})
         task_id = approved["taskId"]
 
-        agent_headers = {"X-Automation-Token": AUTO_TOKEN}
         agent_key = f"phase1-agent-{self.stamp}"
-        _, reg = api("/Fusanhe/agent/register", "POST", {
-            "agentKey": agent_key, "mode": "mock", "capabilities": ["Website"],
-        }, headers=agent_headers)
+        reg, agent_headers = register_agent(agent_key)
         self.assertEqual(reg.get("mode"), "mock")
 
-        _, claimed = api("/Fusanhe/agent/claim", "POST", {"agentKey": agent_key}, headers=agent_headers)
+        _, claimed = api("/Fusanhe/agent/claim", "POST", {}, headers=agent_headers)
         self.assertTrue(claimed.get("paused"), "paused system must refuse to hand out tasks")
 
         _, control = admin_api(f"/Fusanhe/conversation/{conv_id}/control", "POST", {"mode": "human"})
@@ -440,12 +453,9 @@ class Phase1Runtime(unittest.TestCase):
         self.assertEqual(draft["provider"], "mock")
         _, approved = admin_api(f"/Fusanhe/draft/{draft['draftId']}/approve", "POST", {})
         self.assertEqual(approved["executionMode"], "mock")
-        agent_headers = {"X-Automation-Token": AUTO_TOKEN}
-        api("/Fusanhe/agent/register", "POST", {
-            "agentKey": f"phase1-loop-agent-{self.stamp}", "mode": "mock", "capabilities": ["Website"],
-        }, headers=agent_headers)
+        _, agent_headers = register_agent(f"phase1-loop-agent-{self.stamp}")
         _, claimed = api("/Fusanhe/agent/claim", "POST",
-                         {"agentKey": f"phase1-loop-agent-{self.stamp}"}, headers=agent_headers)
+                         {}, headers=agent_headers)
         self.assertTrue(claimed.get("paused"))
 
     # ---- 14. explicit errors for empty / conflicting input ----
@@ -466,6 +476,104 @@ class Phase1Runtime(unittest.TestCase):
                             {"conversationExternalId": "", "messageExternalId": "", "body": ""},
                             expect_error=True)
         self.assertEqual(code, 400)
+
+
+    def test_15_agent_credentials_are_scoped_rotatable_and_validate_bodies(self):
+        agent_key = f"credential-agent-{self.stamp}"
+        other_agent_key = f"credential-other-{self.stamp}"
+        first, first_headers = register_agent(agent_key)
+        self.assertTrue(first["credentialIssued"])
+        self.assertIn("agentToken", first)
+
+        _, repeated = api(
+            "/Fusanhe/agent/register",
+            "POST",
+            {"agentKey": agent_key, "mode": "mock", "capabilities": ["Website"]},
+            headers=bootstrap_headers(),
+        )
+        self.assertFalse(repeated["credentialIssued"])
+        self.assertNotIn("agentToken", repeated)
+
+        _, other_headers = register_agent(other_agent_key)
+        # The authenticated header wins over an attempt to forge a body key.
+        api(
+            "/Fusanhe/agent/heartbeat",
+            "POST",
+            {"agentKey": other_agent_key, "status": "captcha"},
+            headers=first_headers,
+        )
+        _, agents = admin_api("/AutomationAgent?" + sp(where=[
+            {"type": "in", "attribute": "agentKey", "value": [agent_key, other_agent_key]},
+        ]))
+        by_key = {agent["agentKey"]: agent for agent in agents["list"]}
+        self.assertEqual(by_key[agent_key]["status"], "captcha")
+        self.assertEqual(by_key[other_agent_key]["status"], "online")
+
+        code, _ = api(
+            "/Fusanhe/agent/claim",
+            "POST",
+            {},
+            headers=bootstrap_headers(),
+            expect_error=True,
+        )
+        self.assertEqual(code, 403, "bootstrap credentials cannot call protected agent endpoints")
+        code, _ = api(
+            "/Fusanhe/agent/heartbeat",
+            "POST",
+            [],
+            headers=first_headers,
+            expect_error=True,
+        )
+        self.assertEqual(code, 400, "agent endpoints reject non-object JSON bodies")
+
+        _, rotated = api(
+            "/Fusanhe/agent/register",
+            "POST",
+            {"agentKey": agent_key, "rotateCredential": True},
+            headers=bootstrap_headers(),
+        )
+        self.assertTrue(rotated["credentialIssued"])
+        rotated_headers = {
+            "X-Agent-Key": agent_key,
+            "X-Agent-Token": rotated["agentToken"],
+        }
+        code, _ = api(
+            "/Fusanhe/agent/heartbeat",
+            "POST",
+            {},
+            headers=first_headers,
+            expect_error=True,
+        )
+        self.assertEqual(code, 403, "the prior token is invalid after rotation")
+        _, heartbeat = api("/Fusanhe/agent/heartbeat", "POST", {}, headers=rotated_headers)
+        self.assertTrue(heartbeat["ok"])
+
+        admin_api(f"/AutomationAgent/{first['agentId']}", "PATCH", {"credentialStatus": "revoked"})
+        code, _ = api(
+            "/Fusanhe/agent/heartbeat",
+            "POST",
+            {},
+            headers=rotated_headers,
+            expect_error=True,
+        )
+        self.assertEqual(code, 403, "revoked credentials are rejected")
+
+        _, missing_hash = admin_api("/AutomationAgent", "POST", {
+            "name": f"Missing hash {self.stamp}",
+            "agentKey": f"missing-hash-{self.stamp}",
+            "credentialStatus": "active",
+        })
+        code, _ = api(
+            "/Fusanhe/agent/heartbeat",
+            "POST",
+            {},
+            headers={
+                "X-Agent-Key": missing_hash["agentKey"],
+                "X-Agent-Token": "not-a-real-credential",
+            },
+            expect_error=True,
+        )
+        self.assertEqual(code, 403, "agents without a credential hash are rejected")
 
 
 class Phase1SendLoop(unittest.TestCase):
@@ -490,7 +598,7 @@ class Phase1SendLoop(unittest.TestCase):
     def claim_until(self, agent_key, wanted_task_id, headers, max_rounds=6):
         """Claim may return other pending demo tasks; park them and retry."""
         for _ in range(max_rounds):
-            _, claimed = api("/Fusanhe/agent/claim", "POST", {"agentKey": agent_key}, headers=headers)
+            _, claimed = api("/Fusanhe/agent/claim", "POST", {}, headers=headers)
             self.assertFalse(claimed.get("paused"))
             task = claimed.get("task")
             if task is None:
@@ -510,18 +618,15 @@ class Phase1SendLoop(unittest.TestCase):
         _, approved = admin_api(f"/Fusanhe/draft/{draft['draftId']}/approve", "POST", {})
         task_id = approved["taskId"]
 
-        agent_headers = {"X-Automation-Token": AUTO_TOKEN}
         agent_key = f"phase1-send-agent-{self.stamp}"
-        api("/Fusanhe/agent/register", "POST", {
-            "agentKey": agent_key, "mode": "mock", "capabilities": ["Website"],
-        }, headers=agent_headers)
+        _, agent_headers = register_agent(agent_key)
 
         # takeover before claim: the pending automatic task is not handed out
         admin_api(f"/Fusanhe/conversation/{conv_id}/control", "POST", {"mode": "human"})
-        _, claimed = api("/Fusanhe/agent/claim", "POST", {"agentKey": agent_key}, headers=headers_dummy())
+        _, claimed = api("/Fusanhe/agent/claim", "POST", {}, headers=agent_headers)
         while claimed.get("task") and claimed["task"]["id"] != task_id:
             admin_api(f"/Fusanhe/task/{claimed['task']['id']}/cancel", "POST", {})
-            _, claimed = api("/Fusanhe/agent/claim", "POST", {"agentKey": agent_key}, headers=headers_dummy())
+            _, claimed = api("/Fusanhe/agent/claim", "POST", {}, headers=agent_headers)
         self.assertIsNone(claimed.get("task"), "human takeover must block automatic execution")
         admin_api(f"/Fusanhe/conversation/{conv_id}/control", "POST", {"mode": "aiAssist"})
 
@@ -529,22 +634,22 @@ class Phase1SendLoop(unittest.TestCase):
         task = self.claim_until(agent_key, task_id, agent_headers)
         self.assertEqual(task["body"], draft["draftText"] or task["body"])
         admin_api(f"/Fusanhe/conversation/{conv_id}/control", "POST", {"mode": "human"})
-        code, _ = api(f"/Fusanhe/agent/task/{task_id}/sending", "POST", {"agentKey": agent_key},
+        code, _ = api(f"/Fusanhe/agent/task/{task_id}/sending", "POST", {},
                       headers=agent_headers, expect_error=True)
         self.assertEqual(code, 409, "takeover after claim must block sending")
         admin_api(f"/Fusanhe/conversation/{conv_id}/control", "POST", {"mode": "aiAssist"})
 
         # send + result with mock receipt
         _, sending = api(f"/Fusanhe/agent/task/{task_id}/sending", "POST",
-                         {"agentKey": agent_key}, headers=agent_headers)
+                         {}, headers=agent_headers)
         self.assertTrue(sending["ok"])
         _, result = api(f"/Fusanhe/agent/task/{task_id}/result", "POST", {
-            "agentKey": agent_key, "success": True, "platformMessageId": f"MOCK-{task_id}",
+            "success": True, "platformMessageId": f"MOCK-{task_id}",
         }, headers=agent_headers)
         self.assertEqual(result["status"], "sent")
         # duplicate result is idempotent
         _, again = api(f"/Fusanhe/agent/task/{task_id}/result", "POST", {
-            "agentKey": agent_key, "success": True, "platformMessageId": f"MOCK-{task_id}",
+            "success": True, "platformMessageId": f"MOCK-{task_id}",
         }, headers=agent_headers)
         self.assertTrue(again.get("idempotent"))
 
@@ -557,11 +662,6 @@ class Phase1SendLoop(unittest.TestCase):
         self.assertEqual(messages["total"], 1)
         self.assertEqual(messages["list"][0]["deliveryStatus"], "mockSent",
                          "mock receipts must be visibly simulated")
-
-
-def headers_dummy():
-    return {"X-Automation-Token": AUTO_TOKEN}
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,5 +5,30 @@ use Espo\Core\Api\Action;
 use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Api\ResponseComposer;
-use Espo\Custom\Tools\Fusanhe\WorkflowService;use Espo\Custom\Tools\Fusanhe\AutomationAuth;use Espo\Core\Exceptions\BadRequest;
-final class PostTaskSending implements Action { public function __construct(private WorkflowService $service,private AutomationAuth $auth) {} public function process(Request $request): Response {$this->auth->assert($request);$id=$request->getRouteParam('id');if(!$id)throw new BadRequest();return ResponseComposer::json($this->service->markSending($id,$request->getParsedBody()));} }
+use Espo\Core\Exceptions\BadRequest;
+use Espo\Custom\Tools\Fusanhe\AutomationAuth;
+use Espo\Custom\Tools\Fusanhe\WorkflowService;
+
+final class PostTaskSending implements Action
+{
+    public function __construct(
+        private WorkflowService $service,
+        private AutomationAuth $auth,
+    ) {}
+
+    public function process(Request $request): Response
+    {
+        $agent = $this->auth->assertAgent($request);
+        $body = $request->getParsedBody();
+        if (!($body instanceof \stdClass)) {
+            throw new BadRequest('JSON object body is required.');
+        }
+        $body->agentKey = (string) $agent->get('agentKey');
+        $id = $request->getRouteParam('id');
+        if (!$id) {
+            throw new BadRequest();
+        }
+
+        return ResponseComposer::json($this->service->markSending($id, $body));
+    }
+}

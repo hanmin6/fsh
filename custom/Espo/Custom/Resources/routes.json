@@ -85,6 +85,12 @@
         "noAuth": true
     },
     {
+        "route": "/Fusanhe/alibaba/sync",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostAlibabaSync",
+        "noAuth": true
+    },
+    {
         "route": "/Fusanhe/dashboard",
         "method": "get",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetDashboard"

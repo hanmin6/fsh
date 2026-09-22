@@ -372,28 +372,75 @@ final class WorkflowService
         if ($key === '') {
             throw new BadRequest('agentKey is required.');
         }
-        $agent = $this->repo('AutomationAgent')->where(['agentKey' => $key])->findOne();
-        if (!$agent) {
-            $agent = $this->kernel->create('AutomationAgent', [
-                'name' => (string) ($input->name ?? $key),
-                'agentKey' => $key,
-                'mode' => 'mock',
-            ]);
+        $tx = $this->em->getTransactionManager();
+        $creating = false;
+        $tx->start();
+        try {
+            // A row lock serializes credential rotation. Two successful
+            // rotations therefore leave only the final credential usable.
+            $agent = $this->repo('AutomationAgent')
+                ->forUpdate()
+                ->where(['agentKey' => $key])
+                ->findOne();
+            $creating = !$agent;
+            $credentialIssued = $creating
+                || trim((string) ($agent->get('credentialHash') ?? '')) === ''
+                || (($input->rotateCredential ?? false) === true);
+            $values = [
+                'status' => 'online',
+                'lastHeartbeatAt' => $this->kernel->now(),
+                'capabilities' => (array) ($input->capabilities ?? []),
+                'lastError' => null,
+            ];
+            if (property_exists($input, 'clientVersion')) {
+                $values['clientVersion'] = mb_substr(trim((string) $input->clientVersion), 0, 100);
+            }
+            $agentToken = null;
+            if ($credentialIssued) {
+                $agentToken = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+                $credentialHash = password_hash($agentToken, PASSWORD_ARGON2ID);
+                if ($credentialHash === false) {
+                    throw new \RuntimeException('Unable to issue agent credential.');
+                }
+                $values['credentialHash'] = $credentialHash;
+                $values['credentialStatus'] = 'active';
+            }
+            if ($creating) {
+                $agent = $this->em->getNewEntity('AutomationAgent');
+                $agent->set([
+                    'name' => (string) ($input->name ?? $key),
+                    'agentKey' => $key,
+                    'mode' => 'mock',
+                ]);
+            }
+            $mode = (string) ($input->mode ?? '');
+            if (in_array($mode, ['mock', 'real'], true)) {
+                $values['mode'] = $mode;
+            }
+            $agent->set($values);
+            $this->kernel->save($agent);
+            $this->kernel->audit('agent.register', 'agent', $key, 'AutomationAgent', $agent->getId());
+            $tx->commit();
+
+            $response = [
+                'agentId' => $agent->getId(),
+                'status' => 'online',
+                'mode' => $agent->get('mode'),
+                'credentialIssued' => $credentialIssued,
+            ];
+            if ($credentialIssued) {
+                $response['agentToken'] = $agentToken;
+            }
+            return $response;
+        } catch (\Throwable $e) {
+            $tx->rollback();
+            // The unique agentKey index may race before a row exists to lock.
+            // Do not expose a database exception; callers can retry safely.
+            if ($creating && $this->repo('AutomationAgent')->where(['agentKey' => $key])->findOne()) {
+                throw new Conflict('Agent registration conflicted; retry.');
+            }
+            throw $e;
         }
-        $values = [
-            'status' => 'online',
-            'lastHeartbeatAt' => $this->kernel->now(),
-            'capabilities' => (array) ($input->capabilities ?? []),
-            'lastError' => null,
-        ];
-        $mode = (string) ($input->mode ?? '');
-        if (in_array($mode, ['mock', 'real'], true)) {
-            $values['mode'] = $mode;
-        }
-        $agent->set($values);
-        $this->kernel->save($agent);
-        $this->kernel->audit('agent.register', 'agent', $key, 'AutomationAgent', $agent->getId());
-        return ['agentId' => $agent->getId(), 'status' => 'online', 'mode' => $agent->get('mode')];
     }
 
     public function heartbeat(stdClass $input): array

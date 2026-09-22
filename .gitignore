@@ -10,5 +10,18 @@ materials/*
 !materials/.gitkeep
 runtime/
 .env.test
+.gstack/
 __pycache__/
 *.pyc
+*.db
+*.db-*
+.pytest_cache/
+playwright-report/
+test-results/
+
+# Alibaba client runtime ignore rules
+alibaba-client/.env
+alibaba-client/**/profile/
+alibaba-client/**/logs/
+alibaba-client/**/data/
+alibaba-client/token_storage.json
