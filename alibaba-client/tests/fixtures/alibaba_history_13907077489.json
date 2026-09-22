@@ -1,0 +1,31 @@
+{
+  "buyer_name": "Redacted Buyer Alpha",
+  "inquiry_id": "13907077489",
+  "total_messages": 3,
+  "messages": [
+    {
+      "sender": "buyer",
+      "content": "Hello, I am interested in your custom packaging solutions.",
+      "raw_time": "2026-09-21 10:15",
+      "time": "2026-09-21 10:15",
+      "type": "chat",
+      "platform_id": "msg_13907077489_001"
+    },
+    {
+      "sender": "seller",
+      "content": "Thank you for contacting us. We can produce custom sizes. What volume are you looking for?",
+      "raw_time": "2026-09-21 10:18",
+      "time": "2026-09-21 10:18",
+      "type": "chat",
+      "platform_id": "msg_13907077489_002"
+    },
+    {
+      "sender": "buyer",
+      "content": "We need 500 units for our initial batch.",
+      "raw_time": "2026-09-21 10:20",
+      "time": "2026-09-21 10:20",
+      "type": "chat",
+      "platform_id": "msg_13907077489_003"
+    }
+  ]
+}

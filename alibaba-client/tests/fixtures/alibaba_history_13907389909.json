@@ -1,0 +1,23 @@
+{
+  "buyer_name": "Redacted Buyer Beta",
+  "inquiry_id": "13907389909",
+  "total_messages": 2,
+  "messages": [
+    {
+      "sender": "buyer",
+      "content": "Hi, do you support OEM branding?",
+      "raw_time": "2026-09-22 14:50",
+      "time": "2026-09-22 14:50",
+      "type": "chat",
+      "platform_id": "msg_13907389909_001"
+    },
+    {
+      "sender": "buyer",
+      "content": "Please send the spec sheet.",
+      "raw_time": "2026-09-22 14:53",
+      "time": "2026-09-22 14:53",
+      "type": "chat",
+      "platform_id": "msg_13907389909_002"
+    }
+  ]
+}

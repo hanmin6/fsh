@@ -1,0 +1,22 @@
+[
+  {
+    "inquiry_id": "13907077489",
+    "buyer_name": "Redacted Buyer Alpha",
+    "country": "United States",
+    "create_time": "2026-09-20 09:12",
+    "last_time": "2026-09-21 10:20",
+    "last_message": "We need 500 units for our initial batch.",
+    "unread_count": 0,
+    "has_unread": false
+  },
+  {
+    "inquiry_id": "13907389909",
+    "buyer_name": "Redacted Buyer Beta",
+    "country": "Germany",
+    "create_time": "2026-09-20 14:00",
+    "last_time": "2026-09-22 14:53",
+    "last_message": "Please send the spec sheet.",
+    "unread_count": 1,
+    "has_unread": true
+  }
+]

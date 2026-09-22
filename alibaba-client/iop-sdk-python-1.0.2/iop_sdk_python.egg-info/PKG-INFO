@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: iop-sdk-python
+Version: 1.0.2
+Summary: Open Platform Python version SDK
+Author: Open Platform
+Author-email: xxxxx@alibaba-inc.com
+License: MIT
+Requires-Python: >=3.7

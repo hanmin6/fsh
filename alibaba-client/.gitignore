@@ -1,0 +1,43 @@
+# Python bytecode and test/tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments and local environment files
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Alibaba credentials and authenticated browser state
+token_storage.json
+alibaba_messenger/profile/
+
+# Runtime output
+alibaba_messenger/logs/
+alibaba_messenger/data/
+alibaba_messenger/**/data/
+*.log
+*.db
+*.db-*
+playwright-report/
+test-results/
+
+# Downloaded/generated scratch artifacts
+*.gz
+fetched_docs.json
+
+# Local agent tooling
+.agents/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
