@@ -10,3 +10,5 @@ materials/*
 !materials/.gitkeep
 runtime/
 .env.test
+__pycache__/
+*.pyc

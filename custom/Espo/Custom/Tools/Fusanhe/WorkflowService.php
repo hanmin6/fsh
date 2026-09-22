@@ -800,13 +800,22 @@ final class WorkflowService
     {
         $draft = $this->requireEntity('AIReplyDraft', (string) $task->get('replyDraftId'));
         $body = $this->taskBody($task, $draft);
+        $convId = (string) $task->get('conversationId');
+        $conversation = $convId !== '' ? $this->em->getEntityById('ExternalConversation', $convId) : null;
+        $channelId = (string) $task->get('channelId');
+        $channel = $channelId !== '' ? $this->em->getEntityById('ExternalChannel', $channelId) : null;
+
         return [
             'id' => $task->getId(),
             'idempotencyKey' => $task->get('idempotencyKey'),
-            'conversationId' => $task->get('conversationId'),
-            'channelId' => $task->get('channelId'),
+            'conversationId' => $convId,
+            'inquiryId' => $conversation ? (string) ($conversation->get('externalId') ?: '') : '',
+            'buyerName' => $conversation ? (string) ($conversation->get('buyerName') ?: $conversation->get('name') ?: '') : '',
+            'channelId' => $channelId,
+            'channelType' => $channel ? (string) ($channel->get('type') ?: 'Alibaba') : 'Alibaba',
             'executionMode' => $task->get('executionMode') ?: 'mock',
             'body' => $body,
+            'triggerType' => (string) ($draft->get('triggerType') ?: 'manual'),
             'claimExpiresAt' => $task->get('claimExpiresAt'),
         ];
     }
