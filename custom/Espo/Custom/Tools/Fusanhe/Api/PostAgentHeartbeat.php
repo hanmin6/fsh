@@ -8,6 +8,7 @@ use Espo\Core\Api\ResponseComposer;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Custom\Tools\Fusanhe\AutomationAuth;
 use Espo\Custom\Tools\Fusanhe\WorkflowService;
+use stdClass;
 
 final class PostAgentHeartbeat implements Action
 {
@@ -18,11 +19,12 @@ final class PostAgentHeartbeat implements Action
 
     public function process(Request $request): Response
     {
-        $agent = $this->auth->assertAgent($request);
         $body = $request->getParsedBody();
         if (!($body instanceof \stdClass)) {
             throw new BadRequest('JSON object body is required.');
         }
+        $agentKey = (string) ($body->agentKey ?? '');
+        $agent = $this->auth->assertAgent($request, $agentKey);
         $body->agentKey = (string) $agent->get('agentKey');
 
         return ResponseComposer::json($this->service->heartbeat($body));

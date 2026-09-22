@@ -106,14 +106,14 @@ android-client/app/src/main/java/com/fusanhe/crm/
 
 ## 如何切换成真实 Repository
 
-UI 与 ViewModel 只依赖 `domain/repository` 接口，切换无需改动界面：
+UI 与 ViewModel 只依赖 `domain/repository` 接口，远程 Repository、DTO Mapper、会话认证和请求头已经接好。默认仍使用安全的 Mock 模式；在受控构建中通过 Gradle 属性显式开启：
 
-1. 在 `data/remote/` 下实现 `RemoteCustomerRepository` 等真实实现（复用已定义的 `CrmApiService` 与 DTO，补充 DTO ↔ 领域模型 Mapper）；
-2. 在 `di/DataModule.kt` 中把 `@Binds` 的目标从 `MockXxxRepository` 换成 `RemoteXxxRepository`；
-3. 需要鉴权时在 `NetworkModule` 的 OkHttpClient 上添加拦截器（EspoCRM 通常为 `X-Espo-Authorization` Basic 认证），API 地址可从 `BuildConfig` 注入；
-4. Room 缓存层（`data/local`）可在真实实现中接入做离线缓存。
+```bash
+./gradlew -PFUSANHE_USE_REMOTE=true \
+  -PFUSANHE_API_BASE_URL=https://crm.example.com/api/v1/ assembleDebug
+```
 
-当前 `NetworkModule` 已提供 Retrofit/OkHttp/`CrmApiService`，但没有任何仓库引用它们。
+登录密码只用于生成进程内 `X-Espo-Authorization`，不会落盘；持久化的用户会话资料由 Android Keystore AES-GCM 加密。退出登录会同时清空内存认证头和加密会话。真实模式明确禁止移动端直接发送渠道消息，只允许生成并人工审核 AI 草稿。
 
 ## 后续需要对接的 CRM API
 
@@ -127,18 +127,19 @@ UI 与 ViewModel 只依赖 `domain/repository` 接口，切换无需改动界面
 | --- | --- |
 | 客户 | `GET /Account`（列表+筛选+分页）、`GET /Account/{id}`、`POST /Account`、`PUT /Account/{id}`、`GET /Account/{id}/externalConversations` |
 | 会话 | `GET /ExternalConversation`、`GET /ExternalConversation/{id}` |
-| 消息 | `GET /ExternalConversation/{id}/externalMessages`、`POST /ExternalMessage` |
-| AI 草稿 | `POST /AIReplyDraft/action/generateReply`、`POST /AIReplyDraft/{id}`（采纳） |
+| 消息 | `GET /ExternalConversation/{id}/externalMessages`（只读） |
+| AI 草稿 | `POST /Fusanhe/conversation/{id}/generate-draft`、`POST /Fusanhe/draft/{id}/approve` |
 | 知识库 | `GET /KnowledgeDocument` |
 | 翻译 | 由 AI 服务代理（建议沿用 AIReplyDraft action 扩展 `translate`） |
 | 实时更新 | WebSocket / 轮询 `GET /ExternalConversation` 的 `unreadCount` 与新消息 |
 
 ## 已知边界（当前阶段）
 
-- 不连接真实数据库 / 后端 / IM 平台，全部为本地演示；
+- 默认 Mock；设置 `FUSANHE_USE_REMOTE=true` 后客户、会话和 AI 草稿使用真实 CRM API；
+- 渠道真实收发仍未接入，真实模式也不会绕过人工审核或停发开关；
 - 深色主题结构已预留但未做逐页视觉校对；
 - 通知、历史等数据在 Mock 中为静态集合，新增客户的历史记录会动态追加；
-- 不包含单元测试与 CI（下一阶段接入）。
+- 通知与翻译仍使用本地实现；客户历史远程聚合接口尚未提供时返回空列表。
 
 ## 版本验证
 

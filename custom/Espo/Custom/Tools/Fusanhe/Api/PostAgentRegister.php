@@ -8,6 +8,7 @@ use Espo\Core\Api\ResponseComposer;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Custom\Tools\Fusanhe\AutomationAuth;
 use Espo\Custom\Tools\Fusanhe\WorkflowService;
+use stdClass;
 
 final class PostAgentRegister implements Action
 {
@@ -24,6 +25,10 @@ final class PostAgentRegister implements Action
             throw new BadRequest('JSON object body is required.');
         }
 
-        return ResponseComposer::json($this->service->registerAgent($body));
+        $result = $this->service->registerAgent($body);
+        if (isset($result['agentToken']) && !isset($result['credential'])) {
+            $result['credential'] = $result['agentToken'];
+        }
+        return ResponseComposer::json($result);
     }
 }

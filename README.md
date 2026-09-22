@@ -60,6 +60,33 @@ docs/RELEASE_HANDOFF_2026-09-21.md  本次整合发布、验证、回退和分�
 android-client/                     Android 1.0.0 UI 演示版
 ```
 
+## Spec-Driven Development
+
+本仓库已在根目录接入 GitHub Spec Kit，Web、CRM API、Android 和执行端共用一套规格编号与工程宪章。
+
+- 工程宪章：`.specify/memory/constitution.md`
+- 当前全系统基线：`specs/001-system-baseline/`
+- 当前特性指针：`.specify/feature.json`
+- Codex 项目技能：`.agents/skills/speckit-*/`
+
+新增功能、跨端契约变更、数据迁移和高风险修复都必须先建立独立特性目录，然后依次执行：
+
+```text
+$speckit-specify -> $speckit-clarify -> $speckit-plan -> $speckit-checklist
+-> $speckit-tasks -> $speckit-analyze -> $speckit-implement -> $speckit-converge
+```
+
+小型变更可省略 clarify/checklist/analyze，但不得省略 specification、plan、tasks 和 convergence。
+全系统基线是活契约，不代表其中所有目标已实现；未完成工作以
+`specs/001-system-baseline/tasks.md` 为准。
+
+在提交规格或代码前运行：
+
+```bash
+make spec-check
+make verify-offline
+```
+
 ## 启动和安装
 
 ```bash
@@ -89,7 +116,10 @@ docker compose exec espocrm bin/command rebuild
 | `AI_TIMEOUT` / `AI_MAX_RETRIES` | 超时秒数和重试次数 |
 | `KNOWLEDGE_BASE_PATH` | 容器内知识库目录 |
 | `MATERIAL_LIBRARY_PATH` | 容器内素材目录 |
-| `FUSANHE_AUTOMATION_TOKEN` | Agent 注册/轮换使用的 bootstrap Token；同步与任务接口使用每 Agent 凭据 |
+| `FUSANHE_AUTOMATION_TOKEN` | Agent 注册引导 Token；注册后改用单 Agent 凭证 |
+| `FUSANHE_AGENT_CREDENTIAL_TTL_DAYS` | 单 Agent 凭证有效天数，默认 90 |
+| `FUSANHE_AUTOMATION_LEGACY_UNTIL` | 旧共享 Token 临时兼容截止日；留空即禁用 |
+| `FUSANHE_KNOWLEDGE_MAX_BYTES` | 单个知识文件最大字节数，默认 25 MiB |
 | `FUSANHE_OUTBOUND_PAUSED` | 全局停发开关，生产初始化为 `true` |
 | `ALIBABA_BRIDGE_URL` | Alibaba Bridge 地址 |
 | `ALIBABA_BRIDGE_TOKEN` | Alibaba Bridge Token，不得提交到 Git |

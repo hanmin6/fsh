@@ -8,6 +8,7 @@ use Espo\Core\Api\ResponseComposer;
 use Espo\Core\Exceptions\BadRequest;
 use Espo\Custom\Tools\Fusanhe\AutomationAuth;
 use Espo\Custom\Tools\Fusanhe\WorkflowService;
+use stdClass;
 
 final class PostTaskResult implements Action
 {
@@ -18,15 +19,17 @@ final class PostTaskResult implements Action
 
     public function process(Request $request): Response
     {
-        $agent = $this->auth->assertAgent($request);
         $body = $request->getParsedBody();
         if (!($body instanceof \stdClass)) {
             throw new BadRequest('JSON object body is required.');
         }
+        $agentKey = (string) ($body->agentKey ?? '');
+        $agent = $this->auth->assertAgent($request, $agentKey);
         $body->agentKey = (string) $agent->get('agentKey');
+
         $id = $request->getRouteParam('id');
         if (!$id) {
-            throw new BadRequest();
+            throw new BadRequest('Task id is required.');
         }
 
         return ResponseComposer::json($this->service->reportResult($id, $body));

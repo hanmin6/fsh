@@ -3,73 +3,107 @@ package com.fusanhe.crm.data.remote.dto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * 与 EspoCRM 后端对应的网络 DTO（占位）。
- * 当前阶段未接入真实后端，仅供 Retrofit 接口定义与后续对接参考。
- * DTO 与领域模型之间的转换在接入真实 Repository 时补充 Mapper。
- */
 @Serializable
 data class AccountDto(
     val id: String? = null,
     val name: String = "",
+    val accountName: String? = null,
     @SerialName("sicCode") val country: String? = null,
-    @SerialName("emailAddress") val emailAddress: String? = null,
-    @SerialName("phoneNumber") val phoneNumber: String? = null,
-    @SerialName("assignedUserName") val assignedUserName: String? = null,
+    val emailAddress: String? = null,
+    val phoneNumber: String? = null,
+    val assignedUserName: String? = null,
+    val description: String? = null,
+    val createdAt: String? = null,
+    val modifiedAt: String? = null,
 )
 
-@Serializable
-data class AccountListResponse(
-    val total: Int = 0,
-    val list: List<AccountDto> = emptyList(),
-)
+@Serializable data class AccountListResponse(val total: Int = 0, val list: List<AccountDto> = emptyList())
 
 @Serializable
 data class AccountCreateRequest(
     val name: String,
     @SerialName("sicCode") val country: String? = null,
-    @SerialName("emailAddress") val emailAddress: String? = null,
-    @SerialName("phoneNumber") val phoneNumber: String? = null,
+    val emailAddress: String? = null,
+    val phoneNumber: String? = null,
+    val description: String? = null,
 )
 
 @Serializable
 data class ExternalConversationDto(
     val id: String? = null,
     val name: String = "",
-    @SerialName("accountId") val accountId: String? = null,
+    val subject: String? = null,
+    val accountId: String? = null,
+    val accountName: String? = null,
+    val contactId: String? = null,
+    val contactName: String? = null,
+    val leadId: String? = null,
+    val leadName: String? = null,
+    val externalUserId: String? = null,
+    val country: String? = null,
+    val language: String? = null,
+    val product: String? = null,
+    val channelType: String? = null,
+    val channelName: String? = null,
     val status: String = "",
-    @SerialName("assignedUserName") val assignedUserName: String? = null,
+    val assignedUserName: String? = null,
+    val unreadCount: Int = 0,
+    val lastMessageAt: String? = null,
+    val lastMessagePreview: String? = null,
+    val waitingMinutes: Long? = null,
 )
 
-@Serializable
-data class ExternalConversationListResponse(
-    val total: Int = 0,
-    val list: List<ExternalConversationDto> = emptyList(),
-)
+@Serializable data class ExternalConversationListResponse(val total: Int = 0, val list: List<ExternalConversationDto> = emptyList())
 
 @Serializable
 data class ExternalMessageDto(
     val id: String? = null,
+    val conversationId: String? = null,
     val body: String = "",
-    @SerialName("isIncoming") val isIncoming: Boolean = false,
-    @SerialName("createdAt") val createdAt: String? = null,
+    val direction: String? = null,
+    val senderName: String? = null,
+    val language: String? = null,
+    val sentAt: String? = null,
+    val createdAt: String? = null,
+    val deliveryStatus: String? = null,
 )
 
-@Serializable
-data class ExternalMessageSendRequest(
-    @SerialName("conversationId") val conversationId: String,
-    val body: String,
-)
+@Serializable data class ExternalMessageListResponse(val total: Int = 0, val list: List<ExternalMessageDto> = emptyList())
 
 @Serializable
 data class AIReplyDraftDto(
     val id: String? = null,
-    @SerialName("draftBody") val draftBody: String = "",
-    val status: String = "",
+    val draftId: String? = null,
+    val conversationId: String? = null,
+    val draftText: String = "",
+    val translatedText: String = "",
+    val status: String = "generated",
+    val suggestedLanguage: String = "en",
+    val intent: String = "",
+    val summaryZh: String = "",
+    val riskLevel: String = "low",
+    val confidence: Float = 0f,
+    val missingInformation: List<String> = emptyList(),
+    val citedKnowledge: List<String> = emptyList(),
+    val confirmReasons: List<String> = emptyList(),
+)
+
+@Serializable data class DraftApproveRequest(val draftText: String? = null)
+
+@Serializable
+data class DraftApproveResponse(
+    val taskId: String? = null,
+    val idempotencyKey: String? = null,
+    val deduplicated: Boolean = false,
+    val executionMode: String? = null,
 )
 
 @Serializable
-data class AIReplyGenerateRequest(
-    @SerialName("conversationId") val conversationId: String,
-    val instruction: String? = null,
+data class AppUserDto(
+    val id: String = "",
+    val name: String = "",
+    val userName: String? = null,
+    val emailAddress: String? = null,
+    val type: String? = null,
+    val teamNames: Map<String, String> = emptyMap(),
 )

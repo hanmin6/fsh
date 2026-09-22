@@ -38,6 +38,9 @@ services:
       KNOWLEDGE_BASE_PATH: /var/www/html/knowledge
       MATERIAL_LIBRARY_PATH: /var/www/html/materials
       FUSANHE_AUTOMATION_TOKEN: ${FUSANHE_AUTOMATION_TOKEN}
+      FUSANHE_AGENT_CREDENTIAL_TTL_DAYS: 90
+      FUSANHE_AUTOMATION_LEGACY_UNTIL: ""
+      FUSANHE_KNOWLEDGE_MAX_BYTES: 26214400
       FUSANHE_OUTBOUND_PAUSED: ${FUSANHE_OUTBOUND_PAUSED:-true}
     volumes:
       - espocrm-data:/var/www/html/data

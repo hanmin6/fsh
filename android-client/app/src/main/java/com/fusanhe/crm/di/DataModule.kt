@@ -1,5 +1,6 @@
 package com.fusanhe.crm.di
 
+import com.fusanhe.crm.BuildConfig
 import com.fusanhe.crm.data.repository.MockAIReplyRepository
 import com.fusanhe.crm.data.repository.MockConversationRepository
 import com.fusanhe.crm.data.repository.MockCustomerRepository
@@ -7,6 +8,10 @@ import com.fusanhe.crm.data.repository.MockNotificationRepository
 import com.fusanhe.crm.data.repository.MockSessionRepository
 import com.fusanhe.crm.data.repository.MockSettingsRepository
 import com.fusanhe.crm.data.repository.MockTranslationRepository
+import com.fusanhe.crm.data.repository.RemoteAIReplyRepository
+import com.fusanhe.crm.data.repository.RemoteConversationRepository
+import com.fusanhe.crm.data.repository.RemoteCustomerRepository
+import com.fusanhe.crm.data.repository.RemoteSessionRepository
 import com.fusanhe.crm.domain.repository.AIReplyRepository
 import com.fusanhe.crm.domain.repository.ConversationRepository
 import com.fusanhe.crm.domain.repository.CustomerRepository
@@ -14,45 +19,34 @@ import com.fusanhe.crm.domain.repository.NotificationRepository
 import com.fusanhe.crm.domain.repository.SessionRepository
 import com.fusanhe.crm.domain.repository.SettingsRepository
 import com.fusanhe.crm.domain.repository.TranslationRepository
-import dagger.Binds
 import dagger.Module
+import dagger.Provides
+import dagger.Lazy
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * 仓库绑定：当前全部指向 Mock 实现。
- * 接入真实后端时，把 @Binds 的目标替换为 RemoteXxxRepository 即可，UI 层零改动。
- */
+/** One explicit build flag selects the complete mock or production data foundation. */
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class DataModule {
+object DataModule {
+    @Provides @Singleton
+    fun customer(mock: Lazy<MockCustomerRepository>, remote: Lazy<RemoteCustomerRepository>): CustomerRepository =
+        if (BuildConfig.FUSANHE_USE_REMOTE) remote.get() else mock.get()
 
-    @Binds
-    @Singleton
-    abstract fun bindCustomerRepository(impl: MockCustomerRepository): CustomerRepository
+    @Provides @Singleton
+    fun conversation(mock: Lazy<MockConversationRepository>, remote: Lazy<RemoteConversationRepository>): ConversationRepository =
+        if (BuildConfig.FUSANHE_USE_REMOTE) remote.get() else mock.get()
 
-    @Binds
-    @Singleton
-    abstract fun bindConversationRepository(impl: MockConversationRepository): ConversationRepository
+    @Provides @Singleton
+    fun aiReply(mock: Lazy<MockAIReplyRepository>, remote: Lazy<RemoteAIReplyRepository>): AIReplyRepository =
+        if (BuildConfig.FUSANHE_USE_REMOTE) remote.get() else mock.get()
 
-    @Binds
-    @Singleton
-    abstract fun bindAIReplyRepository(impl: MockAIReplyRepository): AIReplyRepository
+    @Provides @Singleton
+    fun session(mock: Lazy<MockSessionRepository>, remote: Lazy<RemoteSessionRepository>): SessionRepository =
+        if (BuildConfig.FUSANHE_USE_REMOTE) remote.get() else mock.get()
 
-    @Binds
-    @Singleton
-    abstract fun bindTranslationRepository(impl: MockTranslationRepository): TranslationRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindSettingsRepository(impl: MockSettingsRepository): SettingsRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindSessionRepository(impl: MockSessionRepository): SessionRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindNotificationRepository(impl: MockNotificationRepository): NotificationRepository
+    @Provides @Singleton fun translation(impl: MockTranslationRepository): TranslationRepository = impl
+    @Provides @Singleton fun settings(impl: MockSettingsRepository): SettingsRepository = impl
+    @Provides @Singleton fun notifications(impl: MockNotificationRepository): NotificationRepository = impl
 }

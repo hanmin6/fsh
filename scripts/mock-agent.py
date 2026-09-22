@@ -55,7 +55,7 @@ if not agent_token:
         },
         bootstrap_headers,
     )
-    agent_token = registration.get("agentToken")
+    agent_token = registration.get("agentToken") or registration.get("credential")
     if not registration.get("credentialIssued") or not isinstance(agent_token, str) or not agent_token:
         sys.exit("Explicit agent credential rotation did not issue a credential.")
 
@@ -63,6 +63,7 @@ agent_headers = {
     "Content-Type": "application/json",
     "X-Agent-Key": agent_key,
     "X-Agent-Token": agent_token,
+    "X-Automation-Token": agent_token,
 }
 # Confirm the persisted per-Agent credential before attempting to claim work.
 post("/Fusanhe/agent/heartbeat", {}, agent_headers)

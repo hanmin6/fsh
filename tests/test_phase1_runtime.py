@@ -72,9 +72,11 @@ def register_agent(agent_key, **extra):
     _, registration = api("/Fusanhe/agent/register", "POST", payload, headers=bootstrap_headers())
     if not registration.get("credentialIssued") or not registration.get("agentToken"):
         raise AssertionError("registration must issue a one-time agent credential")
+    token = registration["agentToken"]
     return registration, {
         "X-Agent-Key": agent_key,
-        "X-Agent-Token": registration["agentToken"],
+        "X-Agent-Token": token,
+        "X-Automation-Token": token,
     }
 
 
@@ -477,6 +479,74 @@ class Phase1Runtime(unittest.TestCase):
                             expect_error=True)
         self.assertEqual(code, 400)
 
+    def test_15_agent_credentials_are_bound_rotatable_and_independently_revocable(self):
+        bootstrap = {"X-Automation-Token": AUTO_TOKEN}
+        key_a = f"credential-a-{self.stamp}"
+        key_b = f"credential-b-{self.stamp}"
+        _, reg_a = api("/Fusanhe/agent/register", "POST", {"agentKey": key_a, "mode": "mock"}, headers=bootstrap)
+        _, reg_b = api("/Fusanhe/agent/register", "POST", {"agentKey": key_b, "mode": "mock"}, headers=bootstrap)
+        auth_a = {"X-Automation-Token": reg_a["credential"]}
+        auth_b = {"X-Automation-Token": reg_b["credential"]}
+
+        code, _ = api("/Fusanhe/agent/claim", "POST", {"agentKey": key_b}, headers=auth_a, expect_error=True)
+        self.assertEqual(403, code, "credential A must not authenticate as B")
+        _, ok_b = api("/Fusanhe/agent/claim", "POST", {"agentKey": key_b}, headers=auth_b)
+        self.assertTrue(ok_b.get("paused"))
+
+        _, rotated = admin_api(f"/Fusanhe/agent/{reg_a['agentId']}/credential/rotate", "POST", {})
+        code, _ = api("/Fusanhe/agent/claim", "POST", {"agentKey": key_a}, headers=auth_a, expect_error=True)
+        self.assertEqual(403, code, "rotation must invalidate the previous credential")
+        rotated_auth = {"X-Automation-Token": rotated["credential"]}
+        _, ok_a = api("/Fusanhe/agent/claim", "POST", {"agentKey": key_a}, headers=rotated_auth)
+        self.assertTrue(ok_a.get("paused"))
+
+        admin_api(f"/Fusanhe/agent/{reg_a['agentId']}/credential/revoke", "POST", {})
+        code, _ = api("/Fusanhe/agent/claim", "POST", {"agentKey": key_a}, headers=rotated_auth, expect_error=True)
+        self.assertEqual(403, code)
+        _, still_ok_b = api("/Fusanhe/agent/claim", "POST", {"agentKey": key_b}, headers=auth_b)
+        self.assertTrue(still_ok_b.get("paused"), "revoking A must not affect B")
+
+        _, stored_a = admin_api(f"/AutomationAgent/{reg_a['agentId']}")
+        serialized = json.dumps(stored_a)
+        self.assertNotIn(reg_a["credential"], serialized)
+        self.assertNotIn(rotated["credential"], serialized)
+
+    def test_16_request_id_correlates_response_error_and_audit(self):
+        _, conv = self.intake(
+            f"CONV-{self.stamp}-RID", f"MSG-{self.stamp}-RID",
+            email=f"rid.{self.stamp}@visitor.example",
+        )
+        request_id = f"phase1-{self.stamp}-request"
+        auth = "Basic " + base64.b64encode(f"{ADMIN_USER}:{ADMIN_PASS}".encode()).decode()
+        url = BASE + f"/Fusanhe/conversation/{conv['conversationId']}/control"
+        req = urllib.request.Request(
+            url,
+            json.dumps({"mode": "human"}).encode(),
+            {"Content-Type": "application/json", "Authorization": auth, "X-Request-Id": request_id},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as response:
+            self.assertEqual(request_id, response.headers.get("X-Request-Id"))
+
+        _, audits = admin_api("/AutomationAudit?" + sp(where=[
+            {"type": "equals", "attribute": "eventType", "value": "conversation.control"},
+        ]))
+        self.assertTrue(any((item.get("details") or {}).get("requestId") == request_id for item in audits["list"]))
+
+        bad_id = request_id + "-bad"
+        bad = urllib.request.Request(
+            url,
+            json.dumps({"mode": "invalid"}).encode(),
+            {"Content-Type": "application/json", "Authorization": auth, "X-Request-Id": bad_id},
+            method="POST",
+        )
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(bad, timeout=30)
+        payload = json.loads(caught.exception.read())
+        self.assertEqual(400, caught.exception.code)
+        self.assertEqual(bad_id, caught.exception.headers.get("X-Request-Id"))
+        self.assertEqual({"code": "invalid_request", "requestId": bad_id}, payload["error"])
+
 
     def test_15_agent_credentials_are_scoped_rotatable_and_validate_bodies(self):
         agent_key = f"credential-agent-{self.stamp}"
@@ -623,10 +693,10 @@ class Phase1SendLoop(unittest.TestCase):
 
         # takeover before claim: the pending automatic task is not handed out
         admin_api(f"/Fusanhe/conversation/{conv_id}/control", "POST", {"mode": "human"})
-        _, claimed = api("/Fusanhe/agent/claim", "POST", {}, headers=agent_headers)
+        _, claimed = api("/Fusanhe/agent/claim", "POST", {"agentKey": agent_key}, headers=agent_headers)
         while claimed.get("task") and claimed["task"]["id"] != task_id:
             admin_api(f"/Fusanhe/task/{claimed['task']['id']}/cancel", "POST", {})
-            _, claimed = api("/Fusanhe/agent/claim", "POST", {}, headers=agent_headers)
+            _, claimed = api("/Fusanhe/agent/claim", "POST", {"agentKey": agent_key}, headers=agent_headers)
         self.assertIsNone(claimed.get("task"), "human takeover must block automatic execution")
         admin_api(f"/Fusanhe/conversation/{conv_id}/control", "POST", {"mode": "aiAssist"})
 

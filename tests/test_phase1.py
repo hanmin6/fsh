@@ -19,7 +19,7 @@ def entity(name):
 
 
 def read(path):
-    return (ROOT / path).read_text()
+    return (ROOT / path).read_text(encoding="utf-8")
 
 
 class ExternalIdentityContract(unittest.TestCase):
@@ -106,6 +106,25 @@ class ServiceContract(unittest.TestCase):
         self.assertIn("contentSnapshot", workflow)
         self.assertIn("taskBody", workflow, "claim payload reads the snapshot, not the live draft")
 
+    def test_claim_is_transactional_and_conversation_serialized(self):
+        workflow = read("custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php")
+        self.assertIn("getTransactionManager", workflow)
+        self.assertIn("->forUpdate()", workflow)
+        self.assertIn("'status' => ['claimed', 'sending']", workflow)
+        self.assertIn("$active->getId() !== $candidate->getId()", workflow)
+
+    def test_approval_and_result_are_idempotent(self):
+        workflow = read("custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php")
+        self.assertIn("idempotencyKey", workflow)
+        self.assertIn("'idempotent' => true", workflow)
+        self.assertIn("contentHash", workflow)
+
+    def test_send_is_rechecked_immediately_before_sending(self):
+        workflow = read("custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php")
+        sending = workflow[workflow.index("public function markSending"):workflow.index("public function reportResult")]
+        self.assertIn("assertSendAllowed", sending)
+        self.assertIn("Task must be claimed first", sending)
+
     def test_handoff_is_idempotent_and_native(self):
         handoff = read("custom/Espo/Custom/Tools/Fusanhe/HandoffService.php")
         self.assertIn("fusanheHandoffKey", handoff)
@@ -156,6 +175,24 @@ class RoutesContract(unittest.TestCase):
         for name in ("PostMockIntake", "PostGenerateDraft", "PostKnowledgeScan", "GetDashboard", "GetStatus"):
             source = read(f"custom/Espo/Custom/Tools/Fusanhe/Api/{name}.php")
             self.assertIn("checkScope", source, f"{name} must enforce scope ACL")
+
+    def test_every_authenticated_mutation_has_acl_at_action_or_service_boundary(self):
+        routes = json.loads((RES / "routes.json").read_text())
+        exempt_agent_actions = {
+            "PostAgentRegister", "PostAgentHeartbeat", "PostAgentClaim", "PostTaskSending", "PostTaskResult", "PostAlibabaSync",
+        }
+        service_guarded = {
+            "PostConversationControl", "PostHandoff", "PostIdentityCreateCustomer", "PostIdentityLink",
+            "PostManualDraft", "PostTaskCancel",
+        }
+        for route in routes:
+            if route["method"].lower() == "get":
+                continue
+            name = route["actionClassName"].split("\\")[-1]
+            source = read(f"custom/Espo/Custom/Tools/Fusanhe/Api/{name}.php")
+            guarded = any(token in source for token in ("requireScope", "requireEntityScope", "checkScope"))
+            guarded = guarded or name in exempt_agent_actions or name in service_guarded
+            self.assertTrue(guarded, f"{route['route']} must have an ACL/auth boundary")
 
 
 class RolesContract(unittest.TestCase):
