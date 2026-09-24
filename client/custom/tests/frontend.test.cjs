@@ -176,7 +176,7 @@ test("Empty reply cannot be approved", async () => {
 test("Entry page metrics are read-only totals, ACL-gated, no full scans", async () => {
   let requests = [];
   const Class = load("views/fusanhe/home.js", {
-    "views/main": class {},
+    "custom:views/fusanhe/react-host": class {},
     ajax: {
       getRequest: async (entity, params) => {
         requests.push([entity, params]);
@@ -201,7 +201,7 @@ test("Entry page metrics are read-only totals, ACL-gated, no full scans", async 
 });
 test("Entry page renders both module links only when the scope is readable", async () => {
   const Class = load("views/fusanhe/home.js", {
-    "views/main": class {},
+    "custom:views/fusanhe/react-host": class {},
     ajax: { getRequest: async () => ({ total: 3, list: [] }) },
     "custom:views/fusanhe/common": U,
   });
