@@ -1,5 +1,5 @@
 define("custom:views/fusanhe/home", [
-  "views/main",
+  "custom:views/fusanhe/react-host",
   "ajax",
   "custom:views/fusanhe/common",
 ], function (Dep, Ajax, U) {
@@ -8,20 +8,30 @@ define("custom:views/fusanhe/home", [
   // model. Detailed metrics live inside each workspace.
   return class extends Dep {
     templateContent =
-      '<div class="fsh-shell"><header class="fsh-header"><div><h1>福三和工作台</h1><div class="fsh-subtitle">广州福三和食品有限公司 · 请选择工作模块</div></div></header><div class="fsh-entry-body" aria-live="polite"></div></div>';
+      '<div class="fsh-ui-mount" aria-busy="true">正在加载模块入口…</div><div class="fsh-legacy" hidden><div class="fsh-shell"><header class="fsh-header"><div><h1>福三和工作台</h1><div class="fsh-subtitle">广州福三和食品有限公司 · 请选择工作模块</div></div></header><div class="fsh-entry-body" aria-live="polite"></div></div></div>';
     updatePageTitle() {
       this.getHelper().pageTitle.setTitle(
         this.translate("选择工作模块", "labels", "Fusanhe"),
       );
     }
-    afterRender() {
+    async afterRender() {
       super.afterRender();
+      this._homeDisposed = false;
+      let mounted = false;
+      try { mounted = await this.mountScreen("home", {}, this.$el.find(".fsh-ui-mount")[0]); }
+      catch { mounted = false; }
+      if (this._homeDisposed) return;
+      if (mounted) { this.$el.find(".fsh-ui-mount").removeAttr("aria-busy"); return; }
+      this.$el.find(".fsh-ui-mount").hide();
+      this.$el.find(".fsh-legacy").removeAttr("hidden");
       this.$el
         .find(".fsh-entry-body")
         .html('<div class="fsh-empty" role="status">正在加载模块入口…</div>');
       this.render();
     }
+    remove(...args) { this._homeDisposed = true; this._homeRequest = (this._homeRequest || 0) + 1; return super.remove(...args); }
     async render() {
+      const request = this._homeRequest = (this._homeRequest || 0) + 1;
       const canCrm =
         this.getAcl().checkScope("Account", "read") ||
         this.getAcl().checkScope("Contact", "read") ||
@@ -57,6 +67,7 @@ define("custom:views/fusanhe/home", [
           { type: "in", attribute: "status", value: ["failed", "sending"] },
         ],
       ]);
+      if (this._homeDisposed || request !== this._homeRequest) return;
       const entry = (href, title, desc, rows, allowed) =>
         allowed
           ? `<a class="fsh-entry" href="${href}"><h2>${title}</h2><p>${desc}</p><div class="fsh-entry-counts">${rows

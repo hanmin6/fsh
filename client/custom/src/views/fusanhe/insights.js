@@ -1,4 +1,4 @@
-define('custom:views/fusanhe/insights', ['views/main', 'ajax', 'custom:views/fusanhe/common'], function (Dep, Ajax, U) {
+define('custom:views/fusanhe/insights', ['custom:views/fusanhe/react-host', 'ajax', 'custom:views/fusanhe/common'], function (Dep, Ajax, U) {
   const states = {pending: '未分析', completed: '已完成', failed: '分析失败', stale: '待重新分析'};
   const e = value => U.escape(value == null ? '—' : String(value));
   const time = value => {
@@ -8,13 +8,13 @@ define('custom:views/fusanhe/insights', ['views/main', 'ajax', 'custom:views/fus
   };
   const link = (type, id, text) => `<a href="#${type}/view/${encodeURIComponent(id)}">${e(text)}</a>`;
   return class extends Dep {
-    templateContent = `<div class="fsh-shell fsh-insights">
+    templateContent = `<div class="fsh-ui-mount" aria-busy="true">正在读取同步与分析状态…</div><div class="fsh-legacy" hidden><div class="fsh-shell fsh-insights">
       <header class="fsh-header"><div><h1>历史客户与今日建议</h1><div class="fsh-subtitle">Alibaba · 按会话核对 · 上海时间</div></div><a href="#Home">返回工作台</a></header>
       <div class="fsh-insights-notice" role="status"></div><div class="fsh-insights-metrics" aria-live="polite">正在读取同步与分析状态…</div>
       <section class="fsh-insights-section"><h2>今日建议 <small class="fsh-insights-day"></small></h2><div class="fsh-insights-suggestions"></div></section>
-      <section class="fsh-insights-section"><h2>历史客户会话</h2><form class="fsh-insights-toolbar"><label>搜索 <input class="form-control input-sm" name="q" placeholder="客户会话名称 / 平台 ID" maxlength="100"></label><label>状态 <select class="form-control input-sm" name="status"><option value="">全部</option value="pending">未分析</option><option value="completed">已分析</option><option value="failed">分析失败</option><option value="stale">待重新分析</option><option value="unmatched">身份待确认</option></select></label><button class="btn btn-default btn-sm" type="submit">查询 / 刷新</button></form>
+      <section class="fsh-insights-section"><h2>历史客户会话</h2><form class="fsh-insights-toolbar"><label>搜索 <input class="form-control input-sm" name="q" placeholder="客户会话名称 / 平台 ID" maxlength="100"></label><label>状态 <select class="form-control input-sm" name="status"><option value="">全部</option><option value="pending">未分析</option><option value="completed">已分析</option><option value="failed">分析失败</option><option value="stale">待重新分析</option><option value="unmatched">身份待确认</option></select></label><button class="btn btn-default btn-sm" type="submit">查询 / 刷新</button></form>
       <div class="fsh-insights-list" aria-live="polite">正在加载…</div><div class="fsh-insights-paging"><button class="btn btn-default btn-sm" data-action="previous">上一页</button><span></span><button class="btn btn-default btn-sm" data-action="next">下一页</button></div></section>
-      <section class="fsh-insights-detail fsh-insights-section" aria-live="polite"><h2>客户分析</h2><p>选择会话的“查看分析”，核对画像与原始依据。</p></section></div>`;
+      <section class="fsh-insights-detail fsh-insights-section" aria-live="polite"><h2>客户分析</h2><p>选择会话的“查看分析”，核对画像与原始依据。</p></section></div></div>`;
     events = {
       'submit .fsh-insights-toolbar': function (ev) { ev.preventDefault(); this.offset = 0; this.loadInsights(); },
       'click [data-action="previous"]': function () { this.offset = Math.max(0, this.offset - 25); this.loadInsights(); },
@@ -23,7 +23,24 @@ define('custom:views/fusanhe/insights', ['views/main', 'ajax', 'custom:views/fus
     };
     setup() { super.setup(); this.offset = 0; this.requestVersion = 0; this.detailVersion = 0; }
     updatePageTitle() { this.getHelper().pageTitle.setTitle('历史客户与今日建议'); }
-    afterRender() { super.afterRender(); this.loadInsights(); }
+    async afterRender() {
+      super.afterRender();
+      this._insightsDisposed = false;
+      let mounted = false;
+      try { mounted = await this.mountScreen('insights', {}, this.$el.find('.fsh-ui-mount')[0]); }
+      catch { mounted = false; }
+      if (this._insightsDisposed) return;
+      if (mounted) { this.$el.find('.fsh-ui-mount').removeAttr('aria-busy'); return; }
+      this.$el.find('.fsh-ui-mount').hide();
+      this.$el.find('.fsh-legacy').removeAttr('hidden');
+      this.loadInsights();
+    }
+    remove(...args) {
+      this._insightsDisposed = true;
+      this.requestVersion++;
+      this.detailVersion++;
+      return super.remove(...args);
+    }
     async loadInsights() {
       const version = ++this.requestVersion;
       this.$el.find('.fsh-insights-paging button').prop('disabled', true);
@@ -32,7 +49,7 @@ define('custom:views/fusanhe/insights', ['views/main', 'ajax', 'custom:views/fus
         const d = await Ajax.getRequest('Fusanhe/insights', {q: this.$el.find('[name=q]').val() || '', status: this.$el.find('[name=status]').val() || '', offset: this.offset, limit: 25});
         if (version !== this.requestVersion) return;
         const c = d.coverage;
-        this.$el.find('.fsh-insights-notice').text(d.outboundPaused ? '全局停发已开启 · 本页只提供建议，下一步由人工执行。' : '注意：全局停发未开启。演示前请由管理员检查；本页不会发送消息。');
+        this.$el.find('.fsh-insights-notice').text(d.outboundPaused === true ? '全局停发已开启 · 本页只提供建议，下一步由人工执行。' : d.outboundPaused === false ? '注意：全局停发未开启。演示前请由管理员检查；本页不会发送消息。' : '外发状态未知。本页不会发送消息；请先核查发送开关。');
         const metrics = [['平台可见会话', c.platformVisible ?? '待核对'], ['已导入会话', c.imported], ['同步失败', c.failedSync ?? '未知'], ['身份待确认', c.pendingIdentity], ['分析完成', c.analysisCompleted], ['分析失败', c.analysisFailed], ['分析已过期', c.analysisStale]];
         this.$el.find('.fsh-insights-metrics').html(`<div class="fsh-insights-strip">${metrics.map(([k,v]) => `<div><span>${e(k)}</span><strong>${e(v)}</strong></div>`).join('')}</div><p>${e(c.reason)} ${d.scope === 'own' ? '当前仅显示本人负责的会话。' : ''}</p><p>最后同步：${e(time(c.lastSyncAt))} · 最后分析：${e(time(c.lastAnalysisAt))}</p>`);
         this.$el.find('.fsh-insights-day').text(`${d.date} · 共 ${d.suggestionTotal} 条${d.suggestionTotal > 50 ? '，显示优先 50 条' : ''}`);

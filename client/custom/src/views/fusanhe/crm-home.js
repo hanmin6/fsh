@@ -1,5 +1,5 @@
 define("custom:views/fusanhe/crm-home", [
-  "views/main",
+  "custom:views/fusanhe/react-host",
   "ajax",
   "custom:views/fusanhe/common",
 ], function (Dep, Ajax, U) {
@@ -7,19 +7,28 @@ define("custom:views/fusanhe/crm-home", [
   // Opportunities keep their native navigation entry.
   return class extends Dep {
     templateContent =
-      '<div class="fsh-shell"><header class="fsh-header"><div><h1>CRM 工作台</h1><div class="fsh-subtitle">客户、联系人、线索与跟进任务</div></div><div><a class="btn btn-default fsh-insights-entry" href="#Home/insights">历史客户与今日建议</a> <button class="btn btn-default fsh-refresh">刷新</button></div></header><div class="fsh-dashboard-body" aria-live="polite"></div></div>';
+      '<div class="fsh-ui-mount" aria-busy="true">正在加载客户数据…</div><div class="fsh-legacy" hidden><div class="fsh-shell"><header class="fsh-header"><div><h1>CRM 工作台</h1><div class="fsh-subtitle">客户、联系人、线索与跟进任务</div></div><div><a class="btn btn-default fsh-insights-entry" href="#Home/insights">历史客户与今日建议</a> <button class="btn btn-default fsh-refresh">刷新</button></div></header><div class="fsh-dashboard-body" aria-live="polite"></div></div></div>';
     updatePageTitle() {
       this.getHelper().pageTitle.setTitle(
         this.translate("CRM 工作台", "labels", "Fusanhe"),
       );
     }
-    afterRender() {
+    async afterRender() {
       super.afterRender();
+      this._crmDisposed = false;
+      let mounted = false;
+      try { mounted = await this.mountScreen("crm", {}, this.$el.find(".fsh-ui-mount")[0]); }
+      catch { mounted = false; }
+      if (this._crmDisposed) return;
+      if (mounted) { this.$el.find(".fsh-ui-mount").removeAttr("aria-busy"); return; }
+      this.$el.find(".fsh-ui-mount").hide();
+      this.$el.find(".fsh-legacy").removeAttr("hidden");
       if (!this.getAcl().checkScope("ExternalConversation", "read"))
         this.$el.find(".fsh-insights-entry").remove();
       this.$el.find(".fsh-refresh").on("click", () => this.load());
       this.load();
     }
+    remove(...args) { this._crmDisposed = true; this._crmRequest = (this._crmRequest || 0) + 1; return super.remove(...args); }
     async total(entity, where) {
       if (!this.getAcl().checkScope(entity, "read")) return null;
       try {
@@ -48,6 +57,7 @@ define("custom:views/fusanhe/crm-home", [
       }
     }
     async load() {
+      const request = this._crmRequest = (this._crmRequest || 0) + 1;
       this.$el.find(".fsh-refresh").prop("disabled", true);
       this.$el
         .find(".fsh-dashboard-body")
@@ -62,6 +72,7 @@ define("custom:views/fusanhe/crm-home", [
           value: this.getUser().id,
         }),
       ]);
+      if (this._crmDisposed || request !== this._crmRequest) return;
       const [accounts, contacts, leads, todos] = await Promise.all([
         this.recent("Account", ["id", "name", "assignedUserName", "createdAt"]),
         this.recent("Contact", ["id", "name", "accountName", "createdAt"]),
@@ -78,6 +89,7 @@ define("custom:views/fusanhe/crm-home", [
           },
         ),
       ]);
+      if (this._crmDisposed || request !== this._crmRequest) return;
       const values = [
         ["客户公司", tAcc ?? "—"],
         ["联系人", tCon ?? "—"],

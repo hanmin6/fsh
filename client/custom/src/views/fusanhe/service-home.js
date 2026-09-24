@@ -39,6 +39,7 @@ define("custom:views/fusanhe/service-home", [
     }
     remove(...args) {
       this._serviceDisposed = true;
+      this._serviceRequest = (this._serviceRequest || 0) + 1;
       return super.remove(...args);
     }
     async total(entity, where) {
@@ -69,6 +70,7 @@ define("custom:views/fusanhe/service-home", [
       }
     }
     async load() {
+      const request = this._serviceRequest = (this._serviceRequest || 0) + 1;
       this.$el.find(".fsh-refresh").prop("disabled", true);
       this.$el
         .find(".fsh-dashboard-body")
@@ -104,6 +106,7 @@ define("custom:views/fusanhe/service-home", [
             value: "human",
           }),
         ]);
+      if (this._serviceDisposed || request !== this._serviceRequest) return;
       const [conversations, drafts, identities, exceptions, channels, agents] =
         await Promise.all([
           this.recent("ExternalConversation", [
@@ -163,6 +166,7 @@ define("custom:views/fusanhe/service-home", [
               ])
             : null,
         ]);
+      if (this._serviceDisposed || request !== this._serviceRequest) return;
       const values = [
         ["进行中会话", tReply ?? "—"],
         ["待审核草稿", tReview ?? "—"],
