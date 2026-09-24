@@ -24,21 +24,23 @@
 
 ## 阶段 1：按独占文件包并行迁移（依赖 T007 通过）
 
-- [ ] T008 [P] [US01] B 用 `client/custom/ui/src/screens/dashboard/home.tsx` 与 `client/custom/src/views/fusanhe/home.js` 重构模块入口，按 ACL 显示 CRM/客服入口、最近业务与明确空态；保持原 `#Home` 路由和页面标题。
-- [ ] T009 [P] [US01] B 用 `client/custom/ui/src/screens/dashboard/crm.tsx` 与 `client/custom/src/views/fusanhe/crm-home.js` 重构 CRM 工作台，减少大面积空白，区分总量/待办/最近客户；保留历史客户入口与原生实体链接。
-- [ ] T010 [P] [US01] B 用 `client/custom/ui/src/screens/insights/**` 与 `client/custom/src/views/fusanhe/insights.js` 重构老板页的覆盖率、今日建议、筛选分页、分析和证据检查；870px 下多行建议表可读、状态计数不粘连，未知覆盖率不显示为零，合成数据标注只在测试文档中。
+- [x] T008 [P] [US01] B 用 `client/custom/ui/src/screens/dashboard/home.tsx` 与 `client/custom/src/views/fusanhe/home.js` 重构模块入口，按 ACL 显示 CRM/客服入口、最近业务与明确空态；保持原 `#Home` 路由和页面标题。
+- [x] T009 [P] [US01] B 用 `client/custom/ui/src/screens/dashboard/crm.tsx` 与 `client/custom/src/views/fusanhe/crm-home.js` 重构 CRM 工作台，减少大面积空白，区分总量/待办/最近客户；保留历史客户入口与原生实体链接。
+- [x] T010 [P] [US01] B 用 `client/custom/ui/src/screens/insights/**` 与 `client/custom/src/views/fusanhe/insights.js` 重构老板页的覆盖率、今日建议、筛选分页、分析和证据检查；870px 下多行建议表可读、状态计数不粘连，未知覆盖率不显示为零，合成数据标注只在测试文档中。
 - [ ] T011 [P] [US03] B 为 `client/custom/ui/src/screens/dashboard/**` 和 `insights/**` 增加中英文 UI 字典与状态、空/错/旧数据、窄屏及键盘组件测试；业务原文不自动翻译。
-- [ ] T012 [P] [US01] C 在 `client/custom/src/views/fusanhe/list.js` 与 `client/custom/ui/src/screens/queue/**` 保留五类列表的搜索/渠道/负责人/国家/状态/SLA/未读/排序/分页，实际使用 shadcn Table、Field、Select、Badge、Empty；整行键盘动作与行内链接不冲突。
-- [ ] T013 [P] [US02] C 在 `client/custom/src/views/external-conversation/record/detail.js` 与 `client/custom/ui/src/screens/conversation/**` 重构会话三栏和窄屏分区，保留时间线原文/译文/附件说明、身份确认、引用证据、人工接管和原生关系面板；用 Dialog/AlertDialog 等真实组件实现高风险确认。
-- [ ] T014 [P] [US02] C 为 `client/custom/ui/src/screens/conversation/**` 增加权限与状态测试：保存仅保存、拒绝仅拒绝、批准须人工审核确认、无权限按钮不可操作、重复/迟到响应无额外提交、全局停发未知文案正确；结合现有 `client/custom/tests/frontend.test.cjs` 行为契约。
+- [x] T012 [P] [US01] C 在 `client/custom/src/views/fusanhe/list.js` 与 `client/custom/ui/src/screens/queue/**` 保留五类列表的搜索/渠道/负责人/国家/状态/SLA/未读/排序/分页，实际使用 shadcn Table、Field、Select、Badge、Empty；整行键盘动作与行内链接不冲突。
+- [x] T013 [P] [US02] C 在 `client/custom/src/views/external-conversation/record/detail.js` 与 `client/custom/ui/src/screens/conversation/**` 重构会话三栏和窄屏分区，保留时间线原文/译文/附件说明、身份确认、引用证据、人工接管和原生关系面板；用 Dialog/AlertDialog 等真实组件实现高风险确认。
+- [x] T014 [P] [US02] C 为 `client/custom/ui/src/screens/conversation/**` 增加权限与状态测试：保存仅保存、拒绝仅拒绝、批准须人工审核确认、无权限按钮不可操作、重复/迟到响应无额外提交、全局停发未知文案正确；结合现有 `client/custom/tests/frontend.test.cjs` 行为契约。
 - [ ] T015 [P] [US03] D 以 `client/custom/src/views/fusanhe/login.js` 与 `client/custom/res/fusanhe/native.css` 整理登录和 Espo 全局导航/弹层/原生列表/表单/关系区外观；测试现有登录输入、错误、品牌与版权、主题切换与触控目标，不能重写认证。
-- [ ] T016 [P] [US02] D 在 `client/custom/src/views/fusanhe/{customer-detail,context-detail}.js`、`client/custom/ui/src/screens/customer/**` 迁移客户/联系人/线索与草稿/知识/发送任务的业务概览；保留原生详情字段/关系面板，明确缺失字段和高风险事实待确认。
-- [ ] T017 [P] [US03] D 在 `client/custom/src/views/{dashlets/fusanhe-operations,fields/structured}.js`、`client/custom/res/fusanhe/native.css` 与 `custom/Espo/Custom/Resources/i18n/{zh_CN,en_US}/Fusanhe.json` 完成 dashlet/结构化字段/双语状态的一致性，避免通过 DOM 文本遍历误译客户原文。
+- [x] T016 [P] [US02] D 在 `client/custom/src/views/fusanhe/{customer-detail,context-detail}.js`、`client/custom/ui/src/screens/customer/**` 迁移客户/联系人/线索与草稿/知识/发送任务的业务概览；保留原生详情字段/关系面板，明确缺失字段和高风险事实待确认。
+- [x] T017 [P] [US03] D 在 `client/custom/src/views/{dashlets/fusanhe-operations,fields/structured}.js`、`client/custom/res/fusanhe/native.css` 与 `custom/Espo/Custom/Resources/i18n/{zh_CN,en_US}/Fusanhe.json` 完成 dashlet/结构化字段/双语状态的一致性，避免通过 DOM 文本遍历误译客户原文。
 - [ ] T018 [P] [US03] D 对产品、规格、证书、询盘、样品、报价/明细、订单/明细/发货、渠道、身份、消息、审计和 Task 等 Espo 原生列表/详情/编辑/关系页逐类运行视觉和键盘检查；将发现的共性修复只写入 `client/custom/res/fusanhe/native.css` 和 D 拥有的扩展文件。
+
+截至 2026-09-24，已勾选项代表源码和对应自动化/集成检查完成；独立浏览器验收尚未覆盖的角色、语言、主题、缩放及原生行业页面见 [`WEB_WORKBENCH_ACCEPTANCE_2026-09-24.md`](../../docs/WEB_WORKBENCH_ACCEPTANCE_2026-09-24.md)。T011、T015、T018、T020–T022 保持未完成，不能据此宣告 Web 整体交付。
 
 ## 阶段 2：集成与独立验收（顺序）
 
-- [ ] T019 [US04] 主任务合并 B/C/D 后在 `specs/004-web-workbench-hig/verification.md` 对照 R01–R13 和源码/产物清单，运行前端构建、组件/AMD 测试、旧契约/安全回归、Espo rebuild/app-check；有跨包缺陷指定唯一文件所有者修复。
+- [x] T019 [US04] 主任务合并 B/C/D 后在 `specs/004-web-workbench-hig/verification.md` 对照 R01–R13 和源码/产物清单，运行前端构建、组件/AMD 测试、旧契约/安全回归、Espo rebuild/app-check；有跨包缺陷指定唯一文件所有者修复。
 - [ ] T020 [US03] **独立验收 Agent** 按 `specs/004-web-workbench-hig/verification.md` 用隔离合成数据对 17 个自定义界面和原生实体矩阵做多角色、双语、六视口、200% 缩放、键盘/屏读标签、暗色/高对比、局部状态与关键业务路径验收，记录截图位置、失败复现和未覆盖项；不把代码完成视为验收完成。
 - [ ] T021 [US04] 主任务按 T020 缺陷派回 B/C/D/A 的独占文件，修复后请同一独立 Agent 复验；在 `specs/004-web-workbench-hig/verification.md` 标明通过/失败/阻塞及实际证据。
 - [ ] T022 [US04] 主任务更新 Web 开发交接与发布/回退说明，核对构建产物、依赖许可证、Git 无密钥/客户内容，确保未把 Android 或真实 Alibaba 回填误标为已完成；交接入口写入 `README.md` 或相应 `docs/` 文档。

@@ -6,7 +6,7 @@
 
 **接手项目先读 [2026-09-24 开发交接](docs/DEVELOPMENT_HANDOFF_2026-09-24.md)。** 它按日期列出已开发内容、验证边界、未完成任务和代码入口；[老板演示说明](docs/BOSS_DEMO.md)记录当前数据状态。旧交接文档是对应日期的历史快照。
 
-`codex/web-workbench-hig` 分支的 Web 重构入口见 [shadcn/ui 工作台交接](docs/WEB_WORKBENCH_SHADCN_HANDOFF.md)；逐项通过状态以 [验收账本](specs/004-web-workbench-hig/verification.md) 为准。该分支尚在开发，不代表 `main` 已部署新界面。
+`codex/web-workbench-hig` 分支的 Web 重构入口见 [shadcn/ui 工作台交接](docs/WEB_WORKBENCH_SHADCN_HANDOFF.md)；逐项通过状态以 [验收账本](specs/004-web-workbench-hig/verification.md) 和 [独立浏览器验收记录](docs/WEB_WORKBENCH_ACCEPTANCE_2026-09-24.md) 为准。该分支尚在开发，不代表 `main` 已部署新界面。
 
 当前环境默认禁止自动外发。`main` 已包含受独立 Agent 凭据保护的 Alibaba 入库端点、浏览器采集与增量同步代码，以及 Web 工作台里的历史客户只读看板；指定账号的真实全历史回填、来源完整性对账和真实发送尚未验收。其他渠道使用占位连接器。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
 

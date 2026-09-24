@@ -1,6 +1,6 @@
 # Web 工作台 shadcn/ui 重构交接
 
-本文件对应 `codex/web-workbench-hig` 分支。需求、架构、任务与逐项验收证据分别见 [`spec.md`](../specs/004-web-workbench-hig/spec.md)、[`plan.md`](../specs/004-web-workbench-hig/plan.md)、[`tasks.md`](../specs/004-web-workbench-hig/tasks.md) 和 [`verification.md`](../specs/004-web-workbench-hig/verification.md)。本文只记录接手实现和发布所需的稳定入口；是否完成以验收账本为准。
+本文件对应 `codex/web-workbench-hig` 分支。需求、架构、任务与逐项验收证据分别见 [`spec.md`](../specs/004-web-workbench-hig/spec.md)、[`plan.md`](../specs/004-web-workbench-hig/plan.md)、[`tasks.md`](../specs/004-web-workbench-hig/tasks.md) 和 [`verification.md`](../specs/004-web-workbench-hig/verification.md)。独立浏览器审查见 [`WEB_WORKBENCH_ACCEPTANCE_2026-09-24.md`](WEB_WORKBENCH_ACCEPTANCE_2026-09-24.md)。本文只记录接手实现和发布所需的稳定入口；是否完成以验收账本为准。
 
 ## 实现边界
 
