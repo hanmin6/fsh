@@ -1,18 +1,18 @@
 # GitHub 分支地图与开发交接
 
-核对日期：2026-09-24。本文只列出 `hanmin6/fsh` **远端的 7 个分支**，依据远端分支指针、提交祖先关系、实际文件和各阶段交接文档整理。本机其他 worktree 或仅存在于本地的分支不在此表。这里的“已并入”指该分支当前顶端提交是 `main` 的祖先；不代表该旧分支文档里的限制仍是当前限制，也不代表所有功能经过真实业务验收。
+核对日期：2026-09-24，老板历史客户功能同日并入 `main`。本文只列出 `hanmin6/fsh` **远端的 7 个分支**，依据远端分支指针、提交祖先关系、实际文件和各阶段交接文档整理。本机其他 worktree 或仅存在于本地的分支不在此表。这里的“已并入”指该分支当前顶端提交是 `main` 的祖先；不代表该旧分支文档里的限制仍是当前限制，也不代表所有功能经过真实业务验收。
 
 ## 先看结论
 
 | GitHub 分支 | 2026-09-24 顶端提交 | 与当时 `main` 的关系 | 用途 |
 | --- | --- | --- | --- |
-| [`main`](https://github.com/hanmin6/fsh/tree/main) | `99956dd` | 集成基线 | CRM、AI 客服、食品外贸骨架、非渠道生产准备和 Alibaba 同步基础 |
+| [`main`](https://github.com/hanmin6/fsh/tree/main) | 以分支页最新提交为准 | 集成基线 | CRM、AI 客服、食品外贸骨架、Alibaba 同步基础和老板历史客户 Web 页面 |
 | [`codex/unified-inbox-mvp`](https://github.com/hanmin6/fsh/tree/codex/unified-inbox-mvp) | `09e0c62` | 已并入；独有提交 0 | 9 月 18 日统一询盘 MVP 快照 |
 | [`codex/fusanhe-crm-frontend`](https://github.com/hanmin6/fsh/tree/codex/fusanhe-crm-frontend) | `8f5c406` | 已并入；独有提交 0 | 9 月 19 日前端工作台快照，末端也含 API 加固 |
 | [`codex/backend-api-v1`](https://github.com/hanmin6/fsh/tree/codex/backend-api-v1) | `8f5c406` | 已并入；独有提交 0 | 9 月 19 日 CRM API 加固快照；与前端分支**同一提交** |
 | [`codex/android-client-ui`](https://github.com/hanmin6/fsh/tree/codex/android-client-ui) | `20e94cc` | 已并入；独有提交 0 | 9 月 19 日 Android 1.0.0 UI 演示快照 |
 | [`codex/release-crm-food-20260921`](https://github.com/hanmin6/fsh/tree/codex/release-crm-food-20260921) | `67174f6` | 已并入；独有提交 0 | 9 月 21 日 CRM/AI 客服与食品外贸集成发布点 |
-| [`codex/boss-history-insights`](https://github.com/hanmin6/fsh/tree/codex/boss-history-insights) | `4f41f6f` | **尚未并入**；比当时 `main` 多 2 个提交 | 老板历史客户看板、匿名信号分析和开发交接 |
+| [`codex/boss-history-insights`](https://github.com/hanmin6/fsh/tree/codex/boss-history-insights) | `1ab43e9` | 已并入；独有提交 0 | 老板历史客户看板、匿名信号分析及两个工作台入口 |
 
 > 分支提交会继续变化。本表是 2026-09-24 的快照。查看实时差异时，以 GitHub 分支页和 `git rev-list --left-right --count origin/main...origin/<分支名>` 为准。前端/API 两个分支指向同一 SHA，不需要当成两份独立改动合并。
 
@@ -22,7 +22,7 @@
 
 主要入口：[项目 README](../README.md)、[项目状态（旧版本快照）](PROJECT_STATUS.md)、[非渠道生产准备验证](../specs/002-non-channel-production-readiness/verification.md)、[Alibaba 采集端说明](../alibaba-client/alibaba_messenger/README.md)、[CRM 同步服务](../custom/Espo/Custom/Tools/Fusanhe/AlibabaSyncService.php)、[运维手册](operations.md)。`make spec-check`、`make verify-offline` 是基础检查；运行时测试要使用隔离环境。
 
-**当前边界：** `main` 有 Alibaba 采集和入库代码，不等于指定账号已完成真实全历史回填、覆盖率对账或真实平台发送验收。食品模块与 ERP/工厂/物流/财务尚未连接。`main` 目前**没有**老板历史客户页；那两次提交只在 `codex/boss-history-insights`。`README.md` 与 `PROJECT_STATUS.md` 的部分句子写于较早阶段，判断现状要结合本索引、代码及新验证记录。
+**当前边界：** `main` 有 Alibaba 采集、入库代码和老板历史客户 Web 页面，不等于指定账号已完成真实全历史回填、覆盖率对账或真实平台发送验收。食品模块与 ERP/工厂/物流/财务尚未连接。`PROJECT_STATUS.md` 的早期章节是历史快照，判断现状要结合本索引、代码及新验证记录。
 
 ## `codex/unified-inbox-mvp`：统一询盘 MVP
 
@@ -54,17 +54,17 @@
 
 [发布交接](RELEASE_HANDOFF_2026-09-21.md)和[第一阶段交接](PHASE1_ZCODE_HANDOFF.md)写有当时的测试、回退与限制。那些结果是发布时的记录，本次没有重跑。该分支已经完整进入 `main`；后续 Alibaba 同步基础不在这个 9 月 21 日发布点内。食品业务仍是 CRM 内的记录与流程，并未接通 ERP、工厂、物流或财务系统。
 
-## `codex/boss-history-insights`：老板历史客户功能，尚待集成
+## `codex/boss-history-insights`：老板历史客户功能，已并入 `main`
 
-这是当前唯一有 `main` 尚未包含提交的远端专题分支：`ec69444` 加功能，`4f41f6f` 加交接文档。从 `99956dd` 直接开发，当前比本索引写入前的 `main` 多 2 个提交。它新增 `#Home/insights` 只读页面、服务端搜索/分页和证据链接、上海当日规则建议；独立历史分析 Worker 只送固定词表的匿名信号，有 JSON/证据校验、缓存、失败重试、锁和每日调用预算；另有源端会话及消息 ID 集合对账命令，并改善同步失败恢复和日志脱敏。
+此分支从 `99956dd` 开发：`ec69444` 加功能，`4f41f6f` 加交接文档，`1ab43e9` 把页面入口放进 CRM 与 AI 客服工作台；现已并入 `main`。它新增 `#Home/insights` 只读页面、服务端搜索/分页和证据链接、上海当日规则建议；独立历史分析 Worker 只送固定词表的匿名信号，有 JSON/证据校验、缓存、失败重试、锁和每日调用预算；另有源端会话及消息 ID 集合对账命令，并改善同步失败恢复和日志脱敏。
 
 从该分支的[开发交接](https://github.com/hanmin6/fsh/blob/codex/boss-history-insights/docs/DEVELOPMENT_HANDOFF_2026-09-24.md)、[老板演示说明](https://github.com/hanmin6/fsh/blob/codex/boss-history-insights/docs/BOSS_DEMO.md)、[任务清单](https://github.com/hanmin6/fsh/blob/codex/boss-history-insights/specs/003-boss-history-insights/tasks.md)、[验证记录](https://github.com/hanmin6/fsh/blob/codex/boss-history-insights/specs/003-boss-history-insights/verification.md)进入。核心代码是 [看板服务](https://github.com/hanmin6/fsh/blob/codex/boss-history-insights/custom/Espo/Custom/Tools/Fusanhe/BossInsightsService.php)、[前端页面](https://github.com/hanmin6/fsh/blob/codex/boss-history-insights/client/custom/src/views/fusanhe/insights.js)、[分析 Worker](https://github.com/hanmin6/fsh/blob/codex/boss-history-insights/custom/Espo/Custom/Tools/Fusanhe/HistoryAnalysisWorker.php)。
 
-已有合成数据和隔离运行时验证，以及两次匿名合成模型调用。**真实 Alibaba 全历史回填仍为 0；平台总数和失败数未知。** 真实来源完整性清单、至少 20 个客户抽验、真实分析效果与模型实际费用、询价/索样优先规则及大数据性能尚未完成。`main` 的本索引不会把这些未合并功能写成主干已交付。
+已有合成数据和隔离运行时验证，以及两次匿名合成模型调用。**真实 Alibaba 全历史回填仍为 0；平台总数和失败数未知。** 真实来源完整性清单、至少 20 个客户抽验、真实分析效果与模型实际费用、询价/索样优先规则及大数据性能尚未完成。代码并入 `main` 不改变这些业务验收结论。
 
 ## 接手和维护规则
 
 1. 开始新工作时先确认 `git branch --show-current`，看目标功能是否只在专题分支。不要把已是 `main` 祖先的五个历史分支再次合并。
 2. 阅读目标分支**自身**的 README、规格、验证与最新提交。历史文档里的“当前”只对应当时日期；测试记录也只证明当次版本与环境。
-3. 需要老板历史功能时从 `codex/boss-history-insights` 审查或提出 PR；在正式集成前，不把真实回填、全量对账和自动发送说成已验收。
+3. 老板历史功能已在 `main`；`codex/boss-history-insights` 保留开发记录。不要把真实回填、全量对账和自动发送说成已验收。
 4. 功能/契约变更遵循 [工程宪章](../.specify/memory/constitution.md)，维护对应 `specs/NNN-*` 的需求、计划、任务与验证。私密文档、`.env`、浏览器 Profile、客户原文清单和备份不进 Git；全局停发保持开启，除非有明确的受控发送任务。

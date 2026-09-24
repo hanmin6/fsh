@@ -610,3 +610,26 @@ body:has(.fsh-login) footer a {
   font-weight: 600;
   margin-bottom: 4px;
 }
+
+/* Boss history: compact native workbench, flat metrics and evidence. */
+.fsh-insights-section { padding: 18px 22px; border-top: 1px solid #e2e5e9; }
+.fsh-insights h2 { margin: 0 0 14px; font-size: 17px; font-weight: 600; }
+.fsh-insights h2 small { margin-left: 10px; font-size: 12px; color: #555e6b; }
+.fsh-insights-notice { padding: 10px 22px; background: #f5f6f8; color: #39424e; }
+.fsh-insights-metrics { padding: 16px 22px; }
+.fsh-insights-metrics p { margin: 10px 0 0; font-size: 12px; color: #555e6b; }
+.fsh-insights-strip { display: flex; flex-wrap: wrap; gap: 18px 30px; }
+.fsh-insights-strip span { display: block; font-size: 12px; color: #555e6b; }
+.fsh-insights-strip strong { display: block; margin-top: 4px; font-size: 22px; font-variant-numeric: tabular-nums; }
+.fsh-insights-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-bottom: 12px; }
+.fsh-insights-toolbar label { margin: 0; font-size: 12px; font-weight: normal; }
+.fsh-insights-toolbar input { width: 260px; }
+.fsh-insights-toolbar .form-control { margin-top: 4px; }
+.fsh-insights .table { margin-bottom: 8px; font-size: 13px; }
+.fsh-insights .table td { vertical-align: middle; padding: 8px; }
+.fsh-insights-paging { display: flex; align-items: center; justify-content: flex-end; gap: 12px; font-size: 12px; }
+.fsh-insights-detail dl > div { display: grid; grid-template-columns: 160px 1fr; border-bottom: 1px solid #eef0f2; padding: 9px 0; }
+.fsh-insights-detail dd { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .fsh-insights-section, .fsh-insights-metrics { padding: 14px; } .fsh-insights-detail dl > div { grid-template-columns: 1fr; gap: 4px; } .fsh-insights-toolbar input { width: 210px; } }
+.fsh-insights-suggestions .table-responsive { max-height: 280px; overflow: auto; }
+.fsh-insights-suggestions th { position: sticky; top: 0; background: #f5f6f8; z-index: 1; }

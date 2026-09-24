@@ -7,7 +7,7 @@ define("custom:views/fusanhe/crm-home", [
   // Opportunities keep their native navigation entry.
   return class extends Dep {
     templateContent =
-      '<div class="fsh-shell"><header class="fsh-header"><div><h1>CRM 工作台</h1><div class="fsh-subtitle">客户、联系人、线索与跟进任务</div></div><button class="btn btn-default fsh-refresh">刷新</button></header><div class="fsh-dashboard-body" aria-live="polite"></div></div>';
+      '<div class="fsh-shell"><header class="fsh-header"><div><h1>CRM 工作台</h1><div class="fsh-subtitle">客户、联系人、线索与跟进任务</div></div><div><a class="btn btn-default fsh-insights-entry" href="#Home/insights">历史客户与今日建议</a> <button class="btn btn-default fsh-refresh">刷新</button></div></header><div class="fsh-dashboard-body" aria-live="polite"></div></div>';
     updatePageTitle() {
       this.getHelper().pageTitle.setTitle(
         this.translate("CRM 工作台", "labels", "Fusanhe"),
@@ -15,6 +15,8 @@ define("custom:views/fusanhe/crm-home", [
     }
     afterRender() {
       super.afterRender();
+      if (!this.getAcl().checkScope("ExternalConversation", "read"))
+        this.$el.find(".fsh-insights-entry").remove();
       this.$el.find(".fsh-refresh").on("click", () => this.load());
       this.load();
     }

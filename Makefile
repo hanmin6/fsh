@@ -35,11 +35,11 @@ check:
 backup:
 	./scripts/backup.sh
 
-SPECIFY_FEATURE_DIRECTORY ?= specs/002-non-channel-production-readiness
+SPECIFY_FEATURE_DIRECTORY ?= specs/003-boss-history-insights
 export SPECIFY_FEATURE_DIRECTORY
 
 spec-check:
-	SPECIFY_FEATURE_DIRECTORY=specs/002-non-channel-production-readiness ./.specify/scripts/bash/check-prerequisites.sh --json --require-spec --require-tasks --include-tasks
+	SPECIFY_FEATURE_DIRECTORY=$(SPECIFY_FEATURE_DIRECTORY) ./.specify/scripts/bash/check-prerequisites.sh --json --require-spec --require-tasks --include-tasks
 	@test -s .specify/memory/constitution.md
 	@test -s specs/001-system-baseline/spec.md
 	@test -s specs/001-system-baseline/plan.md
