@@ -73,6 +73,12 @@ class AlibabaSyncService:
                     messages = await self.bot.get_sync_history(inquiry_id, buyer_name=buyer_name)
                 except TypeError:
                     messages = await self.bot.get_sync_history(inquiry_id)
+
+                if not conversation.get("country"):
+                    cached_c = getattr(self.bot, "get_last_extracted_country", lambda _: "")(inquiry_id)
+                    if cached_c:
+                        conversation["country"] = cached_c
+
                 batches = chunked(messages, getattr(self.settings, "SYNC_BATCH_SIZE", 100)) or [[]]
                 for batch_no, batch in enumerate(batches, start=1):
                     request_id = stable_request_id(job_id, inquiry_id, batch_no)
@@ -150,6 +156,12 @@ class AlibabaSyncService:
                     messages = await self.bot.get_sync_history(inquiry_id, buyer_name=buyer_name)
                 except TypeError:
                     messages = await self.bot.get_sync_history(inquiry_id)
+
+                if not conversation.get("country"):
+                    cached_c = getattr(self.bot, "get_last_extracted_country", lambda _: "")(inquiry_id)
+                    if cached_c:
+                        conversation["country"] = cached_c
+
                 batch_size = getattr(self.settings, "SYNC_BATCH_SIZE", 100)
                 batches = chunked(messages, batch_size) or [[]]
                 for batch_no, batch in enumerate(batches, start=1):

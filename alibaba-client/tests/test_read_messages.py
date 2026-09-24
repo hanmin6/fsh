@@ -324,3 +324,113 @@ async def test_iter_conversations_pages_yields_page_by_page():
     assert bot_instance._navigate_conversation_page.await_count == 2
 
 
+@pytest.mark.asyncio
+async def test_bot_get_recent_conversations_im_fallback_includes_country():
+    """验证 IM 备选分支提取最近会话时包含 country 字段"""
+    bot_instance = AlibabaMessengerBot()
+    bot_instance.is_logged_in = True
+    bot_instance.page = AsyncMock()
+    # evaluate returns empty to trigger IM fallback
+    bot_instance.page.evaluate.return_value = []
+
+    mock_item = AsyncMock()
+    mock_name_el = AsyncMock()
+    mock_name_el.inner_text = AsyncMock(return_value="US Buyer Corp")
+    mock_country_el = AsyncMock()
+    mock_country_el.inner_text = AsyncMock(return_value="United States")
+
+    async def fake_query_selector(selector):
+        if "name" in selector or "title" in selector:
+            return mock_name_el
+        if "country" in selector or "flag" in selector or "region" in selector:
+            return mock_country_el
+        return None
+
+    mock_item.query_selector = AsyncMock(side_effect=fake_query_selector)
+    bot_instance.page.query_selector_all.return_value = [mock_item]
+
+    result = await bot_instance.get_recent_conversations(limit=5)
+    assert result["success"] is True
+    convs = result["data"]["conversations"]
+    assert len(convs) == 1
+    assert "country" in convs[0]
+    assert convs[0]["country"] == "United States"
+
+
+@pytest.mark.asyncio
+async def test_bot_find_inquiry_row_returns_country_and_caches():
+    """验证 _find_inquiry_row 返回 country 字段并在 bot 内部缓存"""
+    bot_instance = AlibabaMessengerBot()
+    bot_instance.page = AsyncMock()
+    bot_instance._get_current_page_number = AsyncMock(return_value=1)
+    
+    bot_instance.page.evaluate.return_value = {
+        "found": True,
+        "index": 0,
+        "buyer_name": "Alice Smith",
+        "inquiry_id": "999888",
+        "country": "Germany",
+        "last_message": "Price inquiry",
+        "last_time": "12:00",
+        "href": "/inquiry/detail.htm?id=999888",
+        "target": "_blank"
+    }
+
+    res, page_num = await bot_instance._find_inquiry_row(inquiry_id="999888")
+    assert res is not None
+    assert res.get("country") == "Germany"
+    assert bot_instance.get_last_extracted_country("999888") == "Germany"
+
+
+@pytest.mark.asyncio
+async def test_bot_get_chat_history_includes_country():
+    """验证 bot.get_chat_history 返回数据包含 country 字段"""
+    bot_instance = AlibabaMessengerBot()
+    bot_instance.is_logged_in = True
+    bot_instance._find_inquiry_row = AsyncMock(return_value=({
+        "found": True,
+        "index": 0,
+        "buyer_name": "Bob Stone",
+        "inquiry_id": "777666",
+        "country": "France",
+        "last_message": "Can we talk?",
+        "last_time": "14:00",
+        "href": "",
+        "target": ""
+    }, 1))
+
+    # mock dialogue messages extraction
+    bot_instance._extract_dialogue_messages = AsyncMock(return_value=[
+        {"sender": "buyer", "content": "Can we talk?", "time": "14:00"}
+    ])
+
+    res = await bot_instance.get_chat_history(inquiry_id="777666")
+    assert res["success"] is True
+    assert "country" in res["data"]
+    assert res["data"]["country"] == "France"
+    assert bot_instance.get_last_extracted_country("777666") == "France"
+
+
+@pytest.mark.asyncio
+async def test_bot_get_buyer_profile():
+    """验证 bot.get_buyer_profile 获取买家资料及国家"""
+    bot_instance = AlibabaMessengerBot()
+    bot_instance.is_logged_in = True
+    bot_instance._find_inquiry_row = AsyncMock(return_value=({
+        "found": True,
+        "index": 0,
+        "buyer_name": "Carol Danvers",
+        "inquiry_id": "555444",
+        "country": "Canada",
+        "last_message": "Need specs",
+        "last_time": "15:30"
+    }, 1))
+
+    res = await bot_instance.get_buyer_profile(inquiry_id="555444")
+    assert res["success"] is True
+    assert res["data"]["buyer_name"] == "Carol Danvers"
+    assert res["data"]["inquiry_id"] == "555444"
+    assert res["data"]["country"] == "Canada"
+    assert bot_instance.get_last_extracted_country("555444") == "Canada"
+
+

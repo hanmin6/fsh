@@ -51,13 +51,23 @@ class SyncMessage(BaseModel):
         )
 
 
+def normalize_country(country: str | None) -> str:
+    """清洗与规范化国家/地区名称或代码"""
+    if not country:
+        return ""
+    val = re.sub(r"[\r\n\t]+", " ", str(country)).strip()
+    if len(val) == 2 and val.isalpha():
+        return val.upper()
+    return val
+
+
 def build_conversation_payload(conversation: dict) -> dict:
     inquiry_id = str(conversation["inquiry_id"])
     return {
         "inquiryId": inquiry_id,
         "buyerExternalId": conversation.get("buyer_external_id"),
         "buyerName": (conversation.get("buyer_name") or "").strip() or f"Alibaba Buyer {inquiry_id}",
-        "country": conversation.get("country") or "",
+        "country": normalize_country(conversation.get("country")),
         "subject": conversation.get("subject") or "",
         "sourceStatus": conversation.get("status") or "",
         "unreadCount": int(conversation.get("unread_count") or 0),

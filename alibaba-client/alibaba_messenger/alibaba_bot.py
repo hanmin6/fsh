@@ -2,6 +2,7 @@
 import os
 import time
 import random
+import re
 import asyncio
 from datetime import datetime
 from enum import Enum
@@ -26,6 +27,11 @@ class AlibabaMessengerBot:
         self.page: Optional[Page] = None
         self.is_logged_in = False
         self.is_busy = False
+        self._inquiry_countries: Dict[str, str] = {}
+
+    def get_last_extracted_country(self, inquiry_id: str) -> str:
+        """获取指定商机缓存的买家国家/地区"""
+        return self._inquiry_countries.get(str(inquiry_id or "").strip(), "")
 
     async def start(self, headless: bool = False):
         """启动持久化浏览器并检测登录状态"""
@@ -244,6 +250,53 @@ class AlibabaMessengerBot:
 
                 const updateMatch = text.match(/更新时间[:：\\s]*([^\\s\\n]+)/);
 
+                // 提取买家国家/地区
+                let country = "";
+                const flagCandidates = Array.from(row.querySelectorAll(
+                    "img[src*='flag'], img[src*='country'], img[src*='nation'], " +
+                    "[class*='flag'], [class*='country'], [class*='nation'], " +
+                    "[data-country], [data-country-code], [data-code]"
+                ));
+                for (const el of flagCandidates) {
+                    const cls = (el.className || "").toString().toLowerCase();
+                    const src = (el.getAttribute("src") || "").toLowerCase();
+                    if (cls.includes("avatar") || src.includes("avatar") || cls.includes("logo") || src.includes("product")) {
+                        continue;
+                    }
+                    const dataCode = el.getAttribute("data-country-code") || el.getAttribute("data-country") || el.getAttribute("data-code");
+                    if (dataCode && dataCode.trim().length >= 2 && dataCode.trim().length <= 40) {
+                        country = dataCode.trim();
+                        break;
+                    }
+                    const titleVal = (el.getAttribute("title") || el.getAttribute("alt") || el.getAttribute("aria-label") || "").trim();
+                    const titleLower = titleVal.toLowerCase();
+                    if (titleVal && !titleLower.includes("avatar") && !titleLower.includes("logo") && !titleLower.includes("icon") && !titleLower.includes("image")) {
+                        country = titleVal;
+                        break;
+                    }
+                    const srcMatch = src.match(/\\/([a-z]{2})\\.(png|jpg|svg|webp|gif)/i);
+                    if (srcMatch) {
+                        country = srcMatch[1].toUpperCase();
+                        break;
+                    }
+                    const classMatch = cls.match(/(?:flag|nation|country|fi)[-_]([a-z]{2})\b/i);
+                    if (classMatch) {
+                        country = classMatch[1].toUpperCase();
+                        break;
+                    }
+                    const inner = el.innerText ? el.innerText.trim() : "";
+                    if (inner && inner.length >= 2 && inner.length <= 40 && !inner.toLowerCase().includes("inquiry")) {
+                        country = inner;
+                        break;
+                    }
+                }
+                if (!country) {
+                    const countryMatch = text.match(/(?:国家\\/地区|国家|地区|Country\\/Region|Country|Region)[:：\\s]*([a-zA-Z\\u4e00-\\u9fa5\\s]{2,40})/i);
+                    if (countryMatch) {
+                        country = countryMatch[1].trim();
+                    }
+                }
+
                 let match = false;
                 if (targetId && idNum === targetId) {
                     match = true;
@@ -261,6 +314,7 @@ class AlibabaMessengerBot:
                         index: i,
                         buyer_name: name || targetBuyer || "Unknown Buyer",
                         inquiry_id: idNum || targetId || "",
+                        country: country,
                         last_message: snippet,
                         last_time: updateMatch ? updateMatch[1] : "",
                         href: link.getAttribute("href") || "",
@@ -278,6 +332,10 @@ class AlibabaMessengerBot:
             curr_page = await self._get_current_page_number()
             res = await self.page.evaluate(script, {"buyer": buyer_name or "", "inquiryId": inquiry_id or ""})
             if isinstance(res, dict) and res.get("found"):
+                matched_inq = str(res.get("inquiry_id") or inquiry_id or "").strip()
+                extracted_c = str(res.get("country") or "").strip()
+                if matched_inq and extracted_c:
+                    self._inquiry_countries[matched_inq] = extracted_c
                 return res, curr_page
         except Exception:
             pass
@@ -292,6 +350,10 @@ class AlibabaMessengerBot:
             try:
                 res = await self.page.evaluate(script, {"buyer": buyer_name or "", "inquiryId": inquiry_id or ""})
                 if isinstance(res, dict) and res.get("found"):
+                    matched_inq = str(res.get("inquiry_id") or inquiry_id or "").strip()
+                    extracted_c = str(res.get("country") or "").strip()
+                    if matched_inq and extracted_c:
+                        self._inquiry_countries[matched_inq] = extracted_c
                     return res, page_num
             except Exception:
                 continue
@@ -623,13 +685,48 @@ class AlibabaMessengerBot:
 
                     // 2. 提取国家/地区
                     let country = "";
-                    const flagEl = row.querySelector("img[src*='flag'], img[alt], [class*='flag'], [title*='flag']");
-                    if (flagEl) {
-                        country = flagEl.getAttribute("alt") || flagEl.getAttribute("title") || "";
-                        if (!country) {
-                            const src = flagEl.getAttribute("src") || "";
-                            const codeMatch = src.match(/([a-zA-Z]{2})\\.png/i);
-                            if (codeMatch) country = codeMatch[1].toUpperCase();
+                    const flagCandidates = Array.from(row.querySelectorAll(
+                        "img[src*='flag'], img[src*='country'], img[src*='nation'], " +
+                        "[class*='flag'], [class*='country'], [class*='nation'], " +
+                        "[data-country], [data-country-code], [data-code]"
+                    ));
+                    for (const el of flagCandidates) {
+                        const cls = (el.className || "").toString().toLowerCase();
+                        const src = (el.getAttribute("src") || "").toLowerCase();
+                        if (cls.includes("avatar") || src.includes("avatar") || cls.includes("logo") || src.includes("product")) {
+                            continue;
+                        }
+                        const dataCode = el.getAttribute("data-country-code") || el.getAttribute("data-country") || el.getAttribute("data-code");
+                        if (dataCode && dataCode.trim().length >= 2 && dataCode.trim().length <= 40) {
+                            country = dataCode.trim();
+                            break;
+                        }
+                        const titleVal = (el.getAttribute("title") || el.getAttribute("alt") || el.getAttribute("aria-label") || "").trim();
+                        const titleLower = titleVal.toLowerCase();
+                        if (titleVal && !titleLower.includes("avatar") && !titleLower.includes("logo") && !titleLower.includes("icon") && !titleLower.includes("image")) {
+                            country = titleVal;
+                            break;
+                        }
+                        const srcMatch = src.match(/\\/([a-z]{2})\\.(png|jpg|svg|webp|gif)/i);
+                        if (srcMatch) {
+                            country = srcMatch[1].toUpperCase();
+                            break;
+                        }
+                        const classMatch = cls.match(/(?:flag|nation|country|fi)[-_]([a-z]{2})\b/i);
+                        if (classMatch) {
+                            country = classMatch[1].toUpperCase();
+                            break;
+                        }
+                        const inner = el.innerText ? el.innerText.trim() : "";
+                        if (inner && inner.length >= 2 && inner.length <= 40 && !inner.toLowerCase().includes("inquiry")) {
+                            country = inner;
+                            break;
+                        }
+                    }
+                    if (!country) {
+                        const countryMatch = text.match(/(?:国家\\/地区|国家|地区|Country\\/Region|Country|Region)[:：\\s]*([a-zA-Z\\u4e00-\\u9fa5\\s]{2,40})/i);
+                        if (countryMatch) {
+                            country = countryMatch[1].trim();
                         }
                     }
 
@@ -691,6 +788,12 @@ class AlibabaMessengerBot:
                     pass
 
             if isinstance(inquiries, list) and len(inquiries) > 0:
+                for item in inquiries:
+                    inq_id = str(item.get("inquiry_id") or "").strip()
+                    c_val = str(item.get("country") or "").strip()
+                    if inq_id and c_val:
+                        self._inquiry_countries[inq_id] = c_val
+
                 return {
                     "success": True,
                     "status": "READY",
@@ -710,6 +813,43 @@ class AlibabaMessengerBot:
             for item in items[:limit]:
                 name_el = await item.query_selector(".name, .title, .buyer-name, .nick, [data-testid='contact-name']")
                 buyer_name = (await name_el.inner_text()).strip() if name_el else "Unknown"
+
+                # 提取国家/地区
+                country_el = await item.query_selector(
+                    ".country, .region, .nation, [class*='country'], [class*='flag'], [data-country]"
+                )
+                country = ""
+                if country_el:
+                    try:
+                        title_val = await country_el.get_attribute("title")
+                    except Exception:
+                        title_val = None
+                    try:
+                        alt_val = await country_el.get_attribute("alt")
+                    except Exception:
+                        alt_val = None
+                    if title_val and isinstance(title_val, str) and title_val.strip():
+                        country = title_val.strip()
+                    elif alt_val and isinstance(alt_val, str) and alt_val.strip():
+                        country = alt_val.strip()
+
+                    if not country:
+                        try:
+                            it = await country_el.inner_text()
+                            if it and isinstance(it, str) and it.strip():
+                                country = it.strip()
+                        except Exception:
+                            pass
+
+                    if not country:
+                        try:
+                            src_val = await country_el.get_attribute("src")
+                            if src_val and isinstance(src_val, str):
+                                code_m = re.search(r"/([a-zA-Z]{2})\.(?:png|jpg|svg|webp|gif)", src_val)
+                                if code_m:
+                                    country = code_m.group(1).upper()
+                        except Exception:
+                            pass
 
                 msg_el = await item.query_selector(".snippet, .text, .last-msg, .preview, .message-preview")
                 last_msg = (await msg_el.inner_text()).strip() if msg_el else ""
@@ -731,6 +871,7 @@ class AlibabaMessengerBot:
 
                 conversations.append({
                     "buyer_name": buyer_name,
+                    "country": country,
                     "last_message": last_msg,
                     "last_time": last_time,
                     "unread_count": unread_count,
@@ -1220,6 +1361,43 @@ class AlibabaMessengerBot:
             print(f"[Bot] 提取聊天历史气泡异常: {e}")
             return []
 
+    async def _extract_country_from_page(self, page_obj) -> str:
+        """从页面或抽屉 DOM 中提取买家国家/地区"""
+        if not page_obj:
+            return ""
+        try:
+            return await page_obj.evaluate("""() => {
+                const flagCandidates = Array.from(document.querySelectorAll(
+                    "[class*='country'], [class*='region'], [class*='nation'], " +
+                    "img[src*='flag'], img[src*='country'], [data-country], [data-country-code]"
+                ));
+                for (const el of flagCandidates) {
+                    const cls = (el.className || "").toString().toLowerCase();
+                    const src = (el.getAttribute("src") || "").toLowerCase();
+                    if (cls.includes("avatar") || src.includes("avatar") || cls.includes("logo") || src.includes("product")) {
+                        continue;
+                    }
+                    const dataCode = el.getAttribute("data-country-code") || el.getAttribute("data-country") || el.getAttribute("data-code");
+                    if (dataCode && dataCode.trim().length >= 2 && dataCode.trim().length <= 40) return dataCode.trim();
+                    const titleVal = (el.getAttribute("title") || el.getAttribute("alt") || el.getAttribute("aria-label") || "").trim();
+                    const titleLower = titleVal.toLowerCase();
+                    if (titleVal && !titleLower.includes("avatar") && !titleLower.includes("logo") && !titleLower.includes("icon") && !titleLower.includes("image")) {
+                        return titleVal;
+                    }
+                    const srcMatch = src.match(/\\/([a-z]{2})\\.(png|jpg|svg|webp|gif)/i);
+                    if (srcMatch) return srcMatch[1].toUpperCase();
+                    const classMatch = cls.match(/(?:flag|nation|country|fi)[-_]([a-z]{2})\b/i);
+                    if (classMatch) return classMatch[1].toUpperCase();
+                    const inner = el.innerText ? el.innerText.trim() : "";
+                    if (inner && inner.length >= 2 && inner.length <= 40 && !inner.toLowerCase().includes("inquiry")) return inner;
+                }
+                const text = document.body ? document.body.innerText : "";
+                const countryMatch = text.match(/(?:国家\\/地区|国家|地区|Country\\/Region|Country|Region)[:：\\s]*([a-zA-Z\\u4e00-\\u9fa5\\s]{2,40})/i);
+                return countryMatch ? countryMatch[1].trim() : "";
+            }""") or ""
+        except Exception:
+            return ""
+
     async def get_chat_history(
         self,
         buyer_name: Optional[str] = None,
@@ -1251,14 +1429,15 @@ class AlibabaMessengerBot:
                 last_time = buyer_target.get("last_time")
                 target_idx = buyer_target.get("index", 0)
 
-                detail_links = await self.page.query_selector_all("a.actions-view-detail, .actions-view-detail")
+                detail_links = await self.page.query_selector_all("a.actions-view-detail, .actions-view-detail") if self.page else []
                 messages = []
                 detail_page = None
+                detail_country = ""
                 btn = None
 
                 if target_idx < len(detail_links):
                     btn = detail_links[target_idx]
-                else:
+                elif self.page:
                     detail_locators = await self.page.locator("a, button, span").filter(has_text="查看详情").all()
                     if target_idx < len(detail_locators):
                         btn = detail_locators[target_idx]
@@ -1285,11 +1464,13 @@ class AlibabaMessengerBot:
                                     await detail_page.screenshot(path=ss_path)
                                 except Exception:
                                     pass
+                                detail_country = await self._extract_country_from_page(detail_page)
                                 messages = await self._extract_dialogue_messages(detail_page, limit=limit, order=order, buyer_name=real_buyer_name)
                                 await detail_page.close()
-                        else:
+                        elif self.page:
                             await btn.click()
                             await asyncio.sleep(2.0)
+                            detail_country = await self._extract_country_from_page(self.page)
                             messages = await self._extract_dialogue_messages(self.page, limit=limit, order=order, buyer_name=real_buyer_name)
                     except Exception as ex:
                         print(f"[Bot] 打开商机详情页异常: {ex}")
@@ -1303,6 +1484,10 @@ class AlibabaMessengerBot:
                         "time": last_time
                     }]
 
+                final_country = detail_country or str(buyer_target.get("country") or "").strip() or self.get_last_extracted_country(matched_id)
+                if matched_id and final_country:
+                    self._inquiry_countries[str(matched_id)] = final_country
+
                 return {
                     "success": True,
                     "status": "READY",
@@ -1310,6 +1495,7 @@ class AlibabaMessengerBot:
                     "data": {
                         "buyer_name": real_buyer_name,
                         "inquiry_id": matched_id,
+                        "country": final_country,
                         "messages": messages,
                         "total": len(messages),
                         "elapsed_seconds": round(time.time() - start_time, 2)
@@ -1332,7 +1518,7 @@ class AlibabaMessengerBot:
                     "success": False,
                     "status": SendResultStatus.BUYER_NOT_FOUND,
                     "message": f"未在商机列表中找到{target_desc}",
-                    "data": {"buyer_name": buyer_name or "", "inquiry_id": inquiry_id or "", "messages": [], "elapsed_seconds": round(time.time() - start_time, 2)}
+                    "data": {"buyer_name": buyer_name or "", "inquiry_id": inquiry_id or "", "country": self.get_last_extracted_country(inquiry_id) or "", "messages": [], "elapsed_seconds": round(time.time() - start_time, 2)}
                 }
 
             await search_input.click()
@@ -1376,6 +1562,7 @@ class AlibabaMessengerBot:
                 "data": {
                     "buyer_name": buyer_name or search_query,
                     "inquiry_id": inquiry_id or "",
+                    "country": self.get_last_extracted_country(inquiry_id) or "",
                     "messages": messages,
                     "total": len(messages),
                     "elapsed_seconds": round(time.time() - start_time, 2)
@@ -1387,10 +1574,61 @@ class AlibabaMessengerBot:
                 "success": False,
                 "status": SendResultStatus.SEND_FAILED,
                 "message": f"获取聊天历史异常: {str(e)}",
-                "data": {"buyer_name": buyer_name, "messages": [], "elapsed_seconds": round(time.time() - start_time, 2)}
+                "data": {"buyer_name": buyer_name, "inquiry_id": inquiry_id or "", "country": self.get_last_extracted_country(inquiry_id) or "", "messages": [], "elapsed_seconds": round(time.time() - start_time, 2)}
             }
         finally:
             self.is_busy = False
+
+    async def get_buyer_profile(self, buyer_name: Optional[str] = None, inquiry_id: Optional[str] = None) -> dict:
+        """获取买家详细画像（包含国家/地区、姓名、商机ID等）"""
+        target_id = str(inquiry_id or "").strip()
+        target_name = (buyer_name or "").strip()
+        cached_country = self.get_last_extracted_country(target_id) if target_id else ""
+        
+        # 若已有缓存国家且同时有姓名与ID，直接返回
+        if cached_country and target_name and target_id:
+            return {
+                "success": True,
+                "status": "READY",
+                "message": f"成功获取买家 [{target_name}] 资料",
+                "data": {
+                    "inquiry_id": target_id,
+                    "buyer_name": target_name,
+                    "country": cached_country
+                }
+            }
+
+        # 尝试通过 _find_inquiry_row 定位商机并提取信息
+        row_info, _ = await self._find_inquiry_row(buyer_name=target_name, inquiry_id=target_id)
+        if row_info and row_info.get("found"):
+            b_name = row_info.get("buyer_name") or target_name
+            inq_id = row_info.get("inquiry_id") or target_id
+            country = row_info.get("country") or cached_country
+            if inq_id and country:
+                self._inquiry_countries[str(inq_id)] = country
+            return {
+                "success": True,
+                "status": "READY",
+                "message": f"成功获取买家 [{b_name}] 资料",
+                "data": {
+                    "inquiry_id": inq_id,
+                    "buyer_name": b_name,
+                    "country": country,
+                    "last_time": row_info.get("last_time", ""),
+                    "last_message": row_info.get("last_message", "")
+                }
+            }
+
+        return {
+            "success": False,
+            "status": SendResultStatus.BUYER_NOT_FOUND,
+            "message": f"未在商机列表中找到目标买家资料",
+            "data": {
+                "inquiry_id": target_id,
+                "buyer_name": target_name,
+                "country": cached_country
+            }
+        }
 
     async def _clear_search(self):
         """点击搜索栏清除按钮恢复初始列表"""

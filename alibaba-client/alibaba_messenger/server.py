@@ -258,6 +258,78 @@ async def get_message_history(
     finally:
         waiting_counter = max(0, waiting_counter - 1)
 
+@app.get("/api/buyer/profile", response_model=APIResponse)
+async def get_buyer_profile(
+    buyer_name: Optional[str] = Query(None, description="买家名称/旺旺名/公司名"),
+    inquiry_id: Optional[str] = Query(None, description="商机询价单号 (与 buyer_name 二选一)"),
+    timeout_seconds: int = Query(settings.DEFAULT_QUEUE_TIMEOUT_SEC, description="排队超时时间(秒)")
+):
+    """获取指定买家或商机ID的资料（包括国家/地区、姓名等）"""
+    if not buyer_name and not inquiry_id:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "code": 422,
+                "success": False,
+                "status": "VALIDATION_ERROR",
+                "message": "参数错误：必须提供 buyer_name 或 inquiry_id 之一",
+                "data": None
+            }
+        )
+
+    if not bot.is_logged_in:
+        return JSONResponse(
+            status_code=401,
+            content={
+                "code": 401,
+                "success": False,
+                "status": SendResultStatus.NEED_LOGIN.value,
+                "message": "国际站尚未登录，请先在界面完成登录",
+                "data": {"buyer_name": buyer_name or "", "inquiry_id": inquiry_id or "", "country": ""}
+            }
+        )
+
+    global waiting_counter
+    waiting_counter += 1
+    try:
+        try:
+            await asyncio.wait_for(browser_lock.acquire(), timeout=timeout_seconds)
+        except asyncio.TimeoutError:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "code": 429,
+                    "success": False,
+                    "status": SendResultStatus.QUEUE_TIMEOUT.value,
+                    "message": "前序任务执行繁忙，排队超时",
+                    "data": {"buyer_name": buyer_name or "", "inquiry_id": inquiry_id or "", "country": ""}
+                }
+            )
+
+        try:
+            res = await bot.get_buyer_profile(buyer_name=buyer_name, inquiry_id=inquiry_id)
+            http_status = 200
+            res_status = res["status"]
+            if res_status == SendResultStatus.BUYER_NOT_FOUND:
+                http_status = 404
+            elif res_status == SendResultStatus.NEED_LOGIN:
+                http_status = 401
+
+            return JSONResponse(
+                status_code=http_status,
+                content={
+                    "code": http_status,
+                    "success": res["success"],
+                    "status": res["status"] if isinstance(res["status"], str) else res["status"].value,
+                    "message": res["message"],
+                    "data": res.get("data")
+                }
+            )
+        finally:
+            browser_lock.release()
+    finally:
+        waiting_counter = max(0, waiting_counter - 1)
+
 @app.get("/api/debug/screenshot")
 async def debug_screenshot(page_index: int = Query(0, description="页面索引")):
     """调试端点：截取指定浏览器画面并返回页面URL与标题"""

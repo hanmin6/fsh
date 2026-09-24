@@ -157,3 +157,26 @@ def test_failed_backfill_keeps_job_resumable_and_redacts_logs(tmp_path, capsys):
     error = store.connection.execute('SELECT error_message FROM conversation_checkpoint').fetchone()[0]
     assert error == 'transient_sync_error'
     store.close()
+
+
+def test_sync_service_backfills_country_from_bot_cache():
+    class CacheBot:
+        def __init__(self):
+            self.countries = {"inq-99": "Malaysia"}
+
+        async def iter_conversations_pages(self, max_pages=1000):
+            # Country is empty initially from list
+            yield [{"inquiry_id": "inq-99", "buyer_name": "Rahman", "country": "", "create_time": "", "last_time": ""}]
+
+        async def get_sync_history(self, inquiry_id, buyer_name=None):
+            return [SyncMessage.from_source(inquiry_id, "buyer", "Salam", "2026-09-24 10:00", 1, None, "chat")]
+
+        def get_last_extracted_country(self, inquiry_id):
+            return self.countries.get(str(inquiry_id), "")
+
+    gateway, state = FakeGateway(), FakeState()
+    summary = asyncio.run(AlibabaSyncService(CacheBot(), gateway, state, Settings()).run_backfill())
+    assert summary.completed == 1
+    assert len(gateway.calls) == 1
+    # Country must be backfilled into the conversation payload sent to CRM
+    assert gateway.calls[0][0]["conversation"]["country"] == "Malaysia"

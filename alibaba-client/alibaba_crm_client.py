@@ -186,6 +186,28 @@ class AlibabaCRMClient:
             "language": language
         })
 
+    @staticmethod
+    def extract_order_country(order_data: dict) -> str:
+        """从订单详情或列表项中提取买家国家/收件人国家"""
+        if not isinstance(order_data, dict):
+            return ""
+
+        candidates = [
+            order_data.get("logistics_address", {}).get("country_name"),
+            order_data.get("logistics_address", {}).get("country"),
+            order_data.get("shipping_address", {}).get("country_name"),
+            order_data.get("shipping_address", {}).get("country"),
+            order_data.get("buyer_info", {}).get("country_name"),
+            order_data.get("buyer_info", {}).get("country"),
+            order_data.get("receiver_country"),
+            order_data.get("country_name"),
+            order_data.get("country"),
+        ]
+        for c in candidates:
+            if c and isinstance(c, str) and c.strip():
+                return c.strip()
+        return ""
+
     def get_product_list(self, page_size: int = 20, current_page: int = 1, language: str = "ENGLISH") -> dict:
         """
         【商品同步】拉取店铺所有在售商品列表 (供 CRM 产品库报价使用)

@@ -20,6 +20,7 @@ __pycache__/
 .pytest_cache/
 playwright-report/
 test-results/
+.superpowers/
 
 # Alibaba client runtime ignore rules
 alibaba-client/.env

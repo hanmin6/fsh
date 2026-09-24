@@ -50,3 +50,11 @@ def test_conversation_payload_fills_required_crm_fields():
     assert payload["country"] == ""
     assert payload["createdAtRaw"] == ""
     assert payload["updatedAtRaw"] == ""
+
+
+def test_conversation_payload_normalizes_country():
+    payload1 = build_conversation_payload({"inquiry_id": "123", "country": "  us \n"})
+    assert payload1["country"] == "US"
+
+    payload2 = build_conversation_payload({"inquiry_id": "124", "country": "\tUnited States  "})
+    assert payload2["country"] == "United States"
