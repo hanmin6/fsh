@@ -130,7 +130,7 @@ define("custom:views/fusanhe/common", [], function () {
     require(["ajax"], (Ajax) => {
       Ajax.getRequest("Fusanhe/status")
         .then((r) => {
-          outboundState = !!r.outboundPaused;
+          outboundState = typeof r?.outboundPaused === "boolean" ? r.outboundPaused : null;
         })
         .catch(() => {
           outboundState = null;

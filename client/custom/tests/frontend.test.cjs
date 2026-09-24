@@ -34,6 +34,24 @@ function load(name, dependencies, extra = {}) {
   return result;
 }
 const U = load("views/fusanhe/common.js", {});
+test("Missing outbound switch state remains unknown in the legacy fallback", async () => {
+  let common;
+  const source = fs.readFileSync(path.join(root, "src/views/fusanhe/common.js"), "utf8");
+  vm.runInNewContext(source, {
+    define: (_name, _dependencies, factory) => { common = factory(); },
+    require: (_dependencies, callback) => callback({ getRequest: async () => ({}) }),
+    Date,
+  });
+  const notice = { textContent: "" };
+  common.refreshOutboundNotice({
+    element: { querySelectorAll: () => [notice] },
+    getAcl: () => ({ checkScope: () => true }),
+  });
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(common.outboundState(), null);
+  assert.match(notice.textContent, /状态未知/);
+});
 function createDetail(draft, can = true) {
   const html = {},
     handlers = {},

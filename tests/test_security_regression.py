@@ -121,6 +121,49 @@ class SecurityRegression(unittest.TestCase):
         s, err = call('GET', '/Fusanhe/status', auth='Basic ' + restricted)
         self.assertEqual(s, 403, err)
 
+    def test_status_only_exposes_operational_sections_to_matching_roles(self):
+        """Conversation readers must not receive connector or agent metadata."""
+        name = unique('status-role')
+        s, role = call('POST', '/Role', {
+            'name': name,
+            'data': {
+                'ExternalConversation': {'read': 'all'},
+                'ExternalChannel': {'read': 'no'},
+                'AutomationAgent': {'read': 'no'},
+            },
+            'fieldData': {},
+        })
+        self.assertEqual(s, 200, role)
+        username, password = unique('status-user'), 'Status-Scope-Test-1!'
+        s, user = call('POST', '/User', {
+            'userName': username, 'lastName': 'Status Scope Fixture',
+            'password': password, 'isActive': True, 'rolesIds': [role['id']],
+        })
+        self.assertEqual(s, 200, user)
+        auth = 'Basic ' + base64.b64encode(f'{username}:{password}'.encode()).decode()
+
+        s, status = call('GET', '/Fusanhe/status', auth=auth)
+        self.assertEqual(s, 200, status)
+        self.assertIsInstance(status.get('outboundPaused'), bool)
+        self.assertNotIn('channels', status)
+        self.assertNotIn('agents', status)
+
+        s, role = call('PATCH', f"/Role/{role['id']}", {
+            'data': {
+                'ExternalConversation': {'read': 'all'},
+                'ExternalChannel': {'read': 'all'},
+                'AutomationAgent': {'read': 'no'},
+            },
+        })
+        self.assertEqual(s, 200, role)
+        s, status = call('GET', '/Fusanhe/status', auth=auth)
+        self.assertEqual(s, 200, status)
+        self.assertIn('channels', status)
+        self.assertNotIn('agents', status)
+        for health in status['channels'].values():
+            for sensitive in ('account', 'sellerId', 'appKey', 'endpoint', 'error'):
+                self.assertNotIn(sensitive, health)
+
     def test_intake_rejects_unknown_channel_type(self):
         s, err = call('POST', '/Fusanhe/mock/intake', {
             'channelType': 'MysteryPlatform',
