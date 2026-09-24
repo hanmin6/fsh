@@ -1,1 +1,235 @@
-/* Reserved for the native EspoCRM visual adaptation package. */
+/* Espo-owned navigation, CRUD, forms and relations. React workbench styles
+   live in ui.css; keep these rules outside [data-fsh-ui-root]. */
+:root {
+  --fsh-native-separator: var(--border-default, #dcd8ce);
+  --fsh-native-focus: var(--fsh-focus-ring, #a12f24);
+}
+
+#navbar .nav > li > a,
+#navbar .navbar-right > li > a,
+#navbar button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.page-header,
+.record-header {
+  border-color: var(--fsh-native-separator);
+}
+
+.page-header h1,
+.record-header h1,
+.page-header h3 {
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.list-container .table-responsive,
+.relation-panel .table-responsive,
+.panel-body .table-responsive {
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+}
+
+.list-container .table,
+.relation-panel .table,
+.panel-body .table {
+  margin-bottom: 0;
+}
+
+.list-container .table > thead > tr > th,
+.relation-panel .table > thead > tr > th,
+.panel-body .table > thead > tr > th {
+  border-bottom: 1px solid var(--fsh-native-separator);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.list-container .table > tbody > tr > td,
+.relation-panel .table > tbody > tr > td,
+.panel-body .table > tbody > tr > td {
+  border-bottom: 1px solid var(--fsh-native-separator);
+  overflow-wrap: anywhere;
+}
+
+.list-container .table > tbody > tr:hover,
+.relation-panel .table > tbody > tr:hover {
+  background: var(--surface-subtle);
+}
+
+.record .panel-heading,
+.detail .panel-heading,
+.relation-panel .panel-heading,
+.dashlet .panel-heading {
+  border-bottom: 1px solid var(--fsh-native-separator);
+  background: var(--surface-main);
+  font-weight: 600;
+}
+
+.record .panel,
+.detail .panel,
+.relation-panel .panel,
+.dashlet .panel,
+.modal-content,
+.dropdown-menu {
+  box-shadow: none;
+  border-color: var(--fsh-native-separator);
+}
+
+.record .field,
+.detail .field {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.record .field-label,
+.detail .field-label,
+.record label,
+.detail label {
+  color: var(--text-secondary);
+}
+
+.form-control:focus,
+.selectize-input.focus,
+.selectize-control.focus .selectize-input {
+  border-color: var(--fsh-native-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fsh-native-focus) 18%, transparent);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+.list-row:focus-visible {
+  outline: 2px solid var(--fsh-native-focus) !important;
+  outline-offset: 2px;
+}
+
+.modal-content {
+  border-radius: var(--fsh-radius, 6px);
+}
+
+.modal .modal-header,
+.modal .modal-footer {
+  border-color: var(--fsh-native-separator);
+}
+
+.modal .modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal .modal-footer .btn + .btn {
+  margin-left: 0;
+}
+
+.fsh-customer-context,
+.fsh-detail-context {
+  min-width: 0;
+  margin-bottom: 16px;
+}
+
+.fsh-customer-context {
+  border: 1px solid var(--fsh-native-separator);
+  border-radius: var(--fsh-radius, 6px);
+  padding: 16px;
+  background: var(--surface-main);
+}
+
+.fsh-customer-context h2,
+.fsh-detail-context h2 {
+  margin-top: 0;
+}
+
+.fsh-operations-dashlet {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.fsh-operations-link {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.fsh-operations-description {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.fsh-login #login {
+  box-shadow: 0 12px 36px rgb(0 0 0 / 12%);
+}
+
+.fsh-login #login .form-control,
+.fsh-login #login .btn {
+  min-height: 40px;
+}
+
+.fsh-login #login .alert,
+.fsh-login #login .error {
+  line-height: 1.5;
+}
+
+.fsh-login #login .form-control[aria-invalid="true"] {
+  border-color: var(--status-danger);
+}
+
+@media (max-width: 899px) {
+  .fsh-customer-context {
+    padding: 12px;
+  }
+  .fsh-login .container-centering {
+    padding: 20px 12px;
+  }
+  .fsh-login #login {
+    box-shadow: none;
+  }
+}
+
+@media (pointer: coarse) {
+  #navbar .nav > li > a,
+  .list-container a,
+  .relation-panel a,
+  .record .btn,
+  .detail .btn,
+  .modal .btn,
+  .fsh-login #login .btn {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --fsh-native-separator: #687269;
+  }
+}
+
+@media (forced-colors: active) {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline-color: Highlight !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record *,
+  .detail *,
+  .list-container *,
+  .modal *,
+  .fsh-login * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

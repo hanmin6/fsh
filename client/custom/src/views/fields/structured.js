@@ -13,23 +13,21 @@ define("custom:views/fields/structured", [
       const data = super.data();
       const value = this.model.get(this.name);
       const items = Array.isArray(value) ? value : [];
+      const t = (label) => this.translate(label, "labels", "Fusanhe");
+      const canReadKnowledge = this.getAcl()?.checkScope?.("KnowledgeDocument", "read") ?? false;
       data.displayValue =
         items
-          .map((x) =>
-            this.name === "citedKnowledge"
-              ? U.link(
-                  "KnowledgeDocument",
-                  typeof x === "string" ? x : x.id || x.documentId,
-                  typeof x === "string"
-                    ? "查看引用资料"
-                    : x.name || x.title || "查看引用资料",
-                )
-              : U.escape(
-                  typeof x === "string"
-                    ? U.status(x)
-                    : x.name || x.label || "资料",
-                ),
-          )
+          .map((x) => {
+            if (this.name === "citedKnowledge") {
+              const id = typeof x === "string" ? x : x?.id || x?.documentId;
+              const label = typeof x === "string" ? t("查看引用资料") : x?.name || x?.title || t("查看引用资料");
+              return canReadKnowledge && id
+                ? U.link("KnowledgeDocument", id, label)
+                : U.escape(label);
+            }
+            const label = typeof x === "string" ? U.status(x) : x?.name || x?.label || t("资料");
+            return U.escape(typeof x === "string" ? t(label) : label);
+          })
           .join("<br>") || "—";
       return data;
     }
