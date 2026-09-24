@@ -1,0 +1,174 @@
+/*
+ * shadcn/ui source components live in src/components/ui. Tailwind Preflight
+ * is excluded so EspoCRM's native forms and navigation keep their baseline.
+ * The build prefixes every emitted selector with [data-fsh-ui-root].
+ */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+[data-fsh-ui-root] {
+  --background: #f6f7f5;
+  --foreground: #20251f;
+  --card: #ffffff;
+  --card-foreground: #20251f;
+  --popover: #ffffff;
+  --popover-foreground: #20251f;
+  --primary: #aa3022;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eee9;
+  --secondary-foreground: #20251f;
+  --muted: #eff2ef;
+  --muted-foreground: #526056;
+  --accent: #e9eee9;
+  --accent-foreground: #20251f;
+  --destructive: #a62727;
+  --border: #d8ded8;
+  --input: #a4afa5;
+  --ring: #a12f24;
+  --sidebar: #20251f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #aa3022;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #364038;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #56625a;
+  --sidebar-ring: #f07865;
+  --fsh-success: #245b3c;
+  --fsh-warning: #79541c;
+  --fsh-info: #24586a;
+  --radius: 0.375rem;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+[data-fsh-ui-root],
+[data-fsh-ui-root] *,
+[data-fsh-ui-root] *::before,
+[data-fsh-ui-root] *::after {
+  box-sizing: border-box;
+  border-style: solid;
+}
+
+[data-fsh-ui-root] :is(button, input, select, textarea) {
+  font: inherit;
+}
+
+[data-fsh-ui-root] :focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+[data-fsh-ui-root] [data-slot="table-container"] {
+  max-width: 100%;
+}
+
+[data-fsh-ui-root] [data-slot="table-row"] {
+  min-height: 2.75rem;
+}
+
+[data-fsh-ui-root] [data-slot="button"],
+[data-fsh-ui-root] [data-slot="select-trigger"] {
+  min-height: 2.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-fsh-ui-root]:not([data-theme="light"]) {
+    --background: #141816;
+    --foreground: #f4f6f3;
+    --card: #1c231e;
+    --card-foreground: #f4f6f3;
+    --popover: #1c231e;
+    --popover-foreground: #f4f6f3;
+    --primary: #f07865;
+    --primary-foreground: #141816;
+    --secondary: #273029;
+    --secondary-foreground: #f4f6f3;
+    --muted: #273029;
+    --muted-foreground: #b4c0b6;
+    --accent: #324039;
+    --accent-foreground: #f4f6f3;
+    --destructive: #ff8f83;
+    --border: #4b5b50;
+    --input: #718276;
+    --ring: #f59a88;
+    --sidebar: #141816;
+    --sidebar-foreground: #f4f6f3;
+    --sidebar-primary: #f07865;
+    --sidebar-primary-foreground: #141816;
+    --sidebar-accent: #324039;
+    --sidebar-accent-foreground: #f4f6f3;
+    --sidebar-border: #4b5b50;
+    --sidebar-ring: #f59a88;
+    --fsh-success: #8cdbab;
+    --fsh-warning: #f3c77a;
+    --fsh-info: #86cee0;
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-contrast: more) {
+  [data-fsh-ui-root] {
+    --border: #69746a;
+    --input: #566456;
+    --ring: #752018;
+  }
+}
+
+@media (forced-colors: active) {
+  [data-fsh-ui-root] :focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-fsh-ui-root] *,
+  [data-fsh-ui-root] *::before,
+  [data-fsh-ui-root] *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -4,6 +4,14 @@
     {
       "href": "client/custom/res/fusanhe/brand.css",
       "rel": "stylesheet"
+    },
+    {
+      "href": "client/custom/res/fusanhe/native.css",
+      "rel": "stylesheet"
+    },
+    {
+      "href": "client/custom/res/fusanhe/ui.css",
+      "rel": "stylesheet"
     }
   ]
 }

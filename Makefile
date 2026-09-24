@@ -1,4 +1,4 @@
-.PHONY: up down restart logs ps pull config rebuild bootstrap check backup spec-check verify-offline
+.PHONY: up down restart logs ps pull config rebuild bootstrap check backup spec-check verify-offline web-check
 
 up:
 	docker compose up -d
@@ -31,6 +31,17 @@ check:
 	docker compose config --quiet
 	docker compose exec -T espocrm bin/command app-check
 	docker compose exec -T espocrm sh -lc 'find custom -name "*.php" -print0 | xargs -0 -n1 php -l'
+	npm --prefix client/custom/ui run typecheck
+	npm --prefix client/custom/ui test
+	npm --prefix client/custom/ui run check:generated
+
+web-check:
+	npm ci --prefix client/custom/ui
+	npm --prefix client/custom/ui run typecheck
+	npm --prefix client/custom/ui test
+	npm --prefix client/custom/ui run check:generated
+	node --check client/custom/src/views/fusanhe/react-host.js
+	node --check client/custom/src/fusanhe/ui-runtime.js
 
 backup:
 	./scripts/backup.sh
