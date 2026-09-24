@@ -180,6 +180,7 @@ class RoutesContract(unittest.TestCase):
         routes = json.loads((RES / "routes.json").read_text())
         exempt_agent_actions = {
             "PostAgentRegister", "PostAgentHeartbeat", "PostAgentClaim", "PostTaskSending", "PostTaskResult", "PostAlibabaSync",
+            "PostMadeInChinaSync",
         }
         service_guarded = {
             "PostConversationControl", "PostHandoff", "PostIdentityCreateCustomer", "PostIdentityLink",
