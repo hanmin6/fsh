@@ -14,7 +14,7 @@
 
 ## 阶段 0：运行基线与技术门槛（顺序）
 
-- [ ] T001 [US01] 主任务记录 17 个自定义 Web 界面、原生实体页路由、现有角色和关键操作的基线矩阵与隔离栈截图；仅写脱敏结论到 `specs/004-web-workbench-hig/verification.md`，不保存真实客户内容。
+- [x] T001 [US01] 主任务记录 17 个自定义 Web 界面、原生实体页路由、现有角色和关键操作的基线矩阵与隔离栈截图；仅写脱敏结论到 `specs/004-web-workbench-hig/verification.md`，不保存真实客户内容。
 - [ ] T002 [US04] A 在 `client/custom/ui/` 建立 React + TypeScript + Vite + Tailwind 独立项目，使用官方 `shadcn` CLI 初始化配置并安装规范所需组件；确认 `components.json`、primitive base、图标库和 `npm ci` 可重现，并将 `npx shadcn@latest info --json` 结果报告给主任务记录。
 - [ ] T003 [US04] A 实现 `client/custom/ui/src/entry.tsx` 与生成的 `client/custom/src/fusanhe/ui-runtime.js`，提供 AMD 可加载的 `mount/update/unmount` 和 Espo `Ajax/ACL/Router/i18n/notification` host 接口；`client/custom/src/views/fusanhe/react-host.js` 的 `remove` 释放 React 根及异步回调。
 - [ ] T004 [US03] A 在 `client/custom/ui/src/styles.css`、`client/custom/res/fusanhe/ui.css`、`client/custom/res/fusanhe/brand.css` 建立亮/暗/高对比语义 token、字号、间距、状态及焦点规则；CSS 不包含影响全站的 Tailwind Preflight，组件样式不污染原生 Espo 页，portal 层焦点和样式在根内；`client.json` 按确定顺序引用 CSS 并预留 D 的 `native.css`。

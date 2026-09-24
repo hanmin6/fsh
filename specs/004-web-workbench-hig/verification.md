@@ -10,6 +10,22 @@
 | 隔离数据页面观察 | 主任务在 `localhost:18082` 的既有合成测试库观察到：CRM 约 870px 时导航折叠、指标块和大面积空白共存，UI 中英混用；老板页约 870px 时建议表多行挤压、相邻状态数字易混。仅作待改进基线，真实客户导入仍为 0。 |
 | 本特性实施与测试 | **未开始**。T001–T022 均保持未完成，任何单元测试/浏览器检查不能在此阶段记为通过。 |
 
+## T001 实施前基线（隔离合成环境）
+
+2026-09-24，主任务核对当前 `main` 同源工作树的 Espo clientDefs、Home controller、17 个自定义页面实现与既有前端测试，并在 `localhost:18082` 隔离测试栈观察 CRM、客服和老板页。该栈使用合成数据，固定卷只能由一个工作树挂载；本记录不包含真实客户资料。
+
+| 页面组 | 当前路由/入口 | 回归时必须保留 |
+| --- | --- | --- |
+| 登录 | `App.loginView` → `fusanhe/login` | Espo 身份验证、错误提示、键盘提交。 |
+| 四个首页 | `#Home`、`#Home/crm`、`#Home/service`、`#Home/insights` → Home controller | ACL 模块入口、只读指标与最近列表、老板历史/建议分页及状态、原生实体链接。 |
+| 五个列表 | `ExternalConversation`、`AIReplyDraft`、`KnowledgeDocument`、`OutboundTask`、`AutomationAgent` → `fusanhe/list` | 搜索、筛选、排序、分页、行链接与各实体字段。 |
+| 会话详情 | `#ExternalConversation/view/{id}` → `external-conversation/record/detail` | 消息时间线、身份确认、草稿审核二次确认、人工接管、销售交接、关系面板。 |
+| 三个客户详情 | `Account`、`Contact`、`Lead` → `fusanhe/customer-detail` | 客户概览及原生字段/关系。 |
+| 三个上下文详情 | `AIReplyDraft`、`KnowledgeDocument`、`OutboundTask` → `fusanhe/context-detail` | 状态/证据概览及原生字段/关系。 |
+| 原生实体页 | Espo 标准列表、详情、编辑、关系、弹层 | 产品/规格、证书、询盘、样品、报价、订单、渠道、身份、消息、审计和 Task 保持可用。 |
+
+基线问题：约 870px 宽 CRM 页有较大空白且静态 UI 中英混用；老板页建议表在同宽度挤压、多行状态计数不易分辨。既有 `client/custom/tests/frontend.test.cjs` 对草稿“保存只 PATCH、拒绝只 PATCH、批准需二次确认、空正文不可批准”、入口 ACL 和部分安全转义有回归断言。未在基线阶段宣称其它角色或视口通过。
+
 ## 门槛 1：证明确实使用 shadcn/ui 且可与 Espo 共存
 
 | 检查 | 通过标准 | 证据位置（实施时填写） |
