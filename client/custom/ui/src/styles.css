@@ -115,6 +115,14 @@
   min-height: 2.25rem;
 }
 
+@media (pointer: coarse) {
+  [data-fsh-ui-root] [data-slot="button"],
+  [data-fsh-ui-root] [data-slot="select-trigger"] {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   [data-fsh-ui-root]:not([data-theme="light"]) {
     --background: #141816;

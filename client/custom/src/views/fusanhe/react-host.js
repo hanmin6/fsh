@@ -27,7 +27,7 @@ define("custom:views/fusanhe/react-host", ["views/main", "ajax"], function (Dep,
           require(
             ["custom:fusanhe/ui-runtime"],
             (runtime) => {
-              if (generation !== this._fshGeneration || !element.isConnected) {
+              if (settled || generation !== this._fshGeneration || !element.isConnected) {
                 finish(false);
                 return;
               }
