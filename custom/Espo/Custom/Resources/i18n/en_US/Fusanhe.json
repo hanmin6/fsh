@@ -454,6 +454,11 @@
     "超过 200 条，打开外部消息查看完整历史": "More than 200 messages; open external messages for full history",
     "跟进任务已创建": "Follow-up task created",
     "附件": "Attachment",
-    "需求摘要（必填）": "Needs summary (required)"
+    "需求摘要（必填）": "Needs summary (required)",
+    "待采集端提供完整分页及消息对账；平台可见总数和未入库失败数未知。仅统计带同步来源的 Alibaba 会话。": "Awaiting complete page and message reconciliation from the collector. Platform-visible total and failed imports are unknown. Only Alibaba conversations with sync provenance are counted.",
+    "对账后数据发生变化，需要重新核对。": "Data changed after reconciliation; verify again.",
+    "已全部导入：会话与消息稳定 ID 逐项对账相符，失败为零。": "Fully imported: conversation and message stable IDs reconcile, with zero failures.",
+    "匿名信号分析，业务事实请核对原文。": "Anonymous signal analysis; verify business facts against original messages.",
+    "尚无可读取的分析；未完成、失败或证据无权限。": "No readable analysis; it may be incomplete, failed or lack evidence access."
   }
 }

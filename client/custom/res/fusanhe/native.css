@@ -146,6 +146,17 @@ textarea:focus-visible,
   margin-top: 0;
 }
 
+.fsh-customer-context .fsh-kv {
+  grid-template-columns: minmax(120px, 0.3fr) minmax(0, 1fr) minmax(120px, 0.3fr) minmax(0, 1fr);
+  gap: 8px 14px;
+}
+
+.fsh-customer-context .fsh-kv dt,
+.fsh-customer-context .fsh-kv dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .fsh-operations-dashlet {
   display: grid;
   gap: 6px;
@@ -186,6 +197,9 @@ textarea:focus-visible,
 @media (max-width: 899px) {
   .fsh-customer-context {
     padding: 12px;
+  }
+  .fsh-customer-context .fsh-kv {
+    grid-template-columns: minmax(0, 1fr);
   }
   .fsh-login .container-centering {
     padding: 20px 12px;
