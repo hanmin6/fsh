@@ -1,8 +1,17 @@
 # 福三和 CRM 接口开发交接文档
 
-更新时间：2026-09-18
+更新时间：2026-09-24
 目标分支：`codex/fusanhe-crm-frontend`
 技术底座：EspoCRM `10.0.8-apache`、MariaDB `11.4`、PHP、Docker Compose
+
+### 2026-09-24 Made-in-China 集成状态
+
+- CRM `POST /Fusanhe/mic/sync` 已实现账号范围批量入库、身份/Lead 关联、消息去重、安全附件元数据与审计；MIC bridge 已提供注册、回填、增量、状态、冲突处置和出向 Worker CLI。
+- 合成跨系统验收 `tests/integration/test_crm_bridge_runtime.py` 1/1 通过：真实 CRM client/importer/state 对接隔离 loopback CRM，MIC read 使用 fake 数据；验证注册、backfill/once/replay 和 CRM 入库，且未创建草稿/发送任务、全局停发开启。它不访问真实 MIC 页面。
+- 当前仍是离线/隔离环境验证结果，不代表生产渠道已接通。TradeMessenger 完整历史与指定目标身份的现场证据尚缺；不得执行或宣称已完成真实发送。
+- 保持 CRM `FUSANHE_OUTBOUND_PAUSED=true`。MIC 侧分别使用 `crm_read` 与 `agent_send` API key；CRM 的 `FUSANHE_AUTOMATION_TOKEN` 只用于一次性 Agent 注册，注册返回的 token 由 MIC bridge 通过 `MIC_CRM_AGENT_TOKEN` 使用。
+- Worker 是独立进程入口：`python -m mic_gateway.crm_bridge.run_worker --once` 或 `--interval 30`。发生 pending batch 冲突时，必须先核对 CRM `AutomationAudit` 中完全相同的 `requestId`，再用 `resolve-pending` 明确记账；审计结果不明时不得自行清理。
+- 2026-09-24 验证证据：MIC Python 3.12 离线 269 passed / 2 deselected，Ruff 与 mypy 干净；CRM PHP lint 通过、离线契约 39 passed/16 skipped、隔离 MIC + Alibaba runtime 16/16、Web 前端 13/13、合成跨系统桥接验收 1/1。合成桥接使用 fake MIC read data，不是实时 Made-in-China 验收。CRM 一致性备份副本上的 `0001 → 0002_message_history` 迁移保留 10 conversations、10 messages、1 Outbox，旧历史 completeness 均为 false。详见 [`specs/003-made-in-china-crm-integration/verification.md`](../specs/003-made-in-china-crm-integration/verification.md)。
 
 ### 2026-09-19 状态更新
 
@@ -27,7 +36,7 @@
   - **保障工作台绝对保序**：工作台详情页（`detail.js`）查询改为按 `sourceSequence ASC` 严格保序呈现，解决同分钟多气泡排序紊乱。
   - **补齐脱敏 Fixtures 与端到端自动化测试**：新增 `tests/fixtures/alibaba_conversations.json`、`tests/fixtures/alibaba_history_13907077489.json` 以及 `tests/test_sync_e2e.py`，双端测试全部通过（alibb 51/51，CRM runtime 7/7）。
 
-仍未完成：业务接口细粒度 ACL、Alibaba 真实外发执行端、其他渠道连接器；保持 `FUSANHE_OUTBOUND_PAUSED=true`。
+仍未完成：业务接口细粒度 ACL、Alibaba 真实外发执行端、MIC 完整历史/目标身份及真实发送现场验收、其他渠道连接器和正式部署；保持 `FUSANHE_OUTBOUND_PAUSED=true`。
 
 ## 1. 可直接发给接手 Agent 的提示词
 
@@ -42,7 +51,7 @@
 5. custom/Espo/Custom/Tools/Fusanhe/Connector/Connector.php
 6. client/custom/res/fusanhe/FRONTEND.md
 
-系统基于 EspoCRM 10.0.8，已经完成统一询盘、消息、AI 草稿、人工批准、发送任务、执行端领取与结果回写的 Mock 闭环，也完成了前端工作台。真实 Alibaba、Made-in-China、独立站和邮件连接器仍未实现，Windows 平台执行端也只有一次性 Mock 脚本。
+系统基于 EspoCRM 10.0.8，已经完成统一询盘、消息、AI 草稿、人工批准、发送任务、执行端领取与结果回写的 Mock 闭环，也完成了前端工作台。Made-in-China CRM 入库与桥接/Worker 代码已完成离线和隔离验证，但完整历史、目标身份及真实发送仍未现场验收。Alibaba 真实外发、独立站和邮件连接器仍未实现；MIC 正式部署也尚未完成。
 
 你的任务是接手并完善接口层。先修复交接文档列出的 P0 缺陷，再建设生产可用的渠道接入和执行端 API。保持 FUSANHE_OUTBOUND_PAUSED=true，不进行真实外发。不要修改 EspoCRM core/vendor，不提交密码、Token、Cookie 或客户数据。
 
@@ -114,7 +123,7 @@ flowchart LR
 
 ### ExternalChannel
 
-渠道配置。类型包括 `Alibaba`、`MadeInChina`、`Website`、`Email`、`WhatsApp`、`Other`。目前真实渠道均为占位实现。
+渠道配置。类型包括 `Alibaba`、`MadeInChina`、`Website`、`Email`、`WhatsApp`、`Other`。一般 connector 接口仍有占位实现；MIC 另有已隔离验证的 CRM sync API 与专用 bridge/Worker。MIC 现场历史完整度、会话身份和真实发送仍未验收。
 
 关键字段：`type`、`enabled`、`connectionStatus`、`lastSyncAt`、`config`。
 
@@ -324,19 +333,19 @@ GET    /api/v1/AutomationAudit
   - `AlibabaConnector` 已实现健康状态读取、回复准备和任务封装。
   - 消息拉取、增量同步、真实发送和可靠 Webhook 入库仍未实现。
   - CRM 提供只读状态接口 `GET /Fusanhe/status` 汇总渠道与 Agent 状态。
-- Made-in-China 官方 API 或授权接入（待接入）。
+- **Made-in-China**：`POST /Fusanhe/mic/sync`、离线导入/增量 bridge 和 Agent Worker 已实现，并通过隔离运行时验证。数据由独立 MIC Gateway 读取；尚未验证 TradeMessenger 完整历史及其与指定 source conversation ID 的绑定，故 importer 对身份/历史 completeness 未确认的记录失败关闭，真实发送仍未执行。它不是官方 API 集成声明。
 - 独立站真实 Webhook、签名验证、重放保护和同步游标。
 - 邮件 IMAP/SMTP 或邮件供应商 API 接入。
 - WhatsApp 接入。
 - 渠道配置加密、Token 更新、健康检查、限流和增量同步。
 
-目前 `AlibabaConnector` 只完成 Bridge 健康检查；`MadeInChinaConnector`、`WebsiteConnector`、`EmailConnector` 仍继承 `AbstractPlaceholderConnector`。
+`AlibabaConnector` 的真实消息同步与发送仍未实现。`MadeInChinaConnector` 仍继承 `AbstractPlaceholderConnector`，因为 MIC 实际集成走专用 Gateway + CRM bridge，而非该泛化 Connector；`WebsiteConnector`、`EmailConnector` 也仍是占位实现。
 
 
 ### 执行端
 
-- 可长期运行的 Windows Agent。
-- 浏览器或 Windows UI 自动化。
+- MIC bridge 有独立 outbound worker CLI (`python -m mic_gateway.crm_bridge.run_worker --once/--interval 30`)；正式受管部署、长期任务编排和恢复演练仍未完成。其他渠道仍缺可长期运行 Agent。
+- MIC 浏览器会话由 Gateway 的专用 Chromium profile 控制；现场目标身份仍须验证。其他渠道的浏览器或 Windows UI 自动化未实现。
 - 登录失效、验证码、页面变化和平台风控的恢复流程。
 - Agent 自动升级、日志收集、离线判断和凭证轮换。
 - 附件下载、上传和发送。

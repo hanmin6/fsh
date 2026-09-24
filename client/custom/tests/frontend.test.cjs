@@ -87,6 +87,54 @@ function createDetail(draft, can = true) {
   view.renderDraft();
   return { view, html, handlers, calls };
 }
+async function renderTimeline(messages) {
+  const html = {};
+  const fields = {};
+  const element = {
+    prepend() { return this; },
+    find(selector) {
+      return (fields[selector] ||= {
+        remove() { return this; },
+        prepend() { return this; },
+        html(value) { html[selector] = value; return this; },
+        on() { return this; },
+        attr() { return this; },
+      });
+    },
+  };
+  const responses = {
+    ExternalMessage: { total: messages.length, list: messages },
+    AIReplyDraft: { list: [] },
+    ExternalConversation: { list: [{ id: "conversation-test" }] },
+    OutboundTask: { list: [] },
+  };
+  const Class = load(
+    "views/external-conversation/record/detail.js",
+    {
+      "views/record/detail": class {},
+      ajax: { getRequest: async (entity) => responses[entity] },
+      "custom:views/fusanhe/common": U,
+    },
+    { Espo: { Ui: { notify() {}, success() {}, error() {} } } },
+  );
+  const view = new Class();
+  Object.assign(view, {
+    $el: element,
+    requestNumber: 0,
+    getAcl: () => ({ checkScope: () => true }),
+    model: {
+      id: "conversation-test",
+      attributes: { id: "conversation-test" },
+      get: () => null,
+    },
+    renderIdentityCard: () => "",
+    bindIdentityCard() {},
+    renderHandoff() {},
+    renderDraft() {},
+  });
+  await view.renderWorkbench();
+  return html[".fsh-workspace-container"];
+}
 test("Escapes HTML content and URL identifiers", () => {
   assert.equal(
     U.escape('<img onerror="alert(1)">'),
@@ -94,6 +142,46 @@ test("Escapes HTML content and URL identifiers", () => {
   );
   assert.match(U.link("Lead", 'x"/#', "<b>"), /x%22%2F%23/);
   assert.equal(U.escape(0), "0");
+});
+test("Timeline renders safe attachment labels from MIC items and legacy formats", async () => {
+  const html = await renderTimeline([
+    {
+      senderName: "Buyer",
+      sentAt: "2026-09-23 10:00:00",
+      body: "MIC inquiry",
+      direction: "inbound",
+      attachmentMetadata: {
+        items: [
+          {
+            name: '<img src=x onerror="alert(1)">',
+            mediaType: 'application/<script>alert("x")</script>',
+            size: 1536,
+            url: "https://private.example/token-secret",
+          },
+        ],
+      },
+    },
+    {
+      senderName: "Legacy array",
+      sentAt: "2026-09-23 10:01:00",
+      body: "Array format",
+      direction: "inbound",
+      attachmentMetadata: [{ name: "array.pdf" }],
+    },
+    {
+      senderName: "Legacy files",
+      sentAt: "2026-09-23 10:02:00",
+      body: "Files format",
+      direction: "inbound",
+      attachmentMetadata: { files: [{ fileName: "legacy.xlsx" }] },
+    },
+  ]);
+  assert.match(html, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/);
+  assert.match(html, /application\/&lt;script&gt;alert\(&quot;x&quot;\)&lt;\/script&gt;/);
+  assert.match(html, /1\.5 KB/);
+  assert.match(html, /array\.pdf/);
+  assert.match(html, /legacy\.xlsx/);
+  assert.doesNotMatch(html, /<img|<script|private\.example|token-secret/);
 });
 test("Waiting minutes handles missing and future timestamps", () => {
   assert.equal(U.wait(null), null);

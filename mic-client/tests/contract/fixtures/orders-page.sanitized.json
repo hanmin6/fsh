@@ -1,0 +1,19 @@
+{
+  "method": "POST",
+  "url": "https://membercenter.made-in-china.com/api/newtrade/order/list",
+  "status": 200,
+  "content_type": "application/json",
+  "body": {
+    "code": 0,
+    "content": {
+      "items": [],
+      "currentPage": 0,
+      "currentPageSize": 0,
+      "totalPage": 0,
+      "pageSize": 0,
+      "totalItem": 0
+    },
+    "message": null,
+    "successful": true
+  }
+}

@@ -1,0 +1,1 @@
+"""Persistent browser lifecycle management."""

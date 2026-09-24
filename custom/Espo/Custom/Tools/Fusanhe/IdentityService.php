@@ -138,6 +138,120 @@ final class IdentityService
         return $identity;
     }
 
+    /** MIC profile refresh may replace its explicit placeholder, but never a user-edited value. */
+    public function refreshMadeInChinaProfile(Entity $identity, string $buyerExternalId, array $profile): Entity
+    {
+        $placeholderName = 'MIC 买家 ' . trim($buyerExternalId);
+        $realName = trim((string) ($profile['displayName'] ?? ''));
+        $updates = ['lastSeenAt' => gmdate('Y-m-d H:i:s')];
+        foreach (['emailAddress', 'phoneNumber', 'country'] as $field) {
+            if (!empty($profile[$field]) && !$identity->get($field)) {
+                $updates[$field] = $profile[$field];
+            }
+        }
+        if (!$identity->get('externalUserId') && trim($buyerExternalId) !== '') {
+            $updates['externalUserId'] = trim($buyerExternalId);
+        }
+        if ($realName !== '' && $realName !== $placeholderName
+            && (trim((string) $identity->get('displayName')) === '' || $identity->get('displayName') === $placeholderName)) {
+            $updates['displayName'] = $realName;
+        }
+        if ($realName !== '' && $realName !== $placeholderName && $identity->get('name') === $placeholderName) {
+            $updates['name'] = $realName;
+        }
+        $identity->set($updates);
+        $this->kernel->save($identity);
+        return $identity;
+    }
+
+    /** Stable MIC buyer IDs are the sole automatic Lead key; names never merge identities. */
+    public function resolveMadeInChinaCustomer(Entity $identity, string $conversationExternalId, string $buyerExternalId): array
+    {
+        // Multiple MIC requests can reach the same buyer at once. Lock and
+        // refresh this row before inspecting leadId or creating a Lead so
+        // only one transaction can claim the stable buyer identity.
+        $lockedIdentity = $this->repo()->where(['id' => $identity->getId()])->forUpdate()->findOne();
+        if (!$lockedIdentity) {
+            throw new Conflict('MadeInChina identity disappeared during customer resolution.');
+        }
+        $identity = $lockedIdentity;
+
+        foreach (self::TARGET_MAP as $type => $field) {
+            $id = (string) $identity->get($field);
+            $target = $id === '' ? null : ($type === 'Lead'
+                ? $this->repo('Lead')->where(['id' => $id])->forUpdate()->findOne()
+                : $this->em->getEntityById($type, $id));
+            if ($identity->get('linkStatus') === 'confirmed' && $target) {
+                if ($type === 'Lead') {
+                    $this->upgradeMadeInChinaLeadPlaceholder($target, $identity, $buyerExternalId);
+                }
+                return ['targetType' => $type, 'targetId' => $id, 'createdLead' => false, 'matchMethod' => 'existingConfirmed'];
+            }
+        }
+
+        $leadId = (string) $identity->get('leadId');
+        $lead = $leadId !== '' ? $this->repo('Lead')->where(['id' => $leadId])->forUpdate()->findOne() : null;
+        $buyerExternalId = trim($buyerExternalId);
+        $placeholderName = 'MIC 买家 ' . $buyerExternalId;
+        $displayName = trim((string) $identity->get('displayName'));
+        if ($displayName === '') {
+            $displayName = $placeholderName;
+        }
+        $created = false;
+        if (!$lead) {
+            $parts = preg_split('/\\s+/', $displayName, 2) ?: [$displayName];
+            $lead = $this->em->getNewEntity('Lead');
+            $lead->set([
+                'name' => $displayName,
+                'lastName' => $parts[count($parts) - 1],
+                'firstName' => count($parts) > 1 ? $parts[0] : null,
+                'status' => 'New',
+                'source' => 'Web Site',
+                'emailAddress' => (string) $identity->get('emailAddress'),
+                'phoneNumber' => (string) $identity->get('phoneNumber'),
+                'addressCountry' => (string) $identity->get('country'),
+                'description' => '来源：MadeInChina；询盘；身份key：' . $identity->get('identityKey') . '；会话：' . $conversationExternalId,
+            ]);
+            $this->kernel->save($lead);
+            $created = true;
+        } else {
+            $this->upgradeMadeInChinaLeadPlaceholder($lead, $identity, $buyerExternalId);
+        }
+
+        $identity->set([
+            'leadId' => $lead->getId(),
+            'linkStatus' => 'confirmed',
+            'confirmedAt' => gmdate('Y-m-d H:i:s'),
+        ]);
+        $this->kernel->save($identity);
+        return ['targetType' => 'Lead', 'targetId' => $lead->getId(), 'createdLead' => $created, 'matchMethod' => $created ? 'newMadeInChinaLead' : 'stableBuyerId'];
+    }
+
+    /** Upgrade only the generated MIC Lead name and blank country, preserving every other CRM field. */
+    private function upgradeMadeInChinaLeadPlaceholder(Entity $lead, Entity $identity, string $buyerExternalId): void
+    {
+        $placeholderName = 'MIC 买家 ' . trim($buyerExternalId);
+        $displayName = trim((string) $identity->get('displayName'));
+        $modified = false;
+        if (!($lead->get('name') !== $placeholderName || $displayName === '' || $displayName === $placeholderName)) {
+            $parts = preg_split('/\s+/', $displayName, 2) ?: [$displayName];
+            $lead->set([
+                'name' => $displayName,
+                'lastName' => $parts[count($parts) - 1],
+                'firstName' => count($parts) > 1 ? $parts[0] : null,
+            ]);
+            $modified = true;
+        }
+        $country = trim((string) $identity->get('country'));
+        if ($country !== '' && trim((string) $lead->get('addressCountry')) === '') {
+            $lead->set('addressCountry', $country);
+            $modified = true;
+        }
+        if ($modified) {
+            $this->kernel->save($lead);
+        }
+    }
+
     /**
      * System-only matching used by the Alibaba importer.  It deliberately
      * accepts only a unique, exact contact method: names and countries are

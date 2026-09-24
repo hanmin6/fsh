@@ -1,0 +1,27 @@
+{
+  "method": "GET",
+  "url": "https://membercenter.made-in-china.com/message.do",
+  "status": 200,
+  "content_type": "application/json;charset=UTF-8",
+  "body": {
+    "total": 1,
+    "unread": 1,
+    "unreply": 1,
+    "messages": [
+      {
+        "id": "conversation-001",
+        "contactNo": "buyer-001",
+        "contactName": "Buyer 001",
+        "subject": "Synthetic inquiry subject",
+        "content": "Synthetic inquiry message",
+        "time": "20260919104500",
+        "formatTime": "2026-09-19 10:45",
+        "isRead": false,
+        "isReply": false,
+        "hasAttach": false,
+        "attachList": []
+      }
+    ],
+    "time": "20260919104500"
+  }
+}

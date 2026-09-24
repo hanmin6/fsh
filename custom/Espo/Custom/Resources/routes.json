@@ -101,6 +101,12 @@
         "noAuth": true
     },
     {
+        "route": "/Fusanhe/mic/sync",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMadeInChinaSync",
+        "noAuth": true
+    },
+    {
         "route": "/Fusanhe/dashboard",
         "method": "get",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetDashboard"

@@ -80,9 +80,14 @@ define("custom:views/external-conversation/record/detail", [
         const messages =
           (mr.list || [])
             .map((m) => {
-              const attachments = Array.isArray(m.attachmentMetadata)
-                ? m.attachmentMetadata
-                : m.attachmentMetadata?.files || [];
+              const metadata = m.attachmentMetadata;
+              const attachments = Array.isArray(metadata)
+                ? metadata
+                : Array.isArray(metadata?.items)
+                  ? metadata.items
+                  : Array.isArray(metadata?.files)
+                    ? metadata.files
+                    : [];
               const task = tr.list.find(
                 (t) => t.platformMessageId === m.externalId,
               );
@@ -90,7 +95,24 @@ define("custom:views/external-conversation/record/detail", [
                 m.direction === "outbound" && m.deliveryStatus === "mockSent"
                   ? '<p class="fsh-notice">模拟回执：演示环境回写结果，不代表真实客户已收到。</p>'
                   : "";
-              return `<article class="fsh-message ${m.direction === "outbound" ? "is-outbound" : ""}"><header class="fsh-message-meta"><strong>${U.escape(U.status(m.direction))} · ${U.escape(m.senderName)}</strong><time>${U.escape(m.sentAt)}</time></header><div class="fsh-message-body">${U.escape(m.body)}</div>${m.translatedBody ? `<details open><summary>译文</summary><div class="fsh-message-body">${U.escape(m.translatedBody)}</div></details>` : ""}${attachments.length ? `<p>附件：${attachments.map((a) => U.escape(a.name || a.fileName || "附件")).join("、")}</p>` : ""}${U.badge(m.deliveryStatus)}${mockReceipt}${task?.errorMessage ? `<p class="fsh-danger">发送失败：${U.escape(task.errorMessage)}</p>` : ""}</article>`;
+              const attachmentLabels = attachments.map((a) => {
+                const name = U.escape(a.name || a.fileName || "附件");
+                const details = [];
+                if (typeof a.mediaType === "string" && a.mediaType.trim())
+                  details.push(U.escape(a.mediaType));
+                if (typeof a.size === "number" && Number.isFinite(a.size) && a.size >= 0) {
+                  const units = ["B", "KB", "MB", "GB", "TB"];
+                  let size = a.size;
+                  let unit = 0;
+                  while (size >= 1024 && unit < units.length - 1) {
+                    size /= 1024;
+                    unit += 1;
+                  }
+                  details.push(`${unit ? size.toFixed(1) : Math.round(size)} ${units[unit]}`);
+                }
+                return `${name}${details.length ? ` <small>(${details.join(" · ")})</small>` : ""}`;
+              });
+              return `<article class="fsh-message ${m.direction === "outbound" ? "is-outbound" : ""}"><header class="fsh-message-meta"><strong>${U.escape(U.status(m.direction))} · ${U.escape(m.senderName)}</strong><time>${U.escape(m.sentAt)}</time></header><div class="fsh-message-body">${U.escape(m.body)}</div>${m.translatedBody ? `<details open><summary>译文</summary><div class="fsh-message-body">${U.escape(m.translatedBody)}</div></details>` : ""}${attachmentLabels.length ? `<p>附件：${attachmentLabels.join("、")}</p>` : ""}${U.badge(m.deliveryStatus)}${mockReceipt}${task?.errorMessage ? `<p class="fsh-danger">发送失败：${U.escape(task.errorMessage)}</p>` : ""}</article>`;
             })
             .join("") ||
           '<div class="fsh-empty">暂无消息。接收到询盘后，原文、译文和发送状态将在这里显示。</div>';

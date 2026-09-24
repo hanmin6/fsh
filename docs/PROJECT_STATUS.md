@@ -1,8 +1,7 @@
 # 福三和 CRM 项目状态
 
-本页主体是 **2026-09-21 的版本基线快照**，其中完成度百分比和“未接入”描述不代表 9 月 24 日的现状。接手开发请先看 [最新开发交接](DEVELOPMENT_HANDOFF_2026-09-24.md)；老板历史客户功能的实测状态见 [演示说明](BOSS_DEMO.md)和 [003 验证记录](../specs/003-boss-history-insights/verification.md)。
+更新时间：2026-09-24。本页主体是 **2026-09-21 的版本基线快照**，其中完成度百分比和“未接入”描述不代表 9 月 24 日的现状。接手开发请先看 [最新开发交接](DEVELOPMENT_HANDOFF_2026-09-24.md)；老板历史客户功能的实测状态见 [演示说明](BOSS_DEMO.md)和 [003 验证记录](../specs/003-boss-history-insights/verification.md)；Made-in-China 客户端与回填集成见 [MIC 交接说明](fusanhe-mic-crm-handoff-20260924.md)。
 
-基线记录时间：2026-09-21；后续增量见页末。
 
 ## Spec Kit 治理基线
 
@@ -19,7 +18,7 @@
 | --- | --- | --- |
 | Docker 基础环境 | CRM MVP 0.1.0 | 本地可运行 |
 | Web 工作台 | CRM Web 0.4.0 | 双模块入口与协作工作台完成，食品模块以原生实体布局交付 |
-| CRM 自定义 API | CRM API 0.5.0 | CRM/AI 客服协作与食品外贸工作流已整合，真实渠道未接入 |
+| CRM 自定义 API | CRM API 0.5.0 | MIC sync API 已实现并通过离线/隔离验证；完整历史、目标身份及真实发送未通过现场验收 |
 | Android 客户端 | Android 1.0.0 | UI/Mock 完成；客户、会话、消息读取与 AI 草稿真实数据底座已接入 |
 
 ## 已完成资产
@@ -46,7 +45,7 @@
 | 食品外贸业务骨架 | 75% | 产品到订单/交付的 CRM 工作流完成，ERP/工厂/物流连接未做 |
 | Android 1.0 UI 范围 | 100% | 约定的 UI 和 Mock 功能已完成并成功构建 |
 | Android 生产接入 | 70% | 个人认证、加密会话、真实客户/会话/草稿、401 清理完成；分页/WebSocket/完整离线缓存待后续 |
-| 真实渠道接入 | 20% | Alibaba 只有 Bridge 健康检查，消息同步和发送未实现 |
+| 真实渠道接入 | 持续验收中 | MIC CRM 导入与出向 Worker 代码已实现；现场历史与真实发送未验收。Alibaba 消息同步已有隔离验证，真实外发未验收 |
 | 生产部署准备 | 85% | CI、Agent 凭证轮换、请求追踪、备份完整性和运维手册完成；正式监控平台与生产演练待部署 |
 
 ## 当前验证证据
@@ -59,6 +58,16 @@
 - 非渠道生产化离线契约 45/45 通过；隔离 EspoCRM 运行时 12/12 通过，请求 ID 关联场景单独通过。
 - Android `testDebugUnitTest lintDebug assembleDebug` 通过，包含 DTO Mapper、会话与 MockWebServer HTTP 契约测试。
 - Android Debug APK 版本：`1.0.0`，最低 Android API 26。
+
+### Made-in-China 当前验收边界（2026-09-24）
+
+- MIC bridge 提供 `register`、`backfill`、`once`、`daemon`、`status`、`resolve-pending`，出向 Worker 提供 `run_worker --once/--interval`。生产运行与回滚步骤见 [`docs/operations.md`](operations.md#made-in-china-桥接运维) 和 [`docs/API_AGENT_HANDOFF.md`](API_AGENT_HANDOFF.md#2026-09-24-made-in-china-集成状态)。
+- MIC Gateway Python 3.12 离线验证：269 passed、2 deselected；Ruff 与 mypy 干净。
+- CRM MIC+Alibaba 离线契约：39 passed、16 skipped（运行时门禁未开启时）；隔离 MIC+Alibaba runtime：16/16 通过；PHP lint 和 Web 前端 13/13 通过。
+- 合成跨系统桥接验收：`tests/integration/test_crm_bridge_runtime.py` 1/1 通过，真实 CRM client/importer/state 对接 loopback 隔离 CRM，MIC source 为 fake read data。注册、backfill、once/replay、入 Lead、sender/附件 metadata 读回通过；未建草稿/任务且全局停发保持开启。它不访问真实 MIC 页面。
+- MIC Gateway `0001_initial → 0002_message_history` 在实时数据库的一致性备份副本迁移通过，保留 10 conversations、10 messages、1 Outbox；10 个旧 conversation 的 `history_complete` 都是 false。原运行数据库未在该验证中迁移。
+- 已保存 DOM 快照提供唯一可见的 `inquiry-id` 会话标记，代码据此校验；真实页面的完整历史翻页及身份标记仍待现场验证。同步对未确认身份/完整度 fail closed。指定目标真实发送尚未执行，继续保持 `FUSANHE_OUTBOUND_PAUSED=true`。
+- 出向 Worker 的 uncertain/结果含糊场景只进入人工对账；不得盲目重发。回滚停 MIC bridge/Worker 并保留已导入记录、审计、检查点和对账日志。
 
 ## 下一阶段优先级
 
