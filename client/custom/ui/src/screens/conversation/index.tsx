@@ -22,7 +22,7 @@ const statusNames: Record<string, string> = {
   new: '新询盘', pending: '待回复', drafted: '已有草稿', waitingApproval: '待审核', readyToSend: '待发送',
   sending: '发送中', sent: '已发送', failed: '失败', replied: '已回复', closed: '已关闭', aiAssist: 'AI 辅助', human: '人工接管',
   generated: '待审核', edited: '已修改', approved: '已审核', rejected: '已拒绝', low: '低风险', medium: '中风险', high: '高风险',
-  confirmed: '已确认', unlinked: '待确认', inbound: '收到', outbound: '发出', mockSent: '模拟已发送', delivered: '已送达',
+  confirmed: '已确认', unlinked: '待确认', inbound: '收到', outbound: '发出', received: '已接收', queued: '已排队', mockSent: '模拟已发送', delivered: '已送达',
 }
 const href = (scope: string, id?: string) => id ? `#${scope}/view/${encodeURIComponent(id)}` : undefined
 function Link({ host, scope, id, children }: { host: HostBridge; scope: string; id?: string; children: ReactNode }) {

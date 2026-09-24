@@ -71,6 +71,20 @@ describe('queue workbench', () => {
     expect(get.mock.calls.filter(([route]) => route === 'OutboundTask').every(([, params]) => params.maxSize === 50)).toBe(true)
     expect(get.mock.calls.some(([route, params]) => route === 'OutboundTask' && params.offset === 50)).toBe(true)
   })
+
+  it('searches visible conversation identifiers and provides a record link', async () => {
+    const { host, get } = makeHost()
+    get.mockImplementation(async (route) => route === 'ExternalConversation'
+      ? { list: [{ id: 'conv/1', name: '询盘 SEC-CONV-1' }], total: 1 }
+      : { list: [] })
+    render(<QueueScreen host={host} data={{ entity: 'ExternalConversation', statusOptions: [] }} screen="queue" />)
+    expect((await screen.findByRole('link', { name: '打开会话' })).getAttribute('href')).toBe('#ExternalConversation/view/conv%2F1')
+    fireEvent.change(screen.getByLabelText('搜索'), { target: { value: 'SEC-CONV' } })
+    fireEvent.click(screen.getByRole('button', { name: '查询' }))
+    await waitFor(() => expect(get.mock.calls.some(([route, params]) => route === 'ExternalConversation' &&
+      params?.where?.some((item: Record<string, any>) => item.type === 'or' && item.value.some((part: Record<string, string>) =>
+        part.attribute === 'name' && part.type === 'contains' && part.value === 'SEC-CONV')))).toBe(true))
+  })
 })
 
 describe('conversation approval and state contract', () => {
@@ -86,6 +100,7 @@ describe('conversation approval and state contract', () => {
     mockConversationGet(get)
     const { container } = render(<ConversationScreen host={host} data={{ conversationId: 'conv/1' }} screen="conversation" />)
     await screen.findByText(/<original>/)
+    expect(screen.getByText('已接收')).not.toBeNull()
     expect(screen.getByText('中文译文')).not.toBeNull()
     expect(screen.getByText('file.pdf')).not.toBeNull()
     expect(screen.getByRole('link', { name: '查看引用资料' }).getAttribute('href')).toBe('#KnowledgeDocument/view/doc%2F1')

@@ -15,7 +15,7 @@ if (!/define\(\[(["'`])exports\1\],/.test(rawJs)) {
 const namedJs = rawJs.replace(
   /define\(\[(["'`])exports\1\],/,
   'define("custom:fusanhe/ui-runtime",["exports"],',
-)
+).replace(/^[ \t]+$/gm, "")
 if (/\bprocess\.env\.NODE_ENV\b/.test(namedJs)) {
   throw new Error("Runtime bundle contains a Node-only process.env reference")
 }

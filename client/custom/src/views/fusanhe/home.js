@@ -27,10 +27,10 @@ define("custom:views/fusanhe/home", [
       this.$el
         .find(".fsh-entry-body")
         .html('<div class="fsh-empty" role="status">正在加载模块入口…</div>');
-      this.render();
+      this.renderLegacy();
     }
     remove(...args) { this._homeDisposed = true; this._homeRequest = (this._homeRequest || 0) + 1; return super.remove(...args); }
-    async render() {
+    async renderLegacy() {
       const request = this._homeRequest = (this._homeRequest || 0) + 1;
       const canCrm =
         this.getAcl().checkScope("Account", "read") ||

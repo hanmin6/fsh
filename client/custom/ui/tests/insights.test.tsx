@@ -9,7 +9,8 @@ afterEach(cleanup)
 const overview = {
   date: '2026-09-24', outboundPaused: null, scope: 'own',
   coverage: { platformVisible: null, imported: 0, failedSync: null, pendingIdentity: 1,
-    analysisCompleted: 0, analysisFailed: 0, analysisStale: 0, reason: '待采集端提供完整分页及消息对账；平台可见总数和未入库失败数未知。仅统计带同步来源的 Alibaba 会话。' },
+    analysisCompleted: 0, analysisFailed: 0, analysisStale: 0, lastSyncAt: '2026-09-23 15:42:00',
+    reason: '待采集端提供完整分页及消息对账；平台可见总数和未入库失败数未知。仅统计带同步来源的 Alibaba 会话。' },
   suggestionTotal: 1,
   suggestions: [{ id: 'conv/1', name: '<buyer>', priority: 1, reason: '身份尚未确认', action: '核对平台身份与客户关联后再跟进', owner: 'Owner' }],
   list: [{ id: 'conv/1', name: '<buyer>', externalId: 'ext-1', needsManualMatch: true, owner: 'Owner', analysisStatus: 'stale', customer: { type: 'Account', id: 'a-1' } }],
@@ -24,7 +25,7 @@ function makeHost(read = true) {
     : overview)
   const post = vi.fn(async () => ({}))
   const patch = vi.fn(async () => ({}))
-  const host = { api: { get, post, patch }, can: (scope: string) => read && scope === 'ExternalConversation',
+  const host = { api: { get, post, patch }, can: (scope: string) => read && ['ExternalConversation', 'Account', 'ExternalMessage'].includes(scope),
     navigate: vi.fn(), translate: (key: string) => key, notify: vi.fn(), currentUserId: 'u-1',
     getOutboundState: vi.fn(async () => ({ paused: null, status: 'unknown' as const })),
   } as HostBridge
@@ -45,6 +46,7 @@ describe('boss insights workbench', () => {
     expect(screen.getByLabelText('平台可见会话：待核对')).not.toBeNull()
     expect(screen.getByLabelText('已导入会话：0')).not.toBeNull()
     expect(screen.getByText('外发状态未知。本页不会发送消息；请先核查发送开关。')).not.toBeNull()
+    expect(screen.getByText(/2026-09-23 23:42 UTC\+8/)).not.toBeNull()
   })
 
   it('preserves search, paging and source evidence links without writes', async () => {

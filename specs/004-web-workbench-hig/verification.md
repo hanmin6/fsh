@@ -40,7 +40,7 @@
 - `make web-check`（包含 `npm ci`、TypeScript、组件 7/7、产物校验、AMD 语法）退出 0；旧 AMD 行为测试 13/13、规格检查、`git diff --check`、隔离栈 `app-check` 和状态接口 PHP lint 均退出 0。状态接口新增角色测试通过：仅有会话读权限者只能看停发状态；渠道读权限者能看脱敏健康字段，Agent 无权限时看不到摘要。
 - 874×910 浏览器视口下文档宽 863px，无整体横向溢出；React 根仅一个，控制台最近的 error/warn 为零。JS/CSS 均从 `localhost:18082` 返回 200；页面 CSP 为 `script-src 'self'` 加 nonce/`unsafe-eval` 和 Google Maps 白名单，未见新组件远程资产。Portal 的挂载容器、标题、焦点进入、Escape 关闭和焦点回退已有组件测试，但尚无当前客服页弹层可用于实测。
 - 暗色客服页最初的 React 链接计算色为 `rgb(55,105,77)`，页面背景 `rgb(20,24,22)`；A 在 `800e779` 修复 Tailwind cascade layer 与 Espo 全局 `a` 样式冲突，并让新页跟随 Espo 实际主题。完整刷新后原生宿主与新页同为亮色，按钮文字 `rgb(32,37,31)`、普通链接 `rgb(36,91,60)`、背景 `rgb(246,247,245)`；874px 文档宽 863px，控制台 error/warn 为空。原生 Account 页离开时 React 根为 0、列表仍可读。当前浏览器没有提供缩放控制能力，200% 实测延至 T020。
-- 完整 `tests/test_security_regression.py` 中产品规格审批用例返回 404。隔离栈的 `FUSANHE_FEATURE_PRODUCTS` 未开启，`/Fusanhe/features` 显示 products=false；该用例须在启用产品模块的环境单独重跑，不能记为安全通过，也不归因于 Web 改动。
+- 首次完整 `tests/test_security_regression.py` 中产品规格审批用例返回 404，原因是原隔离栈未开启 `FUSANHE_FEATURE_PRODUCTS`。随后在同一 `fusanhe-phase1-test` 固定卷上叠加 `tests/phase1-industry-compose.yaml`，rebuild/app-check 通过，受权状态接口确认五个行业模块均为 true；完整安全回归 8/8 通过。该失败不是 Web 改动，复测证据不应与第一次失败混淆。
 
 | 检查 | 通过标准 | 证据位置（实施时填写） |
 | --- | --- | --- |

@@ -214,7 +214,7 @@ test("Entry page renders both module links only when the scope is readable", asy
       html(v) { html[selector] = v; return this; },
     }),
   };
-  await view.render();
+  await view.renderLegacy();
   assert.match(html[".fsh-entry-body"], /#Home\/crm/);
   assert.doesNotMatch(html[".fsh-entry-body"], /#Home\/service/);
 });

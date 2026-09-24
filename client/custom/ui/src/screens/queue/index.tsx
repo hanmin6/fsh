@@ -23,7 +23,8 @@ const statusNames: Record<string, string> = {
   readyToSend: '待发送', sending: '发送中', sent: '已发送', failed: '失败', replied: '已回复', closed: '已关闭',
   aiAssist: 'AI 辅助', human: '人工接管', generated: '待审核', edited: '已修改', approved: '已审核', rejected: '已拒绝',
   low: '低风险', medium: '中风险', high: '高风险', draft: '草稿', expired: '已过期', online: '在线', offline: '离线',
-  mock: '演示', real: '真实', mockSent: '模拟已发送', confirmed: '已确认', unlinked: '待确认',
+  loginExpired: '登录失效', captcha: '验证码', pageChanged: '页面变化', riskControl: '风控',
+  mock: '演示', real: '真实', mockSent: '模拟已发送', claimed: '已领取', cancelled: '已取消', confirmed: '已确认', unlinked: '待确认',
 }
 const definitions: Record<string, { title: string; subtitle: string; sort: string; columns: [string, string][] }> = {
   ExternalConversation: { title: '统一询盘', subtitle: '客户、询盘与后续行动', sort: 'lastMessageAt', columns: [
@@ -85,8 +86,14 @@ async function fetchPage(host: HostBridge, entity: string, def: typeof definitio
     { type: 'in', attribute: 'status', value: ['new','pending','drafted','waitingApproval'] },
     { type: 'before', attribute: 'lastInboundAt', value: new Date(Date.now() - 120 * 60_000).toISOString().slice(0,19).replace('T',' ') },
   )
+  // Espo's textFilter only matches word prefixes. Match visible identifiers and
+  // inquiry text anywhere in the field so a pasted platform ID is searchable.
+  if (entity === 'ExternalConversation' && filters.text.trim()) {
+    where.push({ type: 'or', value: ['name', 'externalId', 'subject', 'lastMessagePreview', 'product', 'country']
+      .map((attribute) => ({ type: 'contains', attribute, value: filters.text.trim() })) })
+  }
   const result = await host.api.get<{ list?: Row[]; total?: number }>(entity, {
-    where, textFilter: filters.text, orderBy: def.sort, order: filters.order, offset, maxSize: PAGE_SIZE,
+    where, textFilter: entity === 'ExternalConversation' ? '' : filters.text, orderBy: def.sort, order: filters.order, offset, maxSize: PAGE_SIZE,
   })
   let rows = result.list || []
   if (['AIReplyDraft','OutboundTask'].includes(entity) && host.can('ExternalConversation', 'read')) {
@@ -137,7 +144,8 @@ function Cell({ row, field, entity, host }: { row: Row; field: string; entity: s
   let content: ReactNode
   if (field === 'customer') {
     const scope = row.contactId ? 'Contact' : row.leadId ? 'Lead' : 'Account'
-    content = <RecordLink host={host} scope={scope} id={row.contactId || row.leadId || row.accountId} label={row.contactName || row.leadName || row.accountName || row.name} />
+    const customer = <RecordLink host={host} scope={scope} id={row.contactId || row.leadId || row.accountId} label={row.contactName || row.leadName || row.accountName || row.name} />
+    content = entity === 'ExternalConversation' ? <div className="flex flex-col items-start gap-1">{customer}<a className="inline-flex min-h-11 items-center text-xs underline-offset-4 hover:underline" href={href(entity, row.id)}>{host.translate('打开会话')}</a></div> : customer
   } else if (field === 'name') content = <RecordLink host={host} scope={entity} id={row.id} label={value} />
   else if (field === 'accountName') content = <RecordLink host={host} scope="Account" id={row.accountId} label={value} />
   else if (field === 'conversationName' || field === 'review') content = <RecordLink host={host} scope="ExternalConversation" id={row.conversationId} label={field === 'review' ? host.translate('打开会话审核') : value} />
@@ -232,7 +240,7 @@ export default function QueueScreen({ host, data }: ScreenProps<QueueData>) {
       </>}
       <FilterSelect label="排序" value={filters.order} onChange={(v) => setFilter('order',v)} t={t} options={[["desc","最新在前"],["asc","最早在前"]]} />
     </div><div className="flex flex-wrap gap-2"><Button type="submit" className="min-h-11">{t('查询')}</Button><Button type="button" variant="ghost" className="min-h-11" onClick={() => { setFilters(blank); setSubmitted(blank); setOffset(0) }}>{t('清除筛选')}</Button></div></FieldGroup></form>
-    <div aria-live="polite" className="min-w-0">{loading ? <div role="status" className="flex flex-col gap-2"><Skeleton className="h-12" /><Skeleton className="h-12" /><Skeleton className="h-12" /></div> : error ? <Alert variant="destructive"><AlertTitle>{t('无法加载记录')}</AlertTitle><AlertDescription>{t('请检查访问权限或点击刷新重试。')} <Button variant="outline" onClick={load}>{t('重试')}</Button></AlertDescription></Alert> : !page?.rows.length ? <Empty><EmptyHeader><EmptyTitle>{t('暂无符合条件的记录')}</EmptyTitle><EmptyDescription>{t('可清除筛选或稍后刷新。')}</EmptyDescription></EmptyHeader></Empty> : <div className="max-w-full overflow-x-auto rounded-lg border"><Table className="min-w-max"><TableHeader><TableRow>{def.columns.map(([field,label]) => <TableHead key={field} scope="col">{t(label)}</TableHead>)}</TableRow></TableHeader><TableBody>{page.rows.map((row) => <TableRow key={row.id} tabIndex={0} aria-label={`${t('打开记录')}：${row.name || row.contactName || row.leadName || row.id}`} className={row.unreadCount ? 'bg-muted/40' : ''} onClick={(e) => { if (!(e.target as HTMLElement).closest('a,button')) host.navigate(href(entity,row.id)!) }} onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); host.navigate(href(entity,row.id)!) } }}>{def.columns.map(([field]) => <Cell key={field} host={host} entity={entity} row={row} field={field} />)}</TableRow>)}</TableBody></Table></div>}</div>
+    <div aria-live="polite" className="min-w-0">{loading ? <div role="status" className="flex flex-col gap-2"><Skeleton className="h-12" /><Skeleton className="h-12" /><Skeleton className="h-12" /></div> : error ? <Alert variant="destructive"><AlertTitle>{t('无法加载记录')}</AlertTitle><AlertDescription>{t('请检查访问权限或点击刷新重试。')} <Button variant="outline" onClick={load}>{t('重试')}</Button></AlertDescription></Alert> : !page?.rows.length ? <Empty><EmptyHeader><EmptyTitle>{t('暂无符合条件的记录')}</EmptyTitle><EmptyDescription>{t('可清除筛选或稍后刷新。')}</EmptyDescription></EmptyHeader></Empty> : <div className="max-w-full overflow-x-auto rounded-lg border"><Table className="min-w-max"><TableHeader><TableRow>{def.columns.map(([field,label]) => <TableHead key={field} scope="col">{t(label)}</TableHead>)}</TableRow></TableHeader><TableBody>{page.rows.map((row) => <TableRow key={row.id} tabIndex={0} aria-label={`${t('打开记录')}: ${row.name || row.contactName || row.leadName || row.id}`} className={row.unreadCount ? 'bg-muted/40' : ''} onClick={(e) => { if (!(e.target as HTMLElement).closest('a,button')) host.navigate(href(entity,row.id)!) }} onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); host.navigate(href(entity,row.id)!) } }}>{def.columns.map(([field]) => <Cell key={field} host={host} entity={entity} row={row} field={field} />)}</TableRow>)}</TableBody></Table></div>}</div>
     <nav className="flex flex-wrap items-center justify-end gap-3" aria-label={t('分页')}><span className="text-sm text-muted-foreground">{page?.rows.length ? offset + 1 : 0}–{offset + (page?.rows.length || 0)} / {page?.total ?? t('更多')}</span><Button variant="outline" className="min-h-11" disabled={loading || offset === 0} onClick={() => setOffset(Math.max(0,offset-PAGE_SIZE))}>{t('上一页')}</Button><Button variant="outline" className="min-h-11" disabled={loading || last} onClick={() => setOffset(offset+PAGE_SIZE)}>{t('下一页')}</Button></nav>
   </section>
 }

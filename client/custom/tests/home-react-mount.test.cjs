@@ -27,9 +27,10 @@ function load(name, mountResult) {
   }
   vm.runInNewContext(source, { define(_name, _deps, factory) { View = factory(ReactHost, {}, {}) } })
   const view = new View()
+  assert.equal(Object.hasOwn(View.prototype, 'render'), false, `${name} must not override Espo's template renderer`)
   view.$el = { find: node }
   view.getAcl = () => ({ checkScope: () => true })
-  view.render = () => { events.push(['view', 'legacyLoad']) }
+  view.renderLegacy = () => { events.push(['view', 'legacyLoad']) }
   view.load = () => { events.push(['view', 'legacyLoad']) }
   view.loadInsights = () => { events.push(['view', 'legacyLoad']) }
   view.requestVersion = 0
