@@ -1,14 +1,14 @@
 # Web 工作台重构验证计划与证据账本
 
-## 当前证据（规划阶段，2026-09-24）
+## 当前证据（实施中，2026-09-24）
 
 | 项目 | 结果与边界 |
 | --- | --- |
 | 源码架构 | 已检查 `client/custom/src/views/`、`brand.css`、Espo clientDefs、现有前端测试及宪章。17 个自定义 Web 界面由 AMD/原生 Espo 承载；另有原生生成的业务实体页。此项是规划依据，不是重构验收。 |
-| shadcn 当前上下文 | 在 worktree 执行 `npx --yes shadcn@latest info --json`：`framework=Manual`、`typescript=false`、`tailwindVersion=null`、`config=null`、`components=[]`。已通过 CLI `docs` 查询 Button/Table/Sidebar/Dialog/Field/Empty/Badge/Alert/Skeleton 的官方页面。尚未安装组件。 |
+| shadcn 当前上下文 | 规划前的根目录尚无组件；现已在 `client/custom/ui/` 用官方 CLI 建立 `radix-nova`、React/TypeScript/Tailwind 子工程并安装 16 个组件源文件。客服代表页已实际导入 Button/Table/Badge/Alert/Empty/Skeleton。 |
 | Apple HIG 来源 | 已从 Apple 官方结构化文档读取 Accessibility、Layout、Color、Typography、Feedback、Buttons、Search fields、Writing；对应浏览器页面链接列于 `spec.md`。这是指导依据，不代表本项目已符合。 |
 | 隔离数据页面观察 | 主任务在 `localhost:18082` 的既有合成测试库观察到：CRM 约 870px 时导航折叠、指标块和大面积空白共存，UI 中英混用；老板页约 870px 时建议表多行挤压、相邻状态数字易混。仅作待改进基线，真实客户导入仍为 0。 |
-| 本特性实施与测试 | **未开始**。T001–T022 均保持未完成，任何单元测试/浏览器检查不能在此阶段记为通过。 |
+| 本特性实施与测试 | T001–T007 的技术集成门槛已过：React/shadcn 实际挂载、ACL/停发、同源加载、样式隔离与回退均有运行或测试证据。200% 缩放在当前浏览器不可控制，完整双语和深层角色矩阵须在 T020 验收；其余 Web 页面和 Android 均未完成。 |
 
 ## T001 实施前基线（隔离合成环境）
 
@@ -24,19 +24,33 @@
 | 三个上下文详情 | `AIReplyDraft`、`KnowledgeDocument`、`OutboundTask` → `fusanhe/context-detail` | 状态/证据概览及原生字段/关系。 |
 | 原生实体页 | Espo 标准列表、详情、编辑、关系、弹层 | 产品/规格、证书、询盘、样品、报价、订单、渠道、身份、消息、审计和 Task 保持可用。 |
 
-基线问题：约 870px 宽 CRM 页有较大空白且静态 UI 中英混用；老板页建议表在同宽度挤压、多行状态计数不易分辨。既有 `client/custom/tests/frontend.test.cjs` 对草稿“保存只 PATCH、拒绝只 PATCH、批准需二次确认、空正文不可批准”、入口 ACL 和部分安全转义有回归断言。未在基线阶段宣称其它角色或视口通过。
+基线问题：约 870px 宽 CRM 页有较大空白且静态 UI 中英混用；老板页建议表在同宽度挤压、多行状态计数不易分辨。既有 `client/custom/tests/frontend.test.cjs` 对草稿“保存只 PATCH、拒绝只 PATCH、批准需二次确认、空正文不可批准”、入口 ACL 和部分安全转义有回归断言；实施前运行该文件为 12/12 通过，`make spec-check SPECIFY_FEATURE_DIRECTORY=specs/004-web-workbench-hig` 退出码 0。未在基线阶段宣称其它角色或视口通过。
 
 ## 门槛 1：证明确实使用 shadcn/ui 且可与 Espo 共存
 
+### 首轮运行记录（2026-09-24，尚未宣告门槛完成）
+
+- 官方 CLI 已在 `client/custom/ui/` 初始化 `radix-nova` 并安装 16 个组件源文件；生产构建生成同源 AMD 包与作用域 CSS。`npm --prefix client/custom/ui run build`、组件测试 6/6、旧前端加回退测试 15/15 和隔离栈 `app-check` 均通过。当前包约 276 KB 原始 JS、90 KB gzip；CSS 约 60 KB 原始、10 KB gzip。
+- 隔离合成栈已切换挂载本工作树，`#Home/service` 浏览器刷新后真实渲染 React/shadcn Table、Button、Badge、Alert、Empty 等组件，读取到 24 条测试会话并正确显示全局停发。首次打包有浏览器 `process is not defined`，修正构建替换后恢复；首次样式受 Espo 默认边框宽度影响，补上作用域内 `border-width: 0` 后恢复正常。以上问题已修，不把失败前的运行算成通过。
+- 在 390×844 窄屏，文档宽 379px、视口 390px，没有整体横向溢出；首个表格父容器宽 349px、滚动内容宽 681px，横向滚动局限在表格。`#Home/service → #Home/insights → 浏览器后退` 正常；返回后仅 1 个组件根，旧版回退区保持隐藏。切到原生 Account 列表后，页面结构和控件仍可读，没有观察到组件粗边框污染。
+- 尚需在本门槛核实：弹层 portal 与焦点、角色实测/服务端 ACL、CSP、英文 UI 词条完整性、其它代表视口与 200% 缩放。当前隔离账号语言为英语，新页存在静态文案中英混用；该问题交给 D 的 i18n 包，不计为已通过 R09。
+
+### 门槛复核补充（2026-09-24 22:13 CST）
+
+- `make web-check`（包含 `npm ci`、TypeScript、组件 7/7、产物校验、AMD 语法）退出 0；旧 AMD 行为测试 13/13、规格检查、`git diff --check`、隔离栈 `app-check` 和状态接口 PHP lint 均退出 0。状态接口新增角色测试通过：仅有会话读权限者只能看停发状态；渠道读权限者能看脱敏健康字段，Agent 无权限时看不到摘要。
+- 874×910 浏览器视口下文档宽 863px，无整体横向溢出；React 根仅一个，控制台最近的 error/warn 为零。JS/CSS 均从 `localhost:18082` 返回 200；页面 CSP 为 `script-src 'self'` 加 nonce/`unsafe-eval` 和 Google Maps 白名单，未见新组件远程资产。Portal 的挂载容器、标题、焦点进入、Escape 关闭和焦点回退已有组件测试，但尚无当前客服页弹层可用于实测。
+- 暗色客服页最初的 React 链接计算色为 `rgb(55,105,77)`，页面背景 `rgb(20,24,22)`；A 在 `800e779` 修复 Tailwind cascade layer 与 Espo 全局 `a` 样式冲突，并让新页跟随 Espo 实际主题。完整刷新后原生宿主与新页同为亮色，按钮文字 `rgb(32,37,31)`、普通链接 `rgb(36,91,60)`、背景 `rgb(246,247,245)`；874px 文档宽 863px，控制台 error/warn 为空。原生 Account 页离开时 React 根为 0、列表仍可读。当前浏览器没有提供缩放控制能力，200% 实测延至 T020。
+- 完整 `tests/test_security_regression.py` 中产品规格审批用例返回 404。隔离栈的 `FUSANHE_FEATURE_PRODUCTS` 未开启，`/Fusanhe/features` 显示 products=false；该用例须在启用产品模块的环境单独重跑，不能记为安全通过，也不归因于 Web 改动。
+
 | 检查 | 通过标准 | 证据位置（实施时填写） |
 | --- | --- | --- |
-| 官方组件 | `client/custom/ui/components.json`、锁文件、CLI 安装的真实 `src/components/ui/*` 存在；`npx shadcn@latest info --json` 可识别项目与安装组件；代表页渲染 Button/Table/Badge/Alert/Empty/Skeleton 等真实源组件，源码可追到组件导入；按 CLI 文档核对 primitive base 和组件 API | 待填 |
-| 构建 | `npm ci`、TypeScript/组件测试、`npm run build` 通过；重复构建产物一致；服务端离线加载本地 JS/CSS，没有 CDN 请求和控制台异常；记录 JS/CSS 的原始与 gzip 大小、首次内容呈现耗时 | 待填 |
-| AMD 与路由 | `#Home/service` 直接打开、刷新、前进/后退、进入原生实体详情再返回均正常；React root 在离开时卸载，重复进入无双层事件或重复 API 请求，迟到响应不覆写新页面；登录过期时沿用 Espo 的处理 | 待填 |
-| CSS/portal 隔离 | 代表页运行前后在原生 Account/Lead/产品表单测量关键 computed styles；无 Tailwind Preflight 污染；Dialog/Sheet 标题、焦点、Escape、portal 样式在本地根内；暗色、高对比、缩放下弹层可读 | 待填 |
-| 权限/停发 | read-all、本人范围、无读取权限、无草稿批准权限的合成账号逐一检查；UI 不显示不可读数据，直接 URL 仍由服务端阻断；状态接口失败时明确“未知”，不能默认“已停发” | 待填 |
+| 官方组件 | `client/custom/ui/components.json`、锁文件、CLI 安装的真实 `src/components/ui/*` 存在；`npx shadcn@latest info --json` 可识别项目与安装组件；代表页渲染 Button/Table/Badge/Alert/Empty/Skeleton 等真实源组件，源码可追到组件导入；按 CLI 文档核对 primitive base 和组件 API | `shadcn info --json`：Vite/TypeScript/Tailwind v4、radix-nova、Radix、Lucide、16 个组件；客服源码及 10 项组件测试。通过。 |
+| 构建 | `npm ci`、TypeScript/组件测试、`npm run build` 通过；重复构建产物一致；服务端离线加载本地 JS/CSS，没有 CDN 请求和控制台异常；记录 JS/CSS 的原始与 gzip 大小、首次内容呈现耗时 | `make web-check` 退出 0，生成 JS 276.54 KB / 90.23 KB gzip，CSS 60.10 KB / 10.03 KB gzip；隔离栈资源 200，同源；当前浏览器日志无 error/warn。首次内容呈现耗时未量，留 T020。 |
+| AMD 与路由 | `#Home/service` 直接打开、刷新、前进/后退、进入原生实体详情再返回均正常；React root 在离开时卸载，重复进入无双层事件或重复 API 请求，迟到响应不覆写新页面；登录过期时沿用 Espo 的处理 | 390px 与 874px 页面运行、刷新和后退正常；进入 Account 后根数 0，回到客服页根数 1；AMD 迟到回调回退测试通过。登录过期沿用宿主，最终验收再做人工抽查。 |
+| CSS/portal 隔离 | 代表页运行前后在原生 Account/Lead/产品表单测量关键 computed styles；无 Tailwind Preflight 污染；Dialog/Sheet 标题、焦点、Escape、portal 样式在本地根内；暗色、高对比、缩放下弹层可读 | Account 原生列表视觉和根卸载通过；CSS 生成脚本拒绝非作用域选择器；Portal 焦点/Escape/回退组件测试通过。深层原生表单、高对比和 200% 仍属 T020，不计已通过。 |
+| 权限/停发 | read-all、本人范围、无读取权限、无草稿批准权限的合成账号逐一检查；UI 不显示不可读数据，直接 URL 仍由服务端阻断；状态接口失败时明确“未知”，不能默认“已停发” | 受限角色状态接口测试通过；客服页面显示停发开启；前端无权限不请求受限范围与未知停发组件测试通过，旧回退页缺字段显示“状态未知”。完整多角色浏览器路径留 T020。 |
 
-门槛 1 任一项失败，阶段 1 不开始。若 AMD/React 结合失败，保留旧页面并在此记录精确错误、浏览器版本、复现步骤及回退结果。
+**阶段 1 开始判定**：AMD/shadcn 共存、权限边界、停发和已知 CSS 缺陷均通过复核；200% 与完整角色/语言/原生实体矩阵是仍待 T020 验收的明确缺口，不能据此宣称 Web 全部完成。若后续发现关键 ACL、停发或 CSS 污染回归，立即停下迁移并恢复旧页面。
 
 ## 门槛 2：Web 全页面功能回归
 

@@ -1,6 +1,6 @@
 # Web 工作台重构任务与 Agent 文件所有权
 
-所有任务初始为未完成。`[P]` 表示技术门槛通过后可并行；同一工作树并行时只按下表的所有权写文件。任何 Agent 发现要改其他包文件，先向主任务说明接口需求，由文件所有者修改，避免覆盖。规划 Agent 只编写本规格目录，独立验收 Agent 不承担功能实现。
+`[P]` 表示技术门槛通过后可并行；同一工作树并行时只按下表的所有权写文件。任何 Agent 发现要改其他包文件，先向主任务说明接口需求，由文件所有者修改，避免覆盖。规划 Agent 只编写本规格目录，独立验收 Agent 不承担功能实现。
 
 | 包 | Agent 与独占写入区域 | 依赖与交付 |
 | --- | --- | --- |
@@ -15,12 +15,12 @@
 ## 阶段 0：运行基线与技术门槛（顺序）
 
 - [x] T001 [US01] 主任务记录 17 个自定义 Web 界面、原生实体页路由、现有角色和关键操作的基线矩阵与隔离栈截图；仅写脱敏结论到 `specs/004-web-workbench-hig/verification.md`，不保存真实客户内容。
-- [ ] T002 [US04] A 在 `client/custom/ui/` 建立 React + TypeScript + Vite + Tailwind 独立项目，使用官方 `shadcn` CLI 初始化配置并安装规范所需组件；确认 `components.json`、primitive base、图标库和 `npm ci` 可重现，并将 `npx shadcn@latest info --json` 结果报告给主任务记录。
-- [ ] T003 [US04] A 实现 `client/custom/ui/src/entry.tsx` 与生成的 `client/custom/src/fusanhe/ui-runtime.js`，提供 AMD 可加载的 `mount/update/unmount` 和 Espo `Ajax/ACL/Router/i18n/notification` host 接口；`client/custom/src/views/fusanhe/react-host.js` 的 `remove` 释放 React 根及异步回调。
-- [ ] T004 [US03] A 在 `client/custom/ui/src/styles.css`、`client/custom/res/fusanhe/ui.css`、`client/custom/res/fusanhe/brand.css` 建立亮/暗/高对比语义 token、字号、间距、状态及焦点规则；CSS 不包含影响全站的 Tailwind Preflight，组件样式不污染原生 Espo 页，portal 层焦点和样式在根内；`client.json` 按确定顺序引用 CSS 并预留 D 的 `native.css`。
-- [ ] T005 [US04] A 为 `client/custom/ui/package.json` 增加可复现构建/产物漂移/组件测试脚本，并在 `Makefile` 连接 Web 检查；构建只输出本地静态资产，组件源码和构建产物都受版本控制。
-- [ ] T006 [US01] B 仅迁移 `#Home/service`：在 `client/custom/src/views/fusanhe/service-home.js` 与 `client/custom/ui/src/screens/dashboard/service.tsx` 使用实际 shadcn Table/Button/Badge/Alert/Empty/Skeleton，保留 ACL、计数未知值、停发状态与各实体链接，并建立只读操作回归测试。
-- [ ] T007 [US04] 主任务在隔离栈对 T002–T006 做门槛验收：AMD 加载、控制台/网络错误、路由进出/刷新/后退、卸载、不同角色、CSP、portal、原生页 CSS 对照、键盘/200%/870px 与 390px、停发状态读取。结果写入 `specs/004-web-workbench-hig/verification.md`；门槛不通过时保持旧 UI 可回退，不启动并行迁移。
+- [x] T002 [US04] A 在 `client/custom/ui/` 建立 React + TypeScript + Vite + Tailwind 独立项目，使用官方 `shadcn` CLI 初始化配置并安装规范所需组件；确认 `components.json`、primitive base、图标库和 `npm ci` 可重现，并将 `npx shadcn@latest info --json` 结果报告给主任务记录。
+- [x] T003 [US04] A 实现 `client/custom/ui/src/entry.tsx` 与生成的 `client/custom/src/fusanhe/ui-runtime.js`，提供 AMD 可加载的 `mount/update/unmount` 和 Espo `Ajax/ACL/Router/i18n/notification` host 接口；`client/custom/src/views/fusanhe/react-host.js` 的 `remove` 释放 React 根及异步回调。
+- [x] T004 [US03] A 在 `client/custom/ui/src/styles.css`、`client/custom/res/fusanhe/ui.css`、`client/custom/res/fusanhe/brand.css` 建立亮/暗/高对比语义 token、字号、间距、状态及焦点规则；CSS 不包含影响全站的 Tailwind Preflight，组件样式不污染原生 Espo 页，portal 层焦点和样式在根内；`client.json` 按确定顺序引用 CSS 并预留 D 的 `native.css`。
+- [x] T005 [US04] A 为 `client/custom/ui/package.json` 增加可复现构建/产物漂移/组件测试脚本，并在 `Makefile` 连接 Web 检查；构建只输出本地静态资产，组件源码和构建产物都受版本控制。
+- [x] T006 [US01] B 仅迁移 `#Home/service`：在 `client/custom/src/views/fusanhe/service-home.js` 与 `client/custom/ui/src/screens/dashboard/service.tsx` 使用实际 shadcn Table/Button/Badge/Alert/Empty/Skeleton，保留 ACL、计数未知值、停发状态与各实体链接，并建立只读操作回归测试。
+- [x] T007 [US04] 主任务在隔离栈对 T002–T006 做门槛验收：AMD 加载、控制台/网络错误、路由进出/刷新/后退、卸载、不同角色、CSP、portal、原生页 CSS 对照、键盘/200%/870px 与 390px、停发状态读取。结果写入 `specs/004-web-workbench-hig/verification.md`；门槛不通过时保持旧 UI 可回退，不启动并行迁移。技术集成门槛已过；当前浏览器无法控制 200% 缩放，该实测项及完整双语矩阵延至 T020，不能记作已验证。
 
 ## 阶段 1：按独占文件包并行迁移（依赖 T007 通过）
 
