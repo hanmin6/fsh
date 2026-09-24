@@ -2,7 +2,9 @@
 
 基于 EspoCRM 10.0.8 的外贸业务软件，包含两个并列入口：CRM 客户关系与销售推进、AI 客服统一收件与回复协作。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核、食品外贸业务记录和广州 Windows 平台执行端放在一个可审计的流程里。
 
-当前环境默认禁止自动外发。CRM 已实现受独立 Agent 凭据保护的 Alibaba 入库端点，支持受限批次校验、幂等回放和审计；Alibaba Bridge 的完整回填/增量执行端、真实发送仍未接入，且 PHP/Docker 运行时尚未验证。其他渠道使用占位连接器演示完整闭环。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
+**查找各分支的内容和合并状态，请先读 [GitHub 分支地图与开发交接](docs/BRANCH_GUIDE.md)。** 该文档逐一说明远端分支的用途、关键文件、历史验证记录和未完成事项。
+
+当前环境默认禁止自动外发。`main` 已包含受独立 Agent 凭据保护的 Alibaba 入库端点，以及浏览器采集、回填和增量同步代码；指定账号的真实全历史回填、来源完整性对账与真实发送尚未验收。其他渠道使用占位连接器演示闭环。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。老板历史客户页目前只在 `codex/boss-history-insights` 分支。
 
 ## 架构
 
@@ -40,7 +42,7 @@ flowchart LR
 - “外贸运营概览”Dashlet，展示询盘、待回复、待审核、超时、负责人、响应时间、AI 修改率和发送结果。
 - 老板、业务主管、业务员和平台执行端的权限基线；管理员使用 EspoCRM 内置管理员权限。
 - 食品外贸业务模块：产品与规格版本、证书与检测报告、样品、询价、报价/PI、轻量销售订单和分批交付；每个模块有服务端状态机、权限保护、幂等或冻结规则及 Feature Flag。
-- Android `1.0.0` UI 演示版：客户新增、客户历史、询盘会话、翻译和 AI 回复建议，当前使用本地 Mock Repository。
+- Android `1.0.0` UI 演示版：客户新增、客户历史、询盘会话、翻译和 AI 回复建议；`main` 后续加入了认证、远程仓库与 DTO 映射基础，完整生产接入仍未完成。
 
 ## 目录
 
@@ -157,7 +159,7 @@ cd android-client
 ./gradlew testDebugUnitTest assembleDebug
 ```
 
-当前 Android 客户端没有连接真实 CRM。详细功能、Mock 数据和接入方式见 `android-client/README.md` 与 `android-client/docs/BACKEND_API_MAPPING.md`。
+Android 已具备部分真实 API 接入基础，但尚未完成生产环境端到端验收。详细功能、Mock 数据和接入方式见 `android-client/README.md` 与 `android-client/docs/BACKEND_API_MAPPING.md`。
 
 ## 备份与恢复
 
@@ -185,9 +187,9 @@ docker compose exec espocrm bin/command rebuild
 
 ## 已知限制
 
-- Alibaba CRM 入库端点与每 Agent 凭据已实现，但 Alibaba 全量/增量抓取执行端、Bridge 实际接通和真实平台发送均未完成；当前 PHP/Docker 运行时也未验证。Made-in-China、独立站和邮件仍是接口骨架。
-- 浏览器或 Windows UI 自动化执行程序尚未实现。
+- Alibaba CRM 入库端点、每 Agent 凭据与浏览器采集/同步代码已实现；指定账号的真实全量回填、消息完整性对账和真实发送尚未验收。Bridge 健康检查不能证明消息历史可读。Made-in-China、独立站和邮件仍是接口骨架。
+- Alibaba 浏览器执行代码已在仓库中，实际运行环境的登录态与页面适配尚待验证；Windows 桌面客户端读取方案尚未实现。
 - 食品外贸模块目前是 CRM 内的结构化业务记录与工作流，尚未连接 ERP、工厂排产、物流承运商或真实收付款系统；Feature Flag 只控制可见性，不替代权限。
-- Android 1.0.0 使用本地 Mock 数据，真实认证、数据库、WebSocket、离线同步和消息发送尚未接入。
+- Android 1.0.0 有本地 Mock 演示与部分真实 API 底座；WebSocket、完整离线同步、正式签名发布和生产端到端验收尚未完成。
 - DOCX/XLSX 使用轻量文本提取；复杂表格和扫描 PDF 后续应接专业解析/OCR 服务。
 - 当前共享目录为本地演示挂载，部署到广州 Windows 时需替换为实际共享盘路径并配置只读权限。
