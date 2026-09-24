@@ -82,3 +82,29 @@ def test_account_handle_is_configured_separately_from_agent_identity(tmp_path: P
 def test_account_handle_cannot_be_empty(tmp_path: Path) -> None:
     with pytest.raises(CrmBridgeConfigError, match="account handle"):
         CrmBridgeConfig.from_env(_env(tmp_path, MIC_ACCOUNT_HANDLE="  "))
+
+
+def test_from_env_loads_dotenv_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        f"MIC_APP_DATA_DIR={tmp_path}\n"
+        "MIC_CRM_READ_API_KEY=key-from-dotenv\n"
+        "MIC_CRM_AGENT_KEY=agent-from-dotenv\n"
+        "MIC_ACCOUNT_HANDLE=handle-from-dotenv\n",
+        encoding="utf-8"
+    )
+    # Clear any existing env vars from os.environ
+    for key in ["MIC_APP_DATA_DIR", "MIC_CRM_READ_API_KEY", "MIC_CRM_AGENT_KEY", "MIC_ACCOUNT_HANDLE"]:
+        monkeypatch.delenv(key, raising=False)
+
+    # Monkeypatch dotenv path lookup to return our tmp_path / .env
+    monkeypatch.setattr(
+        "mic_gateway.crm_bridge.config._resolve_dotenv_file",
+        lambda: env_file
+    )
+
+    config = CrmBridgeConfig.from_env()
+    assert config.mic_read_api_key == "key-from-dotenv"
+    assert config.crm_agent_key == "agent-from-dotenv"
+    assert config.account_handle == "handle-from-dotenv"
+

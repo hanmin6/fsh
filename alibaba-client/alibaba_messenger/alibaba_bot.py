@@ -28,10 +28,57 @@ class AlibabaMessengerBot:
         self.is_logged_in = False
         self.is_busy = False
         self._inquiry_countries: Dict[str, str] = {}
+        self._last_refresh_time: float = time.time()
+        self._last_keep_alive: float = time.time()
 
     def get_last_extracted_country(self, inquiry_id: str) -> str:
         """获取指定商机缓存的买家国家/地区"""
         return self._inquiry_countries.get(str(inquiry_id or "").strip(), "")
+
+    async def keep_alive(self, force_reload: bool = False, max_idle_seconds: float = 180.0) -> bool:
+        """保持浏览器活跃与会话连接，定时刷新商机沟通列表以获取最新数据并自动关闭弹窗"""
+        now = time.time()
+        self._last_keep_alive = now
+
+        if not self.page or self.page.is_closed():
+            self.is_logged_in = False
+            return False
+
+        try:
+            curr_url = self.page.url or ""
+            if settings.ALIBABA_LOGIN_FLAG in curr_url:
+                self.is_logged_in = False
+                return False
+
+            # 关闭可能出现的阻挡弹窗
+            await self._close_unexpected_dialogs()
+
+            idle_duration = now - self._last_refresh_time
+            if force_reload or idle_duration >= max_idle_seconds:
+                # 刷新页面以拉取最新商机会话与长连接消息
+                try:
+                    await self.page.reload(wait_until="domcontentloaded", timeout=30000)
+                    try:
+                        await self.page.wait_for_load_state("load", timeout=5000)
+                    except Exception:
+                        pass
+                    await asyncio.sleep(1.5)
+                except Exception as reload_err:
+                    print(f"[Bot] keep_alive 页面刷新异常: {reload_err}")
+
+                # 刷新后再次校验是否掉登
+                curr_url = self.page.url or ""
+                if settings.ALIBABA_LOGIN_FLAG in curr_url:
+                    self.is_logged_in = False
+                    return False
+
+                await self._close_unexpected_dialogs()
+                self._last_refresh_time = time.time()
+
+            return self.is_logged_in
+        except Exception as e:
+            print(f"[Bot] keep_alive 异常: {e}")
+            return False
 
     async def start(self, headless: bool = False):
         """启动持久化浏览器并检测登录状态"""
@@ -599,8 +646,11 @@ class AlibabaMessengerBot:
         finally:
             self.is_busy = False
 
-    async def get_recent_conversations(self, limit: int = 20) -> Dict[str, Any]:
-        """获取最近会话列表及未读状态"""
+    async def get_recent_conversations(self, limit: int = 20, auto_refresh: bool = False) -> Dict[str, Any]:
+        """获取最近会话列表及未读状态。若 auto_refresh=True，则先执行页面保活刷新"""
+        if auto_refresh:
+            await self.keep_alive(force_reload=True)
+
         if not self.is_logged_in:
             return {
                 "success": False,

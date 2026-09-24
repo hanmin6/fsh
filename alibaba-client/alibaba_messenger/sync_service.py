@@ -118,7 +118,10 @@ class AlibabaSyncService:
 
         conversations = []
         if hasattr(self.bot, "get_recent_conversations"):
-            res = await self.bot.get_recent_conversations(limit=100)
+            try:
+                res = await self.bot.get_recent_conversations(limit=100, auto_refresh=True)
+            except TypeError:
+                res = await self.bot.get_recent_conversations(limit=100)
             if isinstance(res, dict) and res.get("success"):
                 conversations = res.get("data", {}).get("conversations", [])
             elif isinstance(res, list):
@@ -204,13 +207,22 @@ class AlibabaSyncService:
         print(f"[Daemon] 阿里国际站增量同步守护进程已启动，巡检间隔: {interval}秒")
         while not (stop_event and stop_event.is_set()):
             try:
+                # 周期保活心跳
+                if hasattr(self.bot, "keep_alive"):
+                    try:
+                        alive = await self.bot.keep_alive(max_idle_seconds=interval)
+                        if not alive:
+                            print("[Daemon] 警告: 国际站登录状态失效或已重定向至登录页，等待重新认证")
+                    except Exception as kerr:
+                        print(f"[Daemon] 保活巡检异常: {kerr}")
+
                 summary = await self.run_incremental_once()
                 print(f"[Daemon] 轮询完成: updated={summary.completed}, skipped={summary.skipped}, failed={summary.failed}")
             except asyncio.CancelledError:
                 print("[Daemon] 守护进程收到终止信号，正常退出。")
                 raise
             except Exception as exc:
-                print("[Daemon] 本轮增量轮询异常，等待下次重试")
+                print(f"[Daemon] 本轮增量轮询异常，等待下次重试: {exc}")
 
             if stop_event and stop_event.is_set():
                 break

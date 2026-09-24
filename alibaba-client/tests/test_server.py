@@ -67,3 +67,53 @@ def test_crm_client_extract_order_country():
         }
     }
     assert AlibabaCRMClient.extract_order_country(order_data3) == "Japan"
+
+
+def test_api_health_endpoint():
+    from alibaba_messenger.alibaba_bot import bot
+    original = bot.is_logged_in
+    try:
+        bot.is_logged_in = True
+        response = client.get("/api/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert "data" in data
+        assert data["data"]["status"] == "UP"
+        assert data["data"]["is_logged_in"] is True
+        assert "last_keep_alive" in data["data"]
+    finally:
+        bot.is_logged_in = original
+
+
+def test_api_session_keepalive_endpoint():
+    from unittest.mock import AsyncMock
+    from alibaba_messenger.alibaba_bot import bot
+    original_keep = getattr(bot, "keep_alive", None)
+    try:
+        bot.keep_alive = AsyncMock(return_value=True)
+        response = client.post("/api/session/keepalive", json={"force_reload": False})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        bot.keep_alive.assert_called_once_with(force_reload=False)
+    finally:
+        if original_keep:
+            bot.keep_alive = original_keep
+
+
+def test_api_session_refresh_endpoint():
+    from unittest.mock import AsyncMock
+    from alibaba_messenger.alibaba_bot import bot
+    original_keep = getattr(bot, "keep_alive", None)
+    try:
+        bot.keep_alive = AsyncMock(return_value=True)
+        response = client.post("/api/session/refresh")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        bot.keep_alive.assert_called_once_with(force_reload=True)
+    finally:
+        if original_keep:
+            bot.keep_alive = original_keep
+

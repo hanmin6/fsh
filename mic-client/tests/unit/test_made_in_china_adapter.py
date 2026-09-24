@@ -140,3 +140,19 @@ async def test_adapter_preserves_business_fields_but_sanitizes_raw_snapshot() ->
     assert conversation.inquiry_subject == "Need product details"
     assert conversation.raw_snapshot["contactNo"] == "Contact 001"
     assert conversation.raw_snapshot["subject"] == "Message 001"
+
+
+@pytest.mark.asyncio
+async def test_session_probe_forces_refresh_when_idle() -> None:
+    """When the browser stays on the conversation page for > 300s, check_session forces a reload/navigation."""
+    page = DelayedSessionPage()
+    page.url = "https://membercenter.made-in-china.com/message/index.html"
+    page.polls = 2  # causes locator count == 1, so detected is healthy
+    runtime = FakeRuntime(page)
+    adapter = MadeInChinaAdapter(runtime)  # type: ignore[arg-type]
+    adapter._last_refresh_at = 1.0  # simulated old timestamp
+
+    health = await adapter.check_session()
+    assert health.healthy
+    assert page.navigated_to == "https://membercenter.made-in-china.com/message/index.html"
+

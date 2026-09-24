@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from fastapi.testclient import TestClient
@@ -432,5 +433,61 @@ async def test_bot_get_buyer_profile():
     assert res["data"]["inquiry_id"] == "555444"
     assert res["data"]["country"] == "Canada"
     assert bot_instance.get_last_extracted_country("555444") == "Canada"
+
+
+@pytest.mark.asyncio
+async def test_bot_keep_alive_reloads_when_idle():
+    """验证 keep_alive 在空闲超限或 force_reload 时执行页面刷新并关闭异常弹窗"""
+    bot_instance = AlibabaMessengerBot()
+    bot_instance.is_logged_in = True
+    bot_instance._last_refresh_time = time.time() - 300  # 5 分钟前
+
+    mock_page = AsyncMock()
+    mock_page.is_closed = MagicMock(return_value=False)
+    mock_page.url = "https://message.alibaba.com/message/default.htm"
+    mock_page.reload = AsyncMock()
+    mock_page.wait_for_load_state = AsyncMock()
+    bot_instance.page = mock_page
+    bot_instance._close_unexpected_dialogs = AsyncMock()
+
+    alive = await bot_instance.keep_alive(max_idle_seconds=180)
+    assert alive is True
+    mock_page.reload.assert_called_once()
+    bot_instance._close_unexpected_dialogs.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_bot_keep_alive_detects_login_drop():
+    """验证 keep_alive 检测到重定向至登录页时将 is_logged_in 置为 False"""
+    bot_instance = AlibabaMessengerBot()
+    bot_instance.is_logged_in = True
+
+    mock_page = AsyncMock()
+    mock_page.is_closed = MagicMock(return_value=False)
+    mock_page.url = "https://passport.alibaba.com/icbu_login.htm"
+    bot_instance.page = mock_page
+
+    alive = await bot_instance.keep_alive()
+    assert alive is False
+    assert bot_instance.is_logged_in is False
+
+
+@pytest.mark.asyncio
+async def test_bot_get_recent_conversations_auto_refresh_invokes_keep_alive():
+    """验证 get_recent_conversations(auto_refresh=True) 时主动触发 keep_alive 刷新"""
+    bot_instance = AlibabaMessengerBot()
+    bot_instance.is_logged_in = True
+    bot_instance.keep_alive = AsyncMock(return_value=True)
+
+    mock_page = AsyncMock()
+    mock_page.evaluate = AsyncMock(return_value=[
+        {"buyer_name": "Test User", "inquiry_id": "111222", "country": "Japan"}
+    ])
+    bot_instance.page = mock_page
+
+    res = await bot_instance.get_recent_conversations(limit=10, auto_refresh=True)
+    assert res["success"] is True
+    bot_instance.keep_alive.assert_called_once_with(force_reload=True)
+
 
 

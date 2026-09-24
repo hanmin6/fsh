@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import re
+import time
 from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
@@ -521,16 +522,24 @@ def _url_identifies_conversation(url: str, source_id: str) -> bool:
 class MadeInChinaAdapter:
     def __init__(self, runtime: BrowserRuntime) -> None:
         self.runtime = runtime
+        self._last_refresh_at: float = 0.0
 
     async def check_session(self) -> SessionHealth:
         async def operation(page: Any) -> SessionHealth:
+            now = time.time()
             current_url = str(page.url).casefold()
             detected = await self._detect_session(page)
             if detected is not None and detected.requires_operator:
                 return detected
+
+            # Periodic refresh threshold: 300 seconds (5 minutes)
+            # If the session is healthy and currently on the conversation page, but hasn't
+            # been refreshed in > 300s, force a reload to refresh DOM and keep WebSocket alive.
+            is_stale = (now - self._last_refresh_at) >= 300.0
             if (
                 not current_url.startswith("about:")
                 and selectors.CONVERSATIONS.page_path in current_url
+                and not is_stale
             ):
                 if detected is not None and detected.healthy:
                     return detected
@@ -541,7 +550,10 @@ class MadeInChinaAdapter:
                 ),
                 wait_until="domcontentloaded",
             )
-            return await self._wait_for_session(page)
+            health = await self._wait_for_session(page)
+            if health.healthy:
+                self._last_refresh_at = time.time()
+            return health
 
         try:
             return await self.runtime.run_serialized(operation)
@@ -645,7 +657,7 @@ class MadeInChinaAdapter:
         buyer_id = None
         try:
             profile = await page.evaluate(
-                """() => {
+                r"""() => {
                     const nameEl = document.querySelector('.sd-card__name-text, .Mai_user_name');
                     const regionEl = document.querySelector('.sd-card__region, .Mai_flag');
                     const customerEl = document.querySelector('.sd-card__name[href*="customer-detail"], a[href*="customer-detail"], [href*="customer-detail"]');

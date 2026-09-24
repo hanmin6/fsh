@@ -20,6 +20,10 @@ class SendMessageRequest(BaseModel):
     force_send: bool = Field(False, description="是否强制发送(跳过防重)")
     timeout_seconds: int = Field(30, description="最大等待与执行超时(秒)")
 
+class KeepAliveRequest(BaseModel):
+    force_reload: bool = Field(False, description="是否强制重新加载页面")
+    timeout_seconds: int = Field(settings.DEFAULT_QUEUE_TIMEOUT_SEC, description="排队超时时间(秒)")
+
 class APIResponse(BaseModel):
     code: int
     success: bool
@@ -58,6 +62,121 @@ async def get_status():
             "waiting_queue_count": waiting_counter
         }
     )
+
+@app.get("/api/health", response_model=APIResponse)
+async def get_health():
+    """获取服务与阿里国际站会话健康状态"""
+    is_healthy = bot.is_logged_in
+    status_str = "UP" if is_healthy else "DEGRADED"
+
+    url = ""
+    if bot.page and not bot.page.is_closed():
+        try:
+            url = bot.page.url
+        except Exception:
+            pass
+
+    return APIResponse(
+        code=200,
+        success=True,
+        status=status_str,
+        message="服务状态健康" if is_healthy else "服务运行中但国际站会话需重新登录",
+        data={
+            "status": status_str,
+            "is_logged_in": bot.is_logged_in,
+            "is_busy": bot.is_busy,
+            "last_keep_alive": getattr(bot, "_last_keep_alive", 0),
+            "last_refresh_time": getattr(bot, "_last_refresh_time", 0),
+            "page_url": url,
+            "waiting_queue_count": waiting_counter
+        }
+    )
+
+@app.post("/api/session/keepalive", response_model=APIResponse)
+async def session_keepalive(req: Optional[KeepAliveRequest] = None):
+    """保活巡检接口：检查连接并可选择强制刷新商机列表"""
+    force_reload = req.force_reload if req else False
+    timeout_sec = req.timeout_seconds if req else settings.DEFAULT_QUEUE_TIMEOUT_SEC
+
+    global waiting_counter
+    waiting_counter += 1
+    try:
+        try:
+            await asyncio.wait_for(browser_lock.acquire(), timeout=timeout_sec)
+        except asyncio.TimeoutError:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "code": 429,
+                    "success": False,
+                    "status": SendResultStatus.QUEUE_TIMEOUT.value,
+                    "message": "前序任务执行繁忙，排队超时",
+                    "data": None
+                }
+            )
+
+        try:
+            alive = await bot.keep_alive(force_reload=force_reload)
+            http_status = 200 if alive else 401
+            return JSONResponse(
+                status_code=http_status,
+                content={
+                    "code": http_status,
+                    "success": alive,
+                    "status": "READY" if alive else "NEED_LOGIN",
+                    "message": "会话保活正常" if alive else "会话已失效或需要登录",
+                    "data": {
+                        "is_logged_in": bot.is_logged_in,
+                        "last_keep_alive": getattr(bot, "_last_keep_alive", 0),
+                        "last_refresh_time": getattr(bot, "_last_refresh_time", 0)
+                    }
+                }
+            )
+        finally:
+            browser_lock.release()
+    finally:
+        waiting_counter = max(0, waiting_counter - 1)
+
+@app.post("/api/session/refresh", response_model=APIResponse)
+async def session_refresh():
+    """主动刷新商机沟通页面以拉取最新会话列表并激活长连接"""
+    global waiting_counter
+    waiting_counter += 1
+    try:
+        try:
+            await asyncio.wait_for(browser_lock.acquire(), timeout=settings.DEFAULT_QUEUE_TIMEOUT_SEC)
+        except asyncio.TimeoutError:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "code": 429,
+                    "success": False,
+                    "status": SendResultStatus.QUEUE_TIMEOUT.value,
+                    "message": "前序任务执行繁忙，排队超时",
+                    "data": None
+                }
+            )
+
+        try:
+            alive = await bot.keep_alive(force_reload=True)
+            http_status = 200 if alive else 401
+            return JSONResponse(
+                status_code=http_status,
+                content={
+                    "code": http_status,
+                    "success": alive,
+                    "status": "READY" if alive else "NEED_LOGIN",
+                    "message": "商机沟通页面已刷新就绪" if alive else "会话已失效或需要登录",
+                    "data": {
+                        "is_logged_in": bot.is_logged_in,
+                        "last_refresh_time": getattr(bot, "_last_refresh_time", 0)
+                    }
+                }
+            )
+        finally:
+            browser_lock.release()
+    finally:
+        waiting_counter = max(0, waiting_counter - 1)
 
 @app.post("/api/login/check", response_model=APIResponse)
 async def check_login():

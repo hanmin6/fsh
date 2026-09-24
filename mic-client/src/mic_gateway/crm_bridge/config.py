@@ -10,6 +10,19 @@ class CrmBridgeConfigError(ValueError):
     """Raised when bridge settings are unsafe or incomplete."""
 
 
+def _resolve_dotenv_file() -> Path | None:
+    """Locate .env file in project root or current working directory."""
+    parents = Path(__file__).resolve().parents
+    if len(parents) >= 4:
+        candidate = parents[3] / ".env"
+        if candidate.is_file():
+            return candidate
+    cwd_candidate = Path.cwd() / ".env"
+    if cwd_candidate.is_file():
+        return cwd_candidate
+    return None
+
+
 @dataclass(frozen=True, slots=True)
 class CrmBridgeConfig:
     app_data_dir: Path
@@ -25,7 +38,18 @@ class CrmBridgeConfig:
 
     @classmethod
     def from_env(cls, environ: dict[str, str] | None = None) -> CrmBridgeConfig:
-        env = os.environ if environ is None else environ
+        if environ is None:
+            dotenv_path = _resolve_dotenv_file()
+            if dotenv_path and dotenv_path.is_file():
+                try:
+                    from dotenv import load_dotenv
+                    load_dotenv(dotenv_path)
+                except ImportError:
+                    pass
+            env = os.environ
+        else:
+            env = environ
+
         app_data = env.get("MIC_APP_DATA_DIR")
         if not app_data:
             raise CrmBridgeConfigError("MIC_APP_DATA_DIR is required")

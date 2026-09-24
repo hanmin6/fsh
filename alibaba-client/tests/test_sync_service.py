@@ -180,3 +180,56 @@ def test_sync_service_backfills_country_from_bot_cache():
     assert len(gateway.calls) == 1
     # Country must be backfilled into the conversation payload sent to CRM
     assert gateway.calls[0][0]["conversation"]["country"] == "Malaysia"
+
+
+def test_incremental_sync_invokes_auto_refresh():
+    """验证 run_incremental_once 默认传递 auto_refresh=True 以主动刷新商机列表"""
+    class RefreshTrackingBot:
+        def __init__(self):
+            self.auto_refresh_passed = None
+
+        async def get_recent_conversations(self, limit=100, auto_refresh=False):
+            self.auto_refresh_passed = auto_refresh
+            return {"success": True, "data": {"conversations": []}}
+
+    bot = RefreshTrackingBot()
+    state = FakeState()
+    state.start_job = lambda *a: "job-refresh"
+    service = AlibabaSyncService(bot, FakeGateway(), state, Settings())
+    asyncio.run(service.run_incremental_once())
+    assert bot.auto_refresh_passed is True
+
+
+def test_daemon_invokes_keep_alive_and_recovers_from_error():
+    """验证 run_daemon 循环中主动触发 bot.keep_alive 并具备异常容错"""
+    class KeepAliveBot:
+        def __init__(self):
+            self.keep_alive_called = 0
+
+        async def keep_alive(self, max_idle_seconds=300):
+            self.keep_alive_called += 1
+            return True
+
+        async def get_recent_conversations(self, limit=100, auto_refresh=False):
+            # 首次触发异常，模拟网络或页面偶发错误
+            if self.keep_alive_called == 1:
+                raise RuntimeError("transient page error")
+            return {"success": True, "data": {"conversations": []}}
+
+    bot = KeepAliveBot()
+    state = FakeState()
+    state.start_job = lambda *a: "job-daemon"
+    service = AlibabaSyncService(bot, FakeGateway(), state, Settings())
+
+    stop_event = asyncio.Event()
+
+    async def _test():
+        # run daemon once with error, then stop
+        loop_task = asyncio.create_task(service.run_daemon(interval=1, stop_event=stop_event))
+        await asyncio.sleep(0.05)
+        stop_event.set()
+        await loop_task
+
+    asyncio.run(_test())
+    assert bot.keep_alive_called >= 1
+
