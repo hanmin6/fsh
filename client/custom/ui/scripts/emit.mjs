@@ -29,6 +29,19 @@ if (/https?:\/\//.test(rawJs)) {
 
 const rawCss = await readFile(resolve(project, "dist/ui.css"), "utf8")
 const result = await postcss([
+  {
+    postcssPlugin: "fsh-unlayer-utilities",
+    Once(root) {
+      // Espo's native styles are unlayered. Keeping Tailwind utilities inside
+      // a layer lets even Espo's generic `a` rule win over Button text colors.
+      // The emitted rules remain scoped and retain their normal specificity.
+      root.walkAtRules("layer", (rule) => {
+        if (rule.params.trim() === "utilities") {
+          rule.replaceWith(...(rule.nodes || []))
+        }
+      })
+    },
+  },
   prefixSelector({
     prefix,
     transform(_prefix, selector, prefixedSelector) {
@@ -46,6 +59,11 @@ if (/(^|[},])\s*(?:body|html|:root)\s*\{/m.test(scopedCss)) {
   throw new Error("Built CSS contains an unscoped document selector")
 }
 const parsedCss = postcss.parse(scopedCss)
+parsedCss.walkAtRules("layer", (rule) => {
+  if (rule.params.trim() === "utilities") {
+    throw new Error("Built utilities must not remain cascade-layered under Espo")
+  }
+})
 parsedCss.walkRules((rule) => {
   if (rule.parent?.name?.includes("keyframes")) return
   for (const selector of rule.selectors || []) {

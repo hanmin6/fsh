@@ -74,12 +74,15 @@
   --fsh-success: #245b3c;
   --fsh-warning: #79541c;
   --fsh-info: #24586a;
+  --fsh-link: #245b3c;
+  --fsh-link-hover: #174a2d;
   --radius: 0.375rem;
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-sans);
   font-size: 0.875rem;
   line-height: 1.5;
+  color-scheme: light;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -95,6 +98,17 @@
 
 [data-fsh-ui-root] :is(button, input, select, textarea) {
   font: inherit;
+}
+
+/* Native Espo has a global anchor rule. Give plain workbench links their
+ * own semantic color; shadcn components with data-slot keep variant colors. */
+[data-fsh-ui-root] a:where(:not([data-slot])) {
+  color: var(--fsh-link);
+}
+
+[data-fsh-ui-root] a:where(:not([data-slot]):hover, :not([data-slot]):focus-visible) {
+  color: var(--fsh-link-hover);
+  text-decoration: underline;
 }
 
 [data-fsh-ui-root] :focus-visible {
@@ -123,8 +137,7 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  [data-fsh-ui-root]:not([data-theme="light"]) {
+[data-fsh-ui-root].dark {
     --background: #141816;
     --foreground: #f4f6f3;
     --card: #1c231e;
@@ -154,8 +167,9 @@
     --fsh-success: #8cdbab;
     --fsh-warning: #f3c77a;
     --fsh-info: #86cee0;
-    color-scheme: dark;
-  }
+    --fsh-link: #8cdbab;
+    --fsh-link-hover: #b3f2c8;
+  color-scheme: dark;
 }
 
 @media (prefers-contrast: more) {

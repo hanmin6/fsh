@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { PortalContainerProvider } from "@/lib/portal"
+import { hostUsesDarkTheme } from "@/lib/theme"
 import type { HostBridge, ScreenProps } from "@/lib/host"
 import "./styles.css"
 
@@ -59,15 +60,15 @@ class ScreenErrorBoundary extends React.Component<
 function watchTheme(target: HTMLElement) {
   const media = window.matchMedia("(prefers-color-scheme: dark)")
   const sync = () => {
-    target.classList.toggle(
-      "dark",
-      target.dataset.theme === "dark" ||
-        (target.dataset.theme !== "light" &&
-          (document.documentElement.classList.contains("dark") || media.matches)),
-    )
+    target.classList.toggle("dark", hostUsesDarkTheme(target))
   }
   const observer = new MutationObserver(sync)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+  const options: MutationObserverInit = {
+    attributes: true,
+    attributeFilter: ["class", "style", "data-theme"],
+  }
+  observer.observe(document.documentElement, options)
+  observer.observe(document.body, options)
   media.addEventListener("change", sync)
   sync()
   return () => {
