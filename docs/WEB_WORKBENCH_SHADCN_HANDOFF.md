@@ -36,6 +36,8 @@ make verify-offline
 
 浏览器验证使用 `http://localhost:18082` 的 `fusanhe-phase1-test` 隔离合成库。`http://localhost:8080` 是主环境，不能注入测试记录。登录、客户数据、Cookie、密钥、真实 Alibaba 资料及未脱敏截图不得提交 Git。当前验收矩阵涵盖 17 个自定义 Web 界面、原生实体页、中文/英文、六种视口、200% 缩放、键盘焦点、暗色/高对比和多角色权限；实际通过/未覆盖状态见 `verification.md`，不能从测试命令成功推断视觉验收完成。
 
+食品外贸原生页默认被 Feature Flag 隐藏。需要逐类验收时，在**同一个隔离项目和固定卷**上叠加 `tests/phase1-industry-compose.yaml` 并重建应用；该 overlay 只开测试模块，不改 `localhost:8080` 主环境。离开行业模块验收后，可用原单文件 compose 配置恢复默认隐藏状态。
+
 ## 发布与回退
 
 发布时先确认源代码和 `ui-runtime.js`/`ui.css` 产物一致、`native.css` 已包含、`client.json` 资源顺序正确，并在目标环境执行 Espo rebuild/app-check。保留发布前的静态资产和 Espo 配置快照；切换后完整刷新浏览器，实测 `#Home/service`、原生 Account 列表、会话详情与老板页。若新屏幕装载失败，AMD 页面保留旧内容回退路径；完整回退须恢复旧版资源和入口并复测，而非只撤销 Git 提交。

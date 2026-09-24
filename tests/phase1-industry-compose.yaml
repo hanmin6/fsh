@@ -1,0 +1,11 @@
+# Opt-in overlay for visual and workflow acceptance of the food-trade modules.
+# Use with phase1-compose.yaml and the same fusanhe-phase1-test project/volumes.
+# Never apply this overlay to the main demo stack.
+services:
+  espocrm:
+    environment:
+      FUSANHE_FEATURE_PRODUCTS: "true"
+      FUSANHE_FEATURE_CERTIFICATES: "true"
+      FUSANHE_FEATURE_SAMPLES: "true"
+      FUSANHE_FEATURE_QUOTES: "true"
+      FUSANHE_FEATURE_ORDERS: "true"
