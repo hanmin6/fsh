@@ -137,3 +137,23 @@ def test_daemon_runs_and_respects_stop_event():
     asyncio.run(_run())
 
 
+
+
+def test_failed_backfill_keeps_job_resumable_and_redacts_logs(tmp_path, capsys):
+    from alibaba_messenger.sync_state import SyncStateStore
+    from alibaba_messenger.crm_gateway import CrmTransientError
+
+    class FailingGateway:
+        def sync_batch(self, *args):
+            raise CrmTransientError('private-token-and-customer-text')
+
+    async def no_sleep(_): pass
+    store = SyncStateStore(tmp_path / 'sync.db')
+    summary = asyncio.run(AlibabaSyncService(FakeBot(), FailingGateway(), store, Settings(), sleeper=no_sleep).run_backfill())
+    assert summary.failed == 1
+    assert store.status() == {'running': 1}
+    assert store.get_or_create_active_job('backfill', 'default') == summary.job_id
+    assert 'private-token-and-customer-text' not in capsys.readouterr().out
+    error = store.connection.execute('SELECT error_message FROM conversation_checkpoint').fetchone()[0]
+    assert error == 'transient_sync_error'
+    store.close()

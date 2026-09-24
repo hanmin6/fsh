@@ -170,6 +170,46 @@
       "type": "bool",
       "default": false,
       "readOnly": true
+    },
+    "insightsStatus": {
+      "type": "enum",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true,
+      "options": [
+        "pending",
+        "completed",
+        "failed",
+        "stale"
+      ],
+      "default": "pending"
+    },
+    "insightsVersion": {
+      "type": "varchar",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true,
+      "maxLength": 191
+    },
+    "insightsModel": {
+      "type": "varchar",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true,
+      "maxLength": 191
+    },
+    "insightsAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "insightsError": {
+      "type": "varchar",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true,
+      "maxLength": 191
+    },
+    "insightsData": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true
     }
   },
   "links": {

@@ -72,6 +72,11 @@
       "layoutListDisabled": true,
       "layoutMassUpdateDisabled": true,
       "view": "custom:views/fields/structured"
+    },
+    "historyCoverage": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true
     }
   },
   "links": {

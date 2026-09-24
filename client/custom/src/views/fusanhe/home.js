@@ -65,6 +65,7 @@ define("custom:views/fusanhe/home", [
           : "";
       this.$el.find(".fsh-entry-body").html(
         U.pause +
+          (canService ? '<p class="fsh-notice"><a href="#Home/insights">历史客户与今日建议 →</a> · 查看导入覆盖率、AI 分析与人工跟进清单</p>' : "") +
           `<div class="fsh-entry-grid">${entry(
             "#Home/crm",
             "CRM 工作台",

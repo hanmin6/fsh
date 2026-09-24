@@ -67,7 +67,7 @@ class AlibabaSyncService:
                 summary.skipped += 1
                 continue
             self.state_store.mark_conversation_started(job_id, inquiry_id)
-            print(f"[Sync] 正在同步商机: {inquiry_id} (买家: {buyer_name})...")
+            print("[Sync] 正在同步历史会话…")
             try:
                 try:
                     messages = await self.bot.get_sync_history(inquiry_id, buyer_name=buyer_name)
@@ -89,16 +89,21 @@ class AlibabaSyncService:
                         int(conversation.get("unread_count", 0)),
                     )
                 summary.completed += 1
-                print(f"[Sync] 商机 {inquiry_id} 同步完成 (共 {len(messages)} 条消息)")
+                print(f"[Sync] 会话同步完成 (共 {len(messages)} 条消息)")
             except CrmPermanentError as exc:
-                self.state_store.mark_conversation_failed(job_id, inquiry_id, "permanent", str(exc))
+                self.state_store.mark_conversation_failed(job_id, inquiry_id, "permanent", "permanent_sync_error")
                 summary.failed += 1
-                print(f"[Sync] 商机 {inquiry_id} 同步失败 (permanent): {exc}")
+                print("[Sync] 会话同步失败，安全错误代码已保存，可重试")
             except CrmTransientError as exc:
-                self.state_store.mark_conversation_failed(job_id, inquiry_id, "transient", str(exc))
+                self.state_store.mark_conversation_failed(job_id, inquiry_id, "transient", "transient_sync_error")
                 summary.failed += 1
-                print(f"[Sync] 商机 {inquiry_id} 同步失败 (transient): {exc}")
-        self.state_store.complete_job(job_id)
+                print("[Sync] 会话同步失败，安全错误代码已保存，可重试")
+            except (RuntimeError, ValueError, KeyError):
+                self.state_store.mark_conversation_failed(job_id, inquiry_id, "source_read_failed", "source_read_failed")
+                summary.failed += 1
+                print("[Sync] 源记录读取失败，可重试")
+        if summary.failed == 0:
+            self.state_store.complete_job(job_id)
         return summary
 
     async def run_incremental_once(self, max_pages: int = 1) -> SyncSummary:
@@ -139,7 +144,7 @@ class AlibabaSyncService:
                 continue
 
             self.state_store.mark_conversation_started(job_id, inquiry_id)
-            print(f"[Sync] [Incremental] 发现商机更新: {inquiry_id} (买家: {buyer_name}, 未读: {unread_count})...")
+            print("[Sync] [Incremental] 发现会话更新")
             try:
                 try:
                     messages = await self.bot.get_sync_history(inquiry_id, buyer_name=buyer_name)
@@ -165,17 +170,22 @@ class AlibabaSyncService:
                 if hasattr(self.state_store, "save_tracked_conversation"):
                     self.state_store.save_tracked_conversation(inquiry_id, buyer_name, last_message, last_time, unread_count)
                 summary.completed += 1
-                print(f"[Sync] [Incremental] 商机 {inquiry_id} 增量入库完成 (共 {len(messages)} 条消息)")
+                print(f"[Sync] [Incremental] 会话入库完成 (共 {len(messages)} 条消息)")
             except CrmPermanentError as exc:
-                self.state_store.mark_conversation_failed(job_id, inquiry_id, "permanent", str(exc))
+                self.state_store.mark_conversation_failed(job_id, inquiry_id, "permanent", "permanent_sync_error")
                 summary.failed += 1
-                print(f"[Sync] [Incremental] 商机 {inquiry_id} 失败 (permanent): {exc}")
+                print("[Sync] 会话同步失败，安全错误代码已保存，可重试")
             except CrmTransientError as exc:
-                self.state_store.mark_conversation_failed(job_id, inquiry_id, "transient", str(exc))
+                self.state_store.mark_conversation_failed(job_id, inquiry_id, "transient", "transient_sync_error")
                 summary.failed += 1
-                print(f"[Sync] [Incremental] 商机 {inquiry_id} 失败 (transient): {exc}")
+                print("[Sync] 会话同步失败，安全错误代码已保存，可重试")
 
-        self.state_store.complete_job(job_id)
+            except (RuntimeError, ValueError, KeyError):
+                self.state_store.mark_conversation_failed(job_id, inquiry_id, "source_read_failed", "source_read_failed")
+                summary.failed += 1
+                print("[Sync] 源记录读取失败，可重试")
+        if summary.failed == 0:
+            self.state_store.complete_job(job_id)
         return summary
 
     async def run_daemon(self, interval: int = 300, stop_event: asyncio.Event | None = None) -> None:
@@ -188,7 +198,7 @@ class AlibabaSyncService:
                 print("[Daemon] 守护进程收到终止信号，正常退出。")
                 raise
             except Exception as exc:
-                print(f"[Daemon] 本轮增量轮询异常: {exc}")
+                print("[Daemon] 本轮增量轮询异常，等待下次重试")
 
             if stop_event and stop_event.is_set():
                 break

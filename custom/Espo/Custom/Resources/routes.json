@@ -194,5 +194,15 @@
     "route": "/Fusanhe/orders/by-batch",
     "method": "get",
     "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetOrdersByBatch"
+  },
+  {
+    "route": "/Fusanhe/insights",
+    "method": "get",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInsights"
+  },
+  {
+    "route": "/Fusanhe/insights/:id",
+    "method": "get",
+    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInsights"
   }
 ]

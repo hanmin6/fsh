@@ -640,8 +640,10 @@ final class WorkflowService
 
     public function dashboard(?string $ownUserId = null): array
     {
-        $today = gmdate('Y-m-d 00:00:00');
-        $count = fn(string $type, array $where = []) => $this->repo($type)->where($where)->count();
+        $today = (new DateTimeImmutable('today', new DateTimeZone('Asia/Shanghai')))
+            ->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $ownWhere = $ownUserId ? ['assignedUserId' => $ownUserId] : [];
+        $count = fn(string $type, array $where = []) => $this->repo($type)->where(array_merge($where, $ownWhere))->count();
         $conversations = $this->repo('ExternalConversation')->where($ownWhere ? ['createdAt>=' => $today, ...$ownWhere] : ['createdAt>=' => $today])->find();
         $channels = [];
         $byAssignedUser = [];

@@ -57,7 +57,7 @@ final class AlibabaSyncService
             if (!$conversation) {
                 $conversation = $this->em->getNewEntity('ExternalConversation');
                 $conversation->set([
-                    'name' => 'Alibaba 询盘 ' . $inquiryId,
+                    'name' => mb_substr((trim((string) ($conversationInput->buyerName ?? '')) ?: 'Alibaba 询盘') . ' · ' . $inquiryId, 0, 255),
                     'channelId' => $channel->getId(),
                     'externalId' => $inquiryId,
                     'externalUserId' => trim((string) ($conversationInput->buyerExternalId ?? '')),

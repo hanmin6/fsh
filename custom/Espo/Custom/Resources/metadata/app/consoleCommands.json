@@ -1,0 +1,8 @@
+{
+  "historyAnalyze": {
+    "className": "Espo\\Custom\\Commands\\HistoryAnalyze"
+  },
+  "historyReconcile": {
+    "className": "Espo\\Custom\\Commands\\HistoryReconcile"
+  }
+}

@@ -27,3 +27,6 @@ alibaba-client/**/profile/
 alibaba-client/**/logs/
 alibaba-client/**/data/
 alibaba-client/token_storage.json
+
+# Local Codex handoff containing the user-provided AI credential.
+docs/CODEX_BOSS_DEMO_2026-09-24.private.md
