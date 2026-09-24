@@ -1,5 +1,5 @@
 define("custom:views/fusanhe/service-home", [
-  "views/main",
+  "custom:views/fusanhe/react-host",
   "ajax",
   "custom:views/fusanhe/common",
 ], function (Dep, Ajax, U) {
@@ -8,18 +8,38 @@ define("custom:views/fusanhe/service-home", [
   // agents) appear only for roles with read access.
   return class extends Dep {
     templateContent =
-      '<div class="fsh-shell"><header class="fsh-header"><div><h1>AI 客服工作台</h1><div class="fsh-subtitle">统一收件箱、草稿审核、身份确认与发送异常</div></div><div><a class="btn btn-default fsh-insights-entry" href="#Home/insights">历史客户与今日建议</a> <button class="btn btn-default fsh-refresh">刷新</button></div></header><div class="fsh-dashboard-body" aria-live="polite"></div></div>';
+      '<div class="fsh-ui-mount" aria-busy="true">正在加载客服数据…</div><div class="fsh-legacy" hidden><div class="fsh-shell"><header class="fsh-header"><div><h1>AI 客服工作台</h1><div class="fsh-subtitle">统一收件箱、草稿审核、身份确认与发送异常</div></div><div><a class="btn btn-default fsh-insights-entry" href="#Home/insights">历史客户与今日建议</a> <button class="btn btn-default fsh-refresh">刷新</button></div></header><div class="fsh-dashboard-body" aria-live="polite"></div></div></div>';
     updatePageTitle() {
       this.getHelper().pageTitle.setTitle(
         this.translate("AI 客服工作台", "labels", "Fusanhe"),
       );
     }
-    afterRender() {
+    async afterRender() {
       super.afterRender();
+      this._serviceDisposed = false;
+      const target = this.$el.find(".fsh-ui-mount")[0];
+      let mounted = false;
+      try {
+        if (target) mounted = await this.mountScreen("service", {}, target);
+      } catch {
+        mounted = false;
+      }
+      if (this._serviceDisposed) return;
+      if (mounted) {
+        this.$el.find(".fsh-ui-mount").removeAttr("aria-busy");
+        return;
+      }
+      // Keep the existing Espo view usable when the optional React bundle fails.
+      this.$el.find(".fsh-ui-mount").hide();
+      this.$el.find(".fsh-legacy").removeAttr("hidden");
       if (!this.getAcl().checkScope("ExternalConversation", "read"))
         this.$el.find(".fsh-insights-entry").remove();
       this.$el.find(".fsh-refresh").on("click", () => this.load());
       this.load();
+    }
+    remove(...args) {
+      this._serviceDisposed = true;
+      return super.remove(...args);
     }
     async total(entity, where) {
       if (!this.getAcl().checkScope(entity, "read")) return null;
