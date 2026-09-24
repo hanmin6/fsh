@@ -2,7 +2,9 @@
 
 基于 EspoCRM 10.0.8 的外贸业务软件，包含两个并列入口：CRM 客户关系与销售推进、AI 客服统一收件与回复协作。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核、食品外贸业务记录和广州 Windows 平台执行端放在一个可审计的流程里。
 
-当前环境默认禁止自动外发。CRM 已实现受独立 Agent 凭据保护的 Alibaba 入库端点，支持受限批次校验、幂等回放和审计；Alibaba Bridge 的完整回填/增量执行端、真实发送仍未接入，且 PHP/Docker 运行时尚未验证。其他渠道使用占位连接器演示完整闭环。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
+**接手项目先读 [2026-09-24 开发交接](docs/DEVELOPMENT_HANDOFF_2026-09-24.md)。** 它按日期列出已开发内容、验证边界、未完成任务和代码入口；[老板演示说明](docs/BOSS_DEMO.md)记录当前数据状态。旧交接文档是对应日期的历史快照。
+
+当前环境默认禁止自动外发。CRM 已实现受独立 Agent 凭据保护的 Alibaba 入库端点和历史客户只读看板；采集端有回填/增量代码，隔离环境验证通过，但当前账号的真实历史尚未回填和对账。其他渠道使用占位连接器。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
 
 ## 架构
 
@@ -36,11 +38,12 @@ flowchart LR
 - Alibaba、MadeInChina、Website、Email 的连接器骨架及可演示的 MockConnector。
 - 执行端注册、心跳、任务领取、发送中、成功/失败回写、三次重试、领取超时、审计和每 Agent 独立凭据轮换。
 - `POST /Fusanhe/alibaba/sync`：受 Agent capability 约束的 Alibaba 入库、回放冲突保护、身份/Lead 关联和消息去重；这不是完整的平台抓取执行端。
+- Alibaba 采集端回填/增量代码与老板历史客户看板 `#Home/insights`：只读检索、规则建议、匿名信号分析、证据链接和来源 ID 对账；真实账号全量导入仍待验收。
 - 全局停发开关，默认 `true`。
 - “外贸运营概览”Dashlet，展示询盘、待回复、待审核、超时、负责人、响应时间、AI 修改率和发送结果。
 - 老板、业务主管、业务员和平台执行端的权限基线；管理员使用 EspoCRM 内置管理员权限。
 - 食品外贸业务模块：产品与规格版本、证书与检测报告、样品、询价、报价/PI、轻量销售订单和分批交付；每个模块有服务端状态机、权限保护、幂等或冻结规则及 Feature Flag。
-- Android `1.0.0` UI 演示版：客户新增、客户历史、询盘会话、翻译和 AI 回复建议，当前使用本地 Mock Repository。
+- Android `1.0.0` UI 演示版：客户新增、客户历史、询盘会话、翻译和 AI 回复建议；已具备部分真实 API 接入基础，完整生产连接仍未完成。
 
 ## 目录
 
@@ -56,6 +59,8 @@ scripts/restore.sh                  备份恢复（需明确传入备份目录�
 docs/permissions.md                 角色权限说明
 docs/API_AGENT_HANDOFF.md           接口开发交接与技术债
 docs/PROJECT_STATUS.md              项目完成度与版本基线
+docs/DEVELOPMENT_HANDOFF_2026-09-24.md  最新开发交接与未完成事项
+docs/BOSS_DEMO.md                   老板历史客户演示与对账操作
 docs/RELEASE_HANDOFF_2026-09-21.md  本次整合发布、验证、回退和分支说明
 android-client/                     Android 1.0.0 UI 演示版
 ```
@@ -157,7 +162,7 @@ cd android-client
 ./gradlew testDebugUnitTest assembleDebug
 ```
 
-当前 Android 客户端没有连接真实 CRM。详细功能、Mock 数据和接入方式见 `android-client/README.md` 与 `android-client/docs/BACKEND_API_MAPPING.md`。
+Android 已有部分真实数据底座，但尚未完成生产环境端到端接入。详细功能、Mock 数据和接入方式见 `android-client/README.md` 与 `android-client/docs/BACKEND_API_MAPPING.md`。
 
 ## 备份与恢复
 
@@ -185,9 +190,9 @@ docker compose exec espocrm bin/command rebuild
 
 ## 已知限制
 
-- Alibaba CRM 入库端点与每 Agent 凭据已实现，但 Alibaba 全量/增量抓取执行端、Bridge 实际接通和真实平台发送均未完成；当前 PHP/Docker 运行时也未验证。Made-in-China、独立站和邮件仍是接口骨架。
-- 浏览器或 Windows UI 自动化执行程序尚未实现。
+- Alibaba CRM 入库、浏览器采集和增量同步代码已具备，合成数据及隔离运行时验证通过；当前真实账号全历史回填、完整性对账和实际页面适配尚未验收。OAuth Bridge 健康检查通过不等于消息历史可读。真实平台发送代码未经生产验收。Made-in-China、独立站和邮件仍是接口骨架。
+- 既有 Alibaba 浏览器执行端尚未在用户指定的“福三和主机”找到可复用安装，也未确认当前登录入口；Windows 桌面客户端读取方案尚未实现。
 - 食品外贸模块目前是 CRM 内的结构化业务记录与工作流，尚未连接 ERP、工厂排产、物流承运商或真实收付款系统；Feature Flag 只控制可见性，不替代权限。
-- Android 1.0.0 使用本地 Mock 数据，真实认证、数据库、WebSocket、离线同步和消息发送尚未接入。
+- Android 1.0.0 有 Mock 演示及部分真实 API 基础；WebSocket、完整离线同步、正式签名发布和生产端到端验收尚未完成。
 - DOCX/XLSX 使用轻量文本提取；复杂表格和扫描 PDF 后续应接专业解析/OCR 服务。
 - 当前共享目录为本地演示挂载，部署到广州 Windows 时需替换为实际共享盘路径并配置只读权限。
