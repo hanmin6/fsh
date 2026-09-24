@@ -1,5 +1,5 @@
 define("custom:views/fusanhe/list", [
-  "views/main",
+  "custom:views/fusanhe/react-host",
   "ajax",
   "custom:views/fusanhe/common",
 ], function (Dep, Ajax, U) {
@@ -89,7 +89,7 @@ define("custom:views/fusanhe/list", [
   };
   return class extends Dep {
     templateContent =
-      '<div class="fsh-shell"><div class="fsh-header"><div><h1 class="fsh-title"></h1><div class="fsh-subtitle">客户、询盘与后续行动</div></div><button class="btn btn-default" data-action="refresh">刷新</button></div><div class="fsh-list-notice"></div><form class="fsh-toolbar"></form><div class="fsh-list-body" aria-live="polite"></div><div class="fsh-pagination"></div></div>';
+      '<div class="fsh-ui-mount"></div><div class="fsh-shell" hidden><div class="fsh-header"><div><h1 class="fsh-title"></h1><div class="fsh-subtitle">客户、询盘与后续行动</div></div><button class="btn btn-default" data-action="refresh">刷新</button></div><div class="fsh-list-notice"></div><form class="fsh-toolbar"></form><div class="fsh-list-body" aria-live="polite"></div><div class="fsh-pagination"></div></div>';
     setup() {
       super.setup();
       this.entity = this.options.scope || this.scope || this.options.entityType;
@@ -107,6 +107,20 @@ define("custom:views/fusanhe/list", [
     afterRender() {
       super.afterRender();
       if (!this.def) return;
+      this.mountScreen("queue", {
+        entity: this.entity,
+        statusOptions: this.getMetadata().get([
+          "entityDefs", this.entity, "fields",
+          this.entity === "KnowledgeDocument" ? "approvalStatus" : "status", "options",
+        ]) || [],
+      }).then((mounted) => {
+        if (mounted || !this.$el || !this.$el.find(".fsh-shell").length) return;
+        this.$el.find(".fsh-ui-mount").remove();
+        this.$el.find(".fsh-shell").prop("hidden", false);
+        this.renderLegacy();
+      });
+    }
+    renderLegacy() {
       this.$el.find(".fsh-title").text(this.def.title);
       this.$el.find(".fsh-subtitle").text(
         {
@@ -192,7 +206,6 @@ define("custom:views/fusanhe/list", [
       if (this.entity === "ExternalConversation") this.loadSelectors();
       this.load();
       U.localize(this);
-      U.refreshOutboundNotice(this);
       U.refreshOutboundNotice(this);
     }
     async loadSelectors() {

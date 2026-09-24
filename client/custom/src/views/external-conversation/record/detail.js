@@ -2,7 +2,8 @@ define("custom:views/external-conversation/record/detail", [
   "views/record/detail",
   "ajax",
   "custom:views/fusanhe/common",
-], function (Dep, Ajax, U) {
+  "custom:views/fusanhe/react-host",
+], function (Dep, Ajax, U, ReactHost) {
   return class extends Dep {
     setup() {
       super.setup();
@@ -13,6 +14,28 @@ define("custom:views/external-conversation/record/detail", [
       this.renderWorkbench();
     }
     async renderWorkbench() {
+      const reactRequest = ++this.requestNumber;
+      this.$el.find(".fsh-workspace-container").remove();
+      this.$el.prepend('<section class="fsh-workspace-container"><div class="fsh-ui-mount"></div></section>');
+      const mounted = await ReactHost.prototype.mountScreen.call(this, "conversation", {
+        conversationId: this.model.id,
+        initialConversation: { ...this.model.attributes },
+      }, this.$el.find(".fsh-ui-mount")[0]);
+      if (mounted || reactRequest !== this.requestNumber || !this.$el || !this.$el.find(".fsh-workspace-container").length) return;
+      ReactHost.prototype.unmountScreen.call(this);
+      return this.renderLegacyWorkbench();
+    }
+    getReactHost() {
+      return ReactHost.prototype.getReactHost.call(this);
+    }
+    unmountScreen() {
+      return ReactHost.prototype.unmountScreen.call(this);
+    }
+    remove() {
+      ReactHost.prototype.unmountScreen.call(this);
+      return super.remove();
+    }
+    async renderLegacyWorkbench() {
       const seq = ++this.requestNumber;
       this.$el.find(".fsh-workspace-container").remove();
       this.$el.prepend(
@@ -146,6 +169,7 @@ define("custom:views/external-conversation/record/detail", [
         U.localize(this);
         U.refreshOutboundNotice(this);
       } catch (e) {
+        if (seq !== this.requestNumber || !this.$el) return;
         this.$el
           .find(".fsh-workspace-container")
           .html(
