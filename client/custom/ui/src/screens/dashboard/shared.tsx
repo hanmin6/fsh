@@ -70,7 +70,7 @@ export function StateBadge({ host, value }: { host: HostBridge; value?: string }
   }
   const variant = ['failed', 'high'].includes(value) ? 'destructive'
     : ['pending', 'waitingApproval', 'human', 'unlinked', 'sending'].includes(value) ? 'secondary' : 'outline'
-  return <Badge variant={variant}>{host.translate(labels[value] || value)}</Badge>
+  return <Badge variant={variant}>{labels[value] ? host.translate(labels[value]) : value}</Badge>
 }
 
 export function RecordSection<T>({ host, title, entity, state, headers, renderRow, onRetry }: {

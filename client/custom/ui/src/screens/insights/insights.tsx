@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,6 +30,24 @@ const fields = [
   ['缺失信息', 'missingFacts'], ['下一步', 'nextAction'],
 ] as const
 
+// These strings are fixed server templates. Never run customer or model text through the UI dictionary.
+const serverTemplates = new Set([
+  '身份尚未确认', '核对平台身份与客户关联后再跟进',
+  '回复草稿等待审核', '由有权限的负责人核对草稿依据并人工处理',
+  '最近客户消息超过 24 小时未回复', '阅读原始询盘，核实需求后人工回复',
+  '超过 7 天无新沟通', '核实项目是否仍在推进，决定是否人工跟进',
+  '待采集端提供完整分页及消息对账；平台可见总数和未入库失败数未知。仅统计带同步来源的 Alibaba 会话。',
+  '对账后数据发生变化，需要重新核对。',
+  '已全部导入：会话与消息稳定 ID 逐项对账相符，失败为零。',
+  '会话稳定 ID 与消息稳定 ID 集合已逐项对账，源端声明枚举和历史加载完整，失败为零。',
+  '覆盖未完成：请核对完整枚举、消息加载、失败数及会话/消息 ID 差集。',
+  '匿名信号分析，业务事实请核对原文。',
+  '尚无可读取的分析；未完成、失败或证据无权限。',
+])
+function serverTemplate(value: string | undefined, host: HostBridge): string {
+  return value && serverTemplates.has(value) ? host.translate(value) : value || '—'
+}
+
 function dateTime(value: string | null | undefined, host: HostBridge): string {
   if (!value) return '—'
   const timestamp = value.replace(' ', 'T')
@@ -41,8 +59,9 @@ function dateTime(value: string | null | undefined, host: HostBridge): string {
 function recordHref(type: string, id?: string) { return id ? `#${type}/view/${encodeURIComponent(id)}` : undefined }
 
 function RecordLink({ type, id, children, allowed = true }: { type: string; id?: string; children: React.ReactNode; allowed?: boolean }) {
+  if (!allowed) return <>—</>
   const href = recordHref(type, id)
-  return href && allowed ? <a href={href} className="inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline">{children}</a> : <>{children}</>
+  return href ? <a href={href} className="inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline">{children}</a> : <>{children}</>
 }
 
 function analysisLabel(host: HostBridge, status?: string): string {
@@ -80,6 +99,7 @@ export default function InsightsScreen({ host }: ScreenProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detailRetry, setDetailRetry] = useState(0)
   const [detail, setDetail] = useState<LoadState<Detail> | null>(null)
+  const analysisHeading = useRef<HTMLHeadingElement>(null)
   const allowed = host.can('ExternalConversation', 'read')
 
   useEffect(() => {
@@ -137,13 +157,13 @@ export default function InsightsScreen({ host }: ScreenProps) {
               <Metric host={host} label="分析已过期" value={coverage?.analysisStale} />
             </dl>
             <div className="mt-3 flex flex-col gap-1 text-sm text-muted-foreground">
-              <p>{coverage?.reason ? t(coverage.reason) : t('同步覆盖范围未核实')}{data.scope === 'own' ? ` ${t('当前仅显示本人负责的会话。')}` : ''}</p>
+              <p>{coverage?.reason ? serverTemplate(coverage.reason, host) : t('同步覆盖范围未核实')}{data.scope === 'own' ? ` ${t('当前仅显示本人负责的会话。')}` : ''}</p>
               <p>{t('最后同步')}：{dateTime(coverage?.lastSyncAt, host)} · {t('最后分析')}：{dateTime(coverage?.lastAnalysisAt, host)}</p>
             </div>
           </section>
           <section className="min-w-0" aria-label={t('今日建议')}>
             <div className="mb-3 flex flex-wrap items-baseline gap-2"><h2 className="text-base font-semibold">{t('今日建议')}</h2><p className="text-sm text-muted-foreground">{data.date || '—'} · {typeof data.suggestionTotal === 'number' ? data.suggestionTotal : '—'} {t('条')}{(data.suggestionTotal || 0) > 50 ? ` · ${t('仅显示优先 50 条')}` : ''}</p></div>
-            {data.suggestions?.length ? <div className="max-w-full overflow-x-auto rounded-md border"><Table className="min-w-[680px]"><TableHeader><TableRow><TableHead>{t('优先级')}</TableHead><TableHead>{t('客户会话 / 依据')}</TableHead><TableHead>{t('原因与建议动作')}</TableHead><TableHead>{t('负责人')}</TableHead></TableRow></TableHeader><TableBody>{data.suggestions.map((item, index) => <TableRow key={item.id || index}><TableCell className="align-top font-medium">P{item.priority ?? '—'}</TableCell><TableCell className="align-top"><RecordLink type="ExternalConversation" id={item.id}>{item.name || '—'}</RecordLink></TableCell><TableCell className="min-w-64 align-top"><span className="font-medium">{item.reason ? t(item.reason) : '—'}</span><br /><span className="text-muted-foreground">{item.action ? t(item.action) : '—'}</span></TableCell><TableCell className="align-top">{item.owner && item.owner !== '未分配' ? item.owner : t('未分配')}</TableCell></TableRow>)}</TableBody></Table></div>
+            {data.suggestions?.length ? <div className="max-w-full overflow-x-auto rounded-md border"><Table className="min-w-[680px]"><TableHeader><TableRow><TableHead>{t('优先级')}</TableHead><TableHead>{t('客户会话 / 依据')}</TableHead><TableHead>{t('原因与建议动作')}</TableHead><TableHead>{t('负责人')}</TableHead></TableRow></TableHeader><TableBody>{data.suggestions.map((item, index) => <TableRow key={item.id || index}><TableCell className="align-top font-medium">P{item.priority ?? '—'}</TableCell><TableCell className="align-top"><RecordLink type="ExternalConversation" id={item.id}>{item.name || '—'}</RecordLink></TableCell><TableCell className="min-w-64 align-top"><span className="font-medium">{serverTemplate(item.reason, host)}</span><br /><span className="text-muted-foreground">{serverTemplate(item.action, host)}</span></TableCell><TableCell className="align-top">{item.owner && item.owner !== '未分配' ? item.owner : t('未分配')}</TableCell></TableRow>)}</TableBody></Table></div>
               : <Empty className="min-h-28 py-4"><EmptyHeader><EmptyTitle>{t('暂无建议')}</EmptyTitle><EmptyDescription>{t('暂无建议。导入真实会话后，系统按身份与跟进状态生成建议。')}</EmptyDescription></EmptyHeader></Empty>}
           </section>
           <section className="min-w-0 border-t pt-5" aria-label={t('历史客户会话')}>
@@ -155,12 +175,12 @@ export default function InsightsScreen({ host }: ScreenProps) {
                 <Button type="submit" className="min-h-11">{t('查询 / 刷新')}</Button>
               </FieldGroup>
             </form>
-            {data.list?.length ? <div className="max-w-full overflow-x-auto rounded-md border"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>{t('客户会话')}</TableHead><TableHead>{t('平台 ID')}</TableHead><TableHead>{t('身份')}</TableHead><TableHead>{t('负责人')}</TableHead><TableHead>{t('最近消息')}</TableHead><TableHead>{t('AI 分析')}</TableHead></TableRow></TableHeader><TableBody>{data.list.map((row, index) => <TableRow key={row.id || index}><TableCell><div className="flex flex-col items-start"><RecordLink type="ExternalConversation" id={row.id}>{row.name || '—'}</RecordLink>{row.customer && <RecordLink type={row.customer.type} id={row.customer.id} allowed={host.can(row.customer.type, 'read')}>{t('打开 CRM 客户')}</RecordLink>}</div></TableCell><TableCell>{row.externalId || '—'}</TableCell><TableCell><Badge variant={row.needsManualMatch ? 'secondary' : 'outline'}>{row.needsManualMatch ? t('待确认') : t('已关联')}</Badge></TableCell><TableCell>{row.owner && row.owner !== '未分配' ? row.owner : t('未分配')}</TableCell><TableCell className="whitespace-nowrap">{dateTime(row.lastMessageAt, host)}</TableCell><TableCell><div className="flex flex-wrap items-center gap-2"><Badge variant={row.analysisStatus === 'failed' ? 'destructive' : 'outline'}>{analysisLabel(host, row.analysisStatus)}</Badge><Button variant="link" className="min-h-11" type="button" onClick={() => setSelectedId(row.id)}>{t('查看分析')}</Button></div></TableCell></TableRow>)}</TableBody></Table></div>
+            {data.list?.length ? <div className="max-w-full overflow-x-auto rounded-md border"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>{t('客户会话')}</TableHead><TableHead>{t('平台 ID')}</TableHead><TableHead>{t('身份')}</TableHead><TableHead>{t('负责人')}</TableHead><TableHead>{t('最近消息')}</TableHead><TableHead>{t('AI 分析')}</TableHead></TableRow></TableHeader><TableBody>{data.list.map((row, index) => <TableRow key={row.id || index}><TableCell><div className="flex flex-col items-start"><RecordLink type="ExternalConversation" id={row.id}>{row.name || '—'}</RecordLink>{row.customer && host.can(row.customer.type, 'read') && <RecordLink type={row.customer.type} id={row.customer.id}>{t('打开 CRM 客户')}</RecordLink>}</div></TableCell><TableCell>{row.externalId || '—'}</TableCell><TableCell><Badge variant={row.needsManualMatch ? 'secondary' : 'outline'}>{row.needsManualMatch ? t('待确认') : t('已关联')}</Badge></TableCell><TableCell>{row.owner && row.owner !== '未分配' ? row.owner : t('未分配')}</TableCell><TableCell className="whitespace-nowrap">{dateTime(row.lastMessageAt, host)}</TableCell><TableCell><div className="flex flex-wrap items-center gap-2"><Badge variant={row.analysisStatus === 'failed' ? 'destructive' : 'outline'}>{analysisLabel(host, row.analysisStatus)}</Badge><Button variant="link" className="min-h-11" type="button" aria-label={`${t('查看分析')}：${row.name || row.externalId || row.id}`} aria-controls="fsh-insights-analysis" aria-expanded={selectedId === row.id} onClick={() => { setSelectedId(row.id); analysisHeading.current?.focus() }}>{t('查看分析')}</Button></div></TableCell></TableRow>)}</TableBody></Table></div>
               : <Empty className="min-h-28 py-4"><EmptyHeader><EmptyTitle>{t('暂无记录')}</EmptyTitle><EmptyDescription>{t('没有符合条件的历史会话。未同步的数据与模拟记录不会计入这里。')}</EmptyDescription></EmptyHeader></Empty>}
             <nav className="mt-3 flex flex-wrap items-center justify-end gap-3" aria-label={t('历史会话分页')}><Button variant="outline" className="min-h-11" disabled={offset === 0} onClick={() => { setSelectedId(null); setOffset(value => Math.max(0, value - PAGE_SIZE)) }}>{t('上一页')}</Button><span className="text-sm" role="status">{t('第')} {page} {t('页')} · {total === null ? '—' : total} {t('条会话')}</span><Button variant="outline" className="min-h-11" disabled={total === null || offset + (data.list?.length || 0) >= total} onClick={() => { setSelectedId(null); setOffset(value => value + PAGE_SIZE) }}>{t('下一页')}</Button></nav>
           </section>
-          <section className="min-w-0 border-t pt-5" aria-label={t('客户分析')}>
-            <h2 className="mb-3 text-base font-semibold">{t('客户分析')}</h2>
+          <section id="fsh-insights-analysis" className="min-w-0 border-t pt-5" aria-label={t('客户分析')}>
+            <h2 ref={analysisHeading} tabIndex={-1} className="mb-3 text-base font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{t('客户分析')}</h2>
             {!selectedId ? <p className="text-sm text-muted-foreground">{t('选择会话的“查看分析”，核对画像与原始依据。')}</p>
               : detail?.kind === 'loading' ? <Skeleton className="h-24 w-full" role="status" aria-label={t('正在读取…')} />
                 : detail?.kind === 'error' ? <Alert variant="destructive" role="alert"><AlertTitle>{t('分析读取失败或无权限，请重新选择会话。')}</AlertTitle><AlertDescription><Button variant="outline" className="min-h-11" onClick={() => setDetailRetry(value => value + 1)}>{t('重试')}</Button></AlertDescription></Alert>
@@ -174,12 +194,12 @@ function AnalysisDetail({ host, detail }: { host: HostBridge; detail: Detail }) 
   const t = (key: string) => host.translate(key)
   return <div className="flex min-w-0 flex-col gap-3">
     <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">{detail.name || '—'}</h3><Badge variant={detail.analysisStatus === 'failed' ? 'destructive' : 'outline'}>{analysisLabel(host, detail.analysisStatus)}</Badge></div>
-    <p className="text-sm text-muted-foreground">{detail.analysisNotice ? t(detail.analysisNotice) : t('未提供')}{detail.analysisError ? ` · ${t('错误代码')}：${detail.analysisError}` : ''}</p>
+    <p className="text-sm text-muted-foreground">{detail.analysisNotice ? serverTemplate(detail.analysisNotice, host) : t('未提供')}{detail.analysisError ? ` · ${t('错误代码')}：${detail.analysisError}` : ''}</p>
     {detail.analysisStatus === 'stale' && <Alert><AlertTitle>{t('来源已有变化，下方为旧分析，请等待重新分析。')}</AlertTitle></Alert>}
     {detail.analysis && <>
       <dl className="grid min-w-0 gap-x-6 gap-y-3 border-y py-4 md:grid-cols-2">{fields.map(([label, key]) => <div key={key} className="min-w-0"><dt className="text-sm font-medium">{t(label)}</dt><dd className="mt-1 break-words text-sm text-muted-foreground"><Value value={detail.analysis?.[key]} host={host} /></dd></div>)}</dl>
       <p className="text-sm text-muted-foreground">{t('模型')}：{detail.model || '—'} · {t('生成时间')}：{dateTime(detail.analysisAt, host)} · {detail.promptVersion || '—'}</p>
-      <div className="flex flex-wrap items-center gap-2 text-sm"><span className="font-medium">{t('分析依据')}：</span>{detail.evidence?.length ? detail.evidence.map(item => <RecordLink key={item.id} type="ExternalMessage" id={item.id} allowed={host.can('ExternalMessage', 'read')}>{dateTime(item.sentAt, host)} {t(item.direction === 'inbound' ? '客户消息' : '我方消息')}</RecordLink>) : <span>{t('无可读取的证据')}</span>}</div>
+      <div className="flex flex-wrap items-center gap-2 text-sm"><span className="font-medium">{t('分析依据')}：</span>{host.can('ExternalMessage', 'read') && detail.evidence?.length ? detail.evidence.map(item => <RecordLink key={item.id} type="ExternalMessage" id={item.id}>{dateTime(item.sentAt, host)} {t(item.direction === 'inbound' ? '客户消息' : '我方消息')}</RecordLink>) : <span>{t('无可读取的证据')}</span>}</div>
     </>}
     <RecordLink type="ExternalConversation" id={detail.id}>{t('打开原始会话与消息记录')}</RecordLink>
   </div>

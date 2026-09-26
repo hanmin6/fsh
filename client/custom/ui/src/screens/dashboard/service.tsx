@@ -289,7 +289,7 @@ export default function ServiceScreen({ host }: ScreenProps) {
   const generation = useRef(0)
   const t = (value: string) => host.translate(value)
   const badge = (value?: string) => value
-    ? <Badge variant={statusVariant(value)}>{t(statusNames[value] || value)}</Badge>
+    ? <Badge variant={statusVariant(value)}>{statusNames[value] ? t(statusNames[value]) : value}</Badge>
     : <span>—</span>
 
   const refresh = useCallback(async () => {
@@ -387,7 +387,7 @@ export default function ServiceScreen({ host }: ScreenProps) {
             {section('identities', '身份待确认', 'ExternalIdentity', ['身份', '渠道', '平台用户', '状态'], (row) => (
               <>
                 <TableCell><RecordLink entity="ExternalIdentity" id={row.id} name={row.displayName || row.name} /></TableCell>
-                <TableCell>{t(statusNames[row.channelType || ''] || text(row.channelType))}</TableCell>
+                <TableCell>{row.channelType && statusNames[row.channelType] ? t(statusNames[row.channelType]) : text(row.channelType)}</TableCell>
                 <TableCell>{row.externalUserId || t('匿名访客')}</TableCell>
                 <TableCell>{badge(row.linkStatus)}</TableCell>
               </>

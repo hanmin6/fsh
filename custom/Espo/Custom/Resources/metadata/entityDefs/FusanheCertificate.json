@@ -86,8 +86,7 @@
       "readOnly": true
     },
     "files": {
-      "type": "attachmentMultiple",
-      "view": "views/fields/attachments-multiple"
+      "type": "attachmentMultiple"
     },
     "markets": {
       "type": "text"

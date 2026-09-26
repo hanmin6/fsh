@@ -29,6 +29,11 @@ class Contracts(unittest.TestCase):
     elif path.stem=='filters':
      for name in data:
       self.assertIsInstance(name,str)
+ def test_certificate_uses_native_attachment_field(self):
+  certificate=json.loads((ROOT/'custom/Espo/Custom/Resources/metadata/entityDefs/FusanheCertificate.json').read_text(encoding='utf-8'))
+  files=certificate['fields']['files']
+  self.assertEqual(files['type'],'attachmentMultiple')
+  self.assertNotIn('view',files,'custom view paths must resolve to an existing client module')
  def test_deduplication_and_idempotency_indexes(self):
   def entity(name):return json.loads((ROOT/f'custom/Espo/Custom/Resources/metadata/entityDefs/{name}.json').read_text(encoding='utf-8'))
   self.assertTrue(entity('ExternalConversation')['indexes']['channelExternal']['unique'])

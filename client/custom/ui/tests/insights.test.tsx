@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { HostBridge } from '../src/lib/host'
 import InsightsScreen from '../src/screens/insights/insights'
+import english from '../../../../custom/Espo/Custom/Resources/i18n/en_US/Fusanhe.json'
 
 afterEach(cleanup)
 
@@ -52,13 +53,13 @@ describe('boss insights workbench', () => {
   it('preserves search, paging and source evidence links without writes', async () => {
     const { host, get, post, patch } = makeHost()
     const { container } = render(<InsightsScreen host={host} data={null} screen="insights" />)
-    await screen.findByRole('button', { name: '查看分析' })
+    await screen.findByRole('button', { name: '查看分析：<buyer>' })
     fireEvent.change(screen.getByLabelText('搜索'), { target: { value: 'buyer' } })
     fireEvent.click(screen.getByRole('button', { name: '查询 / 刷新' }))
     await waitFor(() => expect(get.mock.calls.some(([route, params]) => route === 'Fusanhe/insights' && params?.q === 'buyer' && params?.offset === 0)).toBe(true))
     fireEvent.click(screen.getByRole('button', { name: '下一页' }))
     await waitFor(() => expect(get.mock.calls.some(([route, params]) => route === 'Fusanhe/insights' && params?.q === 'buyer' && params?.offset === 25)).toBe(true))
-    fireEvent.click(screen.getByRole('button', { name: '查看分析' }))
+    fireEvent.click(screen.getByRole('button', { name: '查看分析：<buyer>' }))
     await screen.findByText('来源已有变化，下方为旧分析，请等待重新分析。')
     expect(screen.getByRole('link', { name: /客户消息/ }).getAttribute('href')).toBe('#ExternalMessage/view/msg%2F1')
     expect(screen.getByRole('link', { name: '打开 CRM 客户' }).getAttribute('href')).toBe('#Account/view/a-1')
@@ -80,17 +81,63 @@ describe('boss insights workbench', () => {
 
   it('uses host language for UI labels while preserving customer data verbatim', async () => {
     const { host } = makeHost()
-    const words: Record<string, string> = {
-      '历史客户与今日建议': 'Historical customers and suggestions',
-      '平台可见会话': 'Platform-visible conversations',
-      '待核对': 'Pending reconciliation',
-      '查看分析': 'View analysis',
-    }
-    host.translate = key => words[key] || key
+    host.translate = key => english.labels[key as keyof typeof english.labels] || key
     render(<InsightsScreen host={host} data={null} screen="insights" />)
-    await screen.findByRole('button', { name: 'View analysis' })
-    expect(screen.getByRole('heading', { name: 'Historical customers and suggestions' })).not.toBeNull()
-    expect(screen.getByLabelText('Platform-visible conversations：Pending reconciliation')).not.toBeNull()
+    await screen.findByRole('button', { name: `${english.labels['查看分析']}：<buyer>` })
+    expect(screen.getByRole('heading', { name: english.labels['历史客户与今日建议'] })).not.toBeNull()
+    expect(screen.getByLabelText(`${english.labels['平台可见会话']}：${english.labels['待核对']}`)).not.toBeNull()
     expect(screen.getAllByRole('link', { name: '<buyer>' }).length).toBeGreaterThan(0)
+    expect(screen.getByText(english.labels['身份尚未确认'])).not.toBeNull()
+    expect(screen.getByText(english.labels['核对平台身份与客户关联后再跟进'])).not.toBeNull()
+    expect(screen.getByText((content, element) => element?.tagName === 'P' && content.startsWith(english.labels['待采集端提供完整分页及消息对账；平台可见总数和未入库失败数未知。仅统计带同步来源的 Alibaba 会话。']))).not.toBeNull()
+  })
+
+  it('keeps server-authored text verbatim even when it matches a UI dictionary key', async () => {
+    const { host, get } = makeHost()
+    host.translate = key => english.labels[key as keyof typeof english.labels] || key
+    get.mockImplementation(async route => route.startsWith('Fusanhe/insights/')
+      ? { id: 'conv/1', name: '<buyer>', analysisStatus: 'stale', analysisNotice: '待确认',
+        analysis: { summaryZh: '待确认' }, evidence: [] }
+      : { ...overview, coverage: { ...overview.coverage, reason: '待确认' },
+        suggestions: [{ ...overview.suggestions[0], reason: '待确认', action: '未分配' }] })
+    render(<InsightsScreen host={host} data={null} screen="insights" />)
+    await screen.findByRole('button', { name: `${english.labels['查看分析']}：<buyer>` })
+    expect(screen.getAllByText('待确认').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText((content, element) => element?.tagName === 'P' && content.startsWith('待确认 '))).not.toBeNull()
+    expect(screen.getByText('未分配')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: `${english.labels['查看分析']}：<buyer>` }))
+    await screen.findByText(english.labels['来源已有变化，下方为旧分析，请等待重新分析。'])
+    expect(screen.getAllByText('待确认').length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('keeps keyboard analysis controls identifiable and hides inaccessible related records', async () => {
+    const { host } = makeHost()
+    host.can = scope => scope === 'ExternalConversation'
+    const { container } = render(<InsightsScreen host={host} data={null} screen="insights" />)
+    const button = await screen.findByRole('button', { name: '查看分析：<buyer>' })
+    expect(button.getAttribute('aria-controls')).toBe('fsh-insights-analysis')
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(button.getAttribute('type')).toBe('button')
+    expect(container.querySelector('#fsh-insights-analysis')).not.toBeNull()
+    expect(screen.queryByText('打开 CRM 客户')).toBeNull()
+    button.focus()
+    expect(document.activeElement).toBe(button)
+    fireEvent.click(button)
+    await screen.findByText('来源已有变化，下方为旧分析，请等待重新分析。')
+    expect(button.getAttribute('aria-expanded')).toBe('true')
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: '客户分析' }))
+    expect(screen.getByText('无可读取的证据')).not.toBeNull()
+    expect(container.querySelector('a[href^="#ExternalMessage/view/"]')).toBeNull()
+  })
+
+  it('confines wide tables to local horizontal scrolling at narrow widths', async () => {
+    const { host } = makeHost()
+    const { container } = render(<InsightsScreen host={host} data={null} screen="insights" />)
+    await screen.findByRole('button', { name: '查看分析：<buyer>' })
+    const tables = Array.from(container.querySelectorAll('table'))
+    expect(tables).toHaveLength(2)
+    expect(tables.every(table => table.parentElement?.classList.contains('overflow-x-auto'))).toBe(true)
+    expect(tables.every(table => table.className.includes('min-w-['))).toBe(true)
+    expect(screen.getByRole('textbox', { name: '搜索' }).getAttribute('maxlength')).toBe('100')
   })
 })

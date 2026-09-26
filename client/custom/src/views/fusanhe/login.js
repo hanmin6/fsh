@@ -18,12 +18,23 @@ define("custom:views/fusanhe/login", ["views/login"], function (Dep) {
       });
       login
         .find(".panel-heading")
-        .append(
-          `<div class="fsh-login-heading"><h1>${t("广州福三和食品有限公司")}</h1><h2>${t("外贸客户与询盘工作台")}</h2></div>`,
-        );
+        .append('<div class="fsh-login-heading"><h1></h1><h2></h2></div>');
+      login.find(".fsh-login-heading h1").text(t("广州福三和食品有限公司"));
+      login.find(".fsh-login-heading h2").text(t("外贸客户与询盘工作台"));
       login.before(
         '<div class="fsh-login-photo" aria-hidden="true"></div>',
       );
+      // Espo renders this as a role=button anchor without a tabindex.
+      // Keep its existing click handler and make keyboard activation possible.
+      login
+        .find('[data-action="toggleShowPassword"]')
+        .attr("tabindex", "0")
+        .off("keydown.fsh-login")
+        .on("keydown.fsh-login", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          event.currentTarget.click();
+        });
       this.$el.find("#btn-login").text(t("登录"));
     }
   };
