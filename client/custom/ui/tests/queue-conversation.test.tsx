@@ -85,9 +85,40 @@ describe('queue workbench', () => {
       params?.where?.some((item: Record<string, any>) => item.type === 'or' && item.value.some((part: Record<string, string>) =>
         part.attribute === 'name' && part.type === 'contains' && part.value === 'SEC-CONV')))).toBe(true))
   })
+
+  it('keeps model supplied list text verbatim and links review records', async () => {
+    const { host, get } = makeHost()
+    get.mockImplementation(async (route) => route === 'AIReplyDraft'
+      ? { list: [{ id: 'draft/1', name: 'Draft', missingInformation: ['sent', 'new'] }], total: 1 }
+      : { list: [] })
+    render(<QueueScreen host={host} data={{ entity: 'AIReplyDraft', statusOptions: [] }} screen="queue" />)
+    expect((await screen.findByRole('link', { name: '打开记录' })).getAttribute('href')).toBe('#AIReplyDraft/view/draft%2F1')
+    expect(screen.getByText('sent、new')).not.toBeNull()
+  })
 })
 
 describe('conversation approval and state contract', () => {
+  it('returns focus to the action that opened a controlled dialog', async () => {
+    const { host, get } = makeHost()
+    mockConversationGet(get)
+    render(<ConversationScreen host={host} data={{ conversationId: 'conv/1' }} screen="conversation" />)
+    const trigger = await screen.findByRole('button', { name: '人工草稿' })
+    trigger.focus()
+    fireEvent.click(trigger)
+    expect(await screen.findByRole('dialog', { name: '人工草稿' })).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '关闭' }))
+    await waitFor(() => expect(document.activeElement).toBe(trigger))
+  })
+
+  it('connects compact navigation tabs to their conversation panels', async () => {
+    const { host, get } = makeHost()
+    mockConversationGet(get)
+    render(<ConversationScreen host={host} data={{ conversationId: 'conv/1' }} screen="conversation" />)
+    const messages = await screen.findByRole('tab', { name: '消息' })
+    expect(messages.getAttribute('aria-controls')).toBe('conversation-panel-messages')
+    expect(screen.getByRole('tabpanel', { name: '消息' }).id).toBe('conversation-panel-messages')
+  })
+
   it('makes sent drafts immutable and preserves unknown outbound state', () => {
     expect(canEditDraft(true, { id: 'd', status: 'sent' })).toBe(false)
     expect(canApproveDraft(true, true, { id: 'd', status: 'sent' })).toBe(false)

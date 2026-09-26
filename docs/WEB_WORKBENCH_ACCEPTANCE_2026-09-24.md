@@ -54,3 +54,23 @@
 ## 未覆盖及复验条件
 
 需用有权账号实测 A01 涉及的路由，再补齐 Contact、三种上下文详情、其余原生行业实体的列表/详情/编辑/关系/弹层；至少使用老板、销售、客服、只读及无权合成账号。另须实测中英两套 UI、亮/暗/高对比、200% 缩放、键盘完整任务流、焦点回退、Axe 或等效语义扫描、粗指针目标尺寸、审批确认前流程和实际回退演练。所有复测继续只在 18082 隔离合成库进行。
+
+## 2026-09-26 继续开发与待复验
+
+独立静态审查指出：会话受控弹窗缺少触发器时，关闭后焦点不能可靠回到原操作；短视口下弹窗底部可能不可达；移动分区标签与内容缺少语义关联；草稿/发送队列缺少本记录详情链接；列表数组会误译与状态名相同的客户/模型文本。主任务已增加焦点返回与单元测试、弹窗视口内滚动、可本地化关闭标签、分区 `aria-controls`/`tabpanel`、局部横向滚动、显式详情链接，并让业务文本原样显示。UI 34/34、AMD 28/28、产物校验和 `git diff --check` 通过。**这些静态及组件修复仍需浏览器复验，尤其 200% 缩放、弹层焦点、中文与暗色主题。**
+
+## 有权账号原生业务页复验（2026-09-26，进行中）
+
+本段仅针对 `http://localhost:18082` 的隔离合成库。先以该栈管理员凭据执行只读 API/元数据检查；不涉及 `8080`、权限改动或业务写入。管理员 `/Metadata` 均注册了下列实体；目标业务实体的 `clientDefs` 指向 Espo 原生 `controllers/record`，`ExternalIdentity` 使用默认控制器。下表的 API 成功只证明服务端记录可读，不能代替浏览器界面验收。
+
+| 实体 | 管理员 API 列表总数 | 首条详情 API | 浏览器页面 |
+| --- | ---: | --- | --- |
+| AutomationAgent | 17 | 200 | 待测 |
+| FusanheProduct / FusanheProductSpec | 3 / 3 | 均 200 | 待测 |
+| FusanheCertificate / FusanheSample | 3 / 3 | 均 200 | 待测 |
+| FusanheInquiry | 0 | 无合成记录 | 待测空态 |
+| FusanheQuote / FusanheQuoteItem | 3 / 0 | 报价 200；明细无记录 | 待测 |
+| FusanheSalesOrder / FusanheOrderLine / FusanheOrderShipment / FusanheShipmentItem | 均 0 | 无合成记录 | 待测空态 |
+| ExternalChannel / ExternalIdentity / ExternalMessage / AutomationAudit | 10 / 27 / 35 / 57 | 均 200 | 待测 |
+
+当前仍需用有权账号在浏览器核对列表、详情、空态、原生编辑表单和关系面板；这里尚未据 API 结果判定 R01、R06 或 R12 通过。

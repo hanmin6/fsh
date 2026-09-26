@@ -124,6 +124,12 @@
   min-height: 2.75rem;
 }
 
+[data-fsh-ui-root] [data-slot="tabs-list"] {
+  min-height: 2.75rem;
+  height: auto;
+  scrollbar-width: thin;
+}
+
 [data-fsh-ui-root] [data-slot="button"],
 [data-fsh-ui-root] [data-slot="select-trigger"] {
   min-height: 2.25rem;
