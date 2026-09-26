@@ -1,26 +1,24 @@
-{
-  "layout": [
-    {
-      "name": "number",
-      "link": true
-    },
-    {
-      "name": "name"
-    },
-    {
-      "name": "contact"
-    },
-    {
-      "name": "product"
-    },
-    {
-      "name": "status"
-    },
-    {
-      "name": "sentAt"
-    },
-    {
-      "name": "feedbackResult"
-    }
-  ]
-}
+[
+  {
+    "name": "number",
+    "link": true
+  },
+  {
+    "name": "name"
+  },
+  {
+    "name": "contact"
+  },
+  {
+    "name": "product"
+  },
+  {
+    "name": "status"
+  },
+  {
+    "name": "sentAt"
+  },
+  {
+    "name": "feedbackResult"
+  }
+]

@@ -5,6 +5,30 @@ class Contracts(unittest.TestCase):
  def test_all_metadata_is_valid_json(self):
   for path in (ROOT/'custom/Espo/Custom/Resources').rglob('*.json'):
    with self.subTest(path=path):json.loads(path.read_text(encoding='utf-8'))
+ def test_native_layout_shapes(self):
+  layouts=ROOT/'custom/Espo/Custom/Resources/layouts'
+  for path in layouts.glob('*/*.json'):
+   with self.subTest(path=path):
+    data=json.loads(path.read_text(encoding='utf-8'))
+    self.assertIsInstance(data,list, 'Espo layout endpoints must return a top-level array')
+    if path.stem in ('detail','detailSmall'):
+     for panel in data:
+      self.assertIsInstance(panel,dict)
+      if 'rows' in panel:
+       self.assertIsInstance(panel['rows'],list)
+       for row in panel['rows']:
+        self.assertIsInstance(row,list)
+      else:
+       self.assertIsInstance(panel.get('name'),str)
+      if path.parent.name.startswith('Fusanhe'):
+       self.assertIn('rows',panel)
+    elif path.stem=='list':
+     for column in data:
+      self.assertIsInstance(column,dict)
+      self.assertIsInstance(column.get('name'),str)
+    elif path.stem=='filters':
+     for name in data:
+      self.assertIsInstance(name,str)
  def test_deduplication_and_idempotency_indexes(self):
   def entity(name):return json.loads((ROOT/f'custom/Espo/Custom/Resources/metadata/entityDefs/{name}.json').read_text(encoding='utf-8'))
   self.assertTrue(entity('ExternalConversation')['indexes']['channelExternal']['unique'])

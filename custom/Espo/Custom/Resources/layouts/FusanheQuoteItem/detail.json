@@ -1,62 +1,64 @@
-{
-  "layout": [
-    [
-      {
-        "name": "quote"
-      },
-      {
-        "name": "position"
-      }
-    ],
-    [
-      {
-        "name": "product"
-      },
-      {
-        "name": "productSpec"
-      }
-    ],
-    [
-      {
-        "name": "description"
-      }
-    ],
-    [
-      {
-        "name": "quantity"
-      },
-      {
-        "name": "unit"
-      }
-    ],
-    [
-      {
-        "name": "unitPrice"
-      },
-      {
-        "name": "amount"
-      }
-    ],
-    [
-      {
-        "name": "moq"
-      },
-      {
-        "name": "packingSpec"
-      }
-    ],
-    [
-      {
-        "name": "leadTimeText"
-      },
-      {
-        "name": "remark"
-      }
-    ],
-    [
-      {
-        "name": "internalNote"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "quote"
+        },
+        {
+          "name": "position"
+        }
+      ],
+      [
+        {
+          "name": "product"
+        },
+        {
+          "name": "productSpec"
+        }
+      ],
+      [
+        {
+          "name": "description"
+        }
+      ],
+      [
+        {
+          "name": "quantity"
+        },
+        {
+          "name": "unit"
+        }
+      ],
+      [
+        {
+          "name": "unitPrice"
+        },
+        {
+          "name": "amount"
+        }
+      ],
+      [
+        {
+          "name": "moq"
+        },
+        {
+          "name": "packingSpec"
+        }
+      ],
+      [
+        {
+          "name": "leadTimeText"
+        },
+        {
+          "name": "remark"
+        }
+      ],
+      [
+        {
+          "name": "internalNote"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

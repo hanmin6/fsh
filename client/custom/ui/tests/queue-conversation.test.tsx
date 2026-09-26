@@ -103,7 +103,7 @@ describe('conversation approval and state contract', () => {
     mockConversationGet(get)
     render(<ConversationScreen host={host} data={{ conversationId: 'conv/1' }} screen="conversation" />)
     const trigger = await screen.findByRole('button', { name: '人工草稿' })
-    trigger.focus()
+    screen.getByRole('button', { name: '刷新' }).focus()
     fireEvent.click(trigger)
     expect(await screen.findByRole('dialog', { name: '人工草稿' })).not.toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '关闭' }))
@@ -117,6 +117,8 @@ describe('conversation approval and state contract', () => {
     const messages = await screen.findByRole('tab', { name: '消息' })
     expect(messages.getAttribute('aria-controls')).toBe('conversation-panel-messages')
     expect(screen.getByRole('tabpanel', { name: '消息' }).id).toBe('conversation-panel-messages')
+    expect(screen.getByRole('tabpanel', { name: '会话' }).id).toBe('conversation-panel-customers')
+    expect(screen.getByRole('tabpanel', { name: '资料与审核' }).id).toBe('conversation-panel-review')
   })
 
   it('makes sent drafts immutable and preserves unknown outbound state', () => {

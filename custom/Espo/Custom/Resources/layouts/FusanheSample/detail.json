@@ -1,140 +1,142 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "number"
-      }
-    ],
-    [
-      {
-        "name": "status"
-      },
-      {
-        "name": "assignedUser"
-      }
-    ],
-    [
-      {
-        "name": "account"
-      },
-      {
-        "name": "contact"
-      }
-    ],
-    [
-      {
-        "name": "conversation"
-      }
-    ],
-    [
-      {
-        "name": "product"
-      },
-      {
-        "name": "productSpec"
-      }
-    ],
-    [
-      {
-        "name": "quantity"
-      },
-      {
-        "name": "unit"
-      }
-    ],
-    [
-      {
-        "name": "feeAmount"
-      },
-      {
-        "name": "feeCurrency"
-      }
-    ],
-    [
-      {
-        "name": "recipientName"
-      },
-      {
-        "name": "recipientPhone"
-      }
-    ],
-    [
-      {
-        "name": "recipientAddress"
-      }
-    ],
-    [
-      {
-        "name": "trackingCarrier"
-      },
-      {
-        "name": "trackingNo"
-      }
-    ],
-    [
-      {
-        "name": "expectedSendDate"
-      },
-      {
-        "name": "sentAt"
-      }
-    ],
-    [
-      {
-        "name": "expectedDeliveryDate"
-      },
-      {
-        "name": "deliveredAt"
-      }
-    ],
-    [
-      {
-        "name": "returned"
-      },
-      {
-        "name": "returnedAt"
-      }
-    ],
-    [
-      {
-        "name": "returnNote"
-      }
-    ],
-    [
-      {
-        "name": "exceptionNote"
-      }
-    ],
-    [
-      {
-        "name": "feedbackResult"
-      },
-      {
-        "name": "feedbackAt"
-      }
-    ],
-    [
-      {
-        "name": "feedback"
-      }
-    ],
-    [
-      {
-        "name": "cancelReason"
-      }
-    ],
-    [
-      {
-        "name": "teams"
-      }
-    ],
-    [
-      {
-        "name": "description"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "number"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        },
+        {
+          "name": "assignedUser"
+        }
+      ],
+      [
+        {
+          "name": "account"
+        },
+        {
+          "name": "contact"
+        }
+      ],
+      [
+        {
+          "name": "conversation"
+        }
+      ],
+      [
+        {
+          "name": "product"
+        },
+        {
+          "name": "productSpec"
+        }
+      ],
+      [
+        {
+          "name": "quantity"
+        },
+        {
+          "name": "unit"
+        }
+      ],
+      [
+        {
+          "name": "feeAmount"
+        },
+        {
+          "name": "feeCurrency"
+        }
+      ],
+      [
+        {
+          "name": "recipientName"
+        },
+        {
+          "name": "recipientPhone"
+        }
+      ],
+      [
+        {
+          "name": "recipientAddress"
+        }
+      ],
+      [
+        {
+          "name": "trackingCarrier"
+        },
+        {
+          "name": "trackingNo"
+        }
+      ],
+      [
+        {
+          "name": "expectedSendDate"
+        },
+        {
+          "name": "sentAt"
+        }
+      ],
+      [
+        {
+          "name": "expectedDeliveryDate"
+        },
+        {
+          "name": "deliveredAt"
+        }
+      ],
+      [
+        {
+          "name": "returned"
+        },
+        {
+          "name": "returnedAt"
+        }
+      ],
+      [
+        {
+          "name": "returnNote"
+        }
+      ],
+      [
+        {
+          "name": "exceptionNote"
+        }
+      ],
+      [
+        {
+          "name": "feedbackResult"
+        },
+        {
+          "name": "feedbackAt"
+        }
+      ],
+      [
+        {
+          "name": "feedback"
+        }
+      ],
+      [
+        {
+          "name": "cancelReason"
+        }
+      ],
+      [
+        {
+          "name": "teams"
+        }
+      ],
+      [
+        {
+          "name": "description"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

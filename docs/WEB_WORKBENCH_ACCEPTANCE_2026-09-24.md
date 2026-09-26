@@ -4,7 +4,7 @@
 
 ## 结论
 
-**Web 工作台暂不能判定完成。** 本轮发现的搜索、行链接和英文词条问题已在新部署后复验通过；当前“老板”账号对部分业务实体没有读取权限，有权账号的原生页面仍待实测。六个指定视口下，已加载的客服页和会话详情没有整页横向溢出；老板页在 870px 和六个指定视口下也没有整页横向溢出，宽表格位于局部横向滚动容器内。这些结果不等同于 200% 缩放、暗色、高对比和多角色通过。
+**Web 工作台暂不能判定完成。** 搜索、行链接和已测英文词条已复验通过；有权管理员的原生行业页白屏 N01 也已修复并复验了代表性列表与详情。六个指定视口下，已加载的客服页和会话详情没有整页横向溢出；老板页在 870px 和六个指定视口下也没有整页横向溢出，宽表格位于局部横向滚动容器内。这些结果不等同于 200% 缩放、暗色、高对比和多角色通过。
 
 ## 阻断与缺陷
 
@@ -59,18 +59,32 @@
 
 独立静态审查指出：会话受控弹窗缺少触发器时，关闭后焦点不能可靠回到原操作；短视口下弹窗底部可能不可达；移动分区标签与内容缺少语义关联；草稿/发送队列缺少本记录详情链接；列表数组会误译与状态名相同的客户/模型文本。主任务已增加焦点返回与单元测试、弹窗视口内滚动、可本地化关闭标签、分区 `aria-controls`/`tabpanel`、局部横向滚动、显式详情链接，并让业务文本原样显示。UI 34/34、AMD 28/28、产物校验和 `git diff --check` 通过。**这些静态及组件修复仍需浏览器复验，尤其 200% 缩放、弹层焦点、中文与暗色主题。**
 
-## 有权账号原生业务页复验（2026-09-26，进行中）
+## 有权账号原生业务页复验（2026-09-26）
 
 本段仅针对 `http://localhost:18082` 的隔离合成库。先以该栈管理员凭据执行只读 API/元数据检查；不涉及 `8080`、权限改动或业务写入。管理员 `/Metadata` 均注册了下列实体；目标业务实体的 `clientDefs` 指向 Espo 原生 `controllers/record`，`ExternalIdentity` 使用默认控制器。下表的 API 成功只证明服务端记录可读，不能代替浏览器界面验收。
 
 | 实体 | 管理员 API 列表总数 | 首条详情 API | 浏览器页面 |
 | --- | ---: | --- | --- |
-| AutomationAgent | 17 | 200 | 待测 |
-| FusanheProduct / FusanheProductSpec | 3 / 3 | 均 200 | 待测 |
+| AutomationAgent | 17 | 200 | 自定义列表 17 条可见；首条原生详情可打开，字段与 Stream 可见 |
+| FusanheProduct / FusanheProductSpec | 3 / 3 | 均 200 | 两个原生列表均空白；产品详情空白 |
 | FusanheCertificate / FusanheSample | 3 / 3 | 均 200 | 待测 |
-| FusanheInquiry | 0 | 无合成记录 | 待测空态 |
-| FusanheQuote / FusanheQuoteItem | 3 / 0 | 报价 200；明细无记录 | 待测 |
-| FusanheSalesOrder / FusanheOrderLine / FusanheOrderShipment / FusanheShipmentItem | 均 0 | 无合成记录 | 待测空态 |
-| ExternalChannel / ExternalIdentity / ExternalMessage / AutomationAudit | 10 / 27 / 35 / 57 | 均 200 | 待测 |
+| FusanheInquiry | 0 | 无合成记录 | 原生列表空白，连空态都未呈现 |
+| FusanheQuote / FusanheQuoteItem | 3 / 0 | 报价 200；明细无记录 | 报价原生列表空白；明细待测 |
+| FusanheSalesOrder / FusanheOrderLine / FusanheOrderShipment / FusanheShipmentItem | 均 0 | 无合成记录 | 订单原生列表空白；其它待测 |
+| ExternalChannel / ExternalIdentity / ExternalMessage / AutomationAudit | 10 / 27 / 35 / 57 | 均 200 | 渠道原生列表 10 条、首条详情及 Edit→Cancel 表单可用；其它待测 |
 
-当前仍需用有权账号在浏览器核对列表、详情、空态、原生编辑表单和关系面板；这里尚未据 API 结果判定 R01、R06 或 R12 通过。
+**阻断 N01：** 在隔离管理员会话打开 `#FusanheProduct`（刷新）、`#FusanheProduct/view/6ab53ca2dd20638a4`、`#FusanheProductSpec`、`#FusanheInquiry`、`#FusanheQuote`、`#FusanheSalesOrder`，宿主导航出现但主内容为空白。产品列表控制台报 `TypeError: (e ?? []).forEach is not a function`；产品详情报 `TypeError: this.detailLayout is not iterable`。静态核对发现 11 个 `Fusanhe*` 行业实体的 `list`、`detail`、`detailSmall`、`filters` 共 44 份布局 JSON 顶层是 `{ "layout": ... }` 对象，而正常工作的 `AutomationAgent`/`ExternalChannel` 对应布局是数组。`detail`/`detailSmall` 还须符合 Espo 的面板 `rows` 结构。主任务已收到此缺陷，修复、rebuild 与浏览器复验尚未计入本段。
+
+`#ExternalChannel` 的原生列表、详情与编辑表单在管理员会话中可见，点击 Cancel 后回到只读详情且没有提交；`#AutomationAgent` 的 17 行列表及首条原生详情可见。未测试这两页的关系面板、新建、保存、键盘全流程或窄屏。行业实体的编辑/关系/弹层因 N01 无法验收，R01、R06、R12 仍为部分，不可判定通过。测试结束时已将共享浏览器留在 `#Home/service`。老板合成账号此前的 Dark 偏好仍待主任务恢复。
+
+### N01 修复后复验（2026-09-26）
+
+主任务将 11 个行业实体的 44 份布局改为 Espo 原生数组结构；详情与简版详情使用 `[{"rows":[...]}]` 面板结构，字段和顺序保持原样。`tests.test_contracts` 新增全部布局结构检查并通过 6/6；独立静态 Agent 逐文件核对原字段与顺序无丢失。隔离栈 `rebuild`、`app-check` 均退出 0。
+
+管理员在隔离浏览器重新加载后，`#FusanheProduct` 显示 1–3 / 3 与产品链接，首条详情显示名称、状态、编码等字段；`#FusanheProductSpec`、`#FusanheCertificate`、`#FusanheSample`、`#FusanheQuote` 均显示 1–3 / 3，首条报价详情显示报价编号、客户、币种等字段。`#FusanheInquiry` 和 `#FusanheSalesOrder` 显示 0 / 0 与 No Data 空态，不再白屏。修复后尚未逐一打开其余行业实体详情、编辑和关系面板，也未以销售/客服/只读角色测试权限。
+
+本轮另修复指针点击弹窗触发器时的焦点记录：人工草稿弹窗在管理员会话打开、关闭后，焦点回到 `Manual draft` 按钮；整页刷新后英文关闭按钮为 `Close`。390×320 短视口时弹窗位于视口内，内容区域 `overflow-y: auto`，`scrollHeight` 447px、`clientHeight` 299px；390×844 会话页无整页横向溢出。1440px 宽时三栏面板不再保留隐藏标签对应的 `tabpanel` 与额外 Tab 停靠点；390px 宽时三个面板均通过 `aria-labelledby` 关联可见标签。这些是指定场景的浏览器证据，尚未完成 200% 浏览器缩放和完整 Axe/读屏矩阵。
+
+### N01 修复后的结构检查（浏览器复验待补）
+
+主任务已将 11 个行业实体的 44 份布局改为 Espo 所需的数组形态，并为 `detail`/`detailSmall` 配好面板 `rows`。主任务报告隔离栈 `rebuild`、`app-check`、Compose config、`spec-check` 退出 0，结构回归 `python3 -m unittest tests.test_contracts` 为 6/6，扩展离线合同测试为 46/46。这些是代码与运行环境检查，**尚不能将 N01 标为浏览器复验通过**。须在有权账号下重新访问上表六个此前空白的路由和至少一个产品详情，核对控制台无同类异常，并验证原生编辑与关系区。

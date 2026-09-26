@@ -1,26 +1,24 @@
-{
-  "layout": [
-    {
-      "name": "name",
-      "link": true
-    },
-    {
-      "name": "type"
-    },
-    {
-      "name": "scopeLevel"
-    },
-    {
-      "name": "product"
-    },
-    {
-      "name": "certificateNo"
-    },
-    {
-      "name": "validTo"
-    },
-    {
-      "name": "status"
-    }
-  ]
-}
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "type"
+  },
+  {
+    "name": "scopeLevel"
+  },
+  {
+    "name": "product"
+  },
+  {
+    "name": "certificateNo"
+  },
+  {
+    "name": "validTo"
+  },
+  {
+    "name": "status"
+  }
+]

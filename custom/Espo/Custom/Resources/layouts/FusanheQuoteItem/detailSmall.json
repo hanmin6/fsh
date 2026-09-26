@@ -1,20 +1,22 @@
-{
-  "layout": [
-    [
-      {
-        "name": "quote"
-      },
-      {
-        "name": "position"
-      }
-    ],
-    [
-      {
-        "name": "quantity"
-      },
-      {
-        "name": "unitPrice"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "quote"
+        },
+        {
+          "name": "position"
+        }
+      ],
+      [
+        {
+          "name": "quantity"
+        },
+        {
+          "name": "unitPrice"
+        }
+      ]
     ]
-  ]
-}
+  }
+]
