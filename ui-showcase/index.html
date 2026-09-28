@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>福三和 · UI 展示</title>
+  <link rel="stylesheet" href="../client/custom/res/fusanhe/ui.css">
+  <link rel="stylesheet" href="./showcase.css">
+</head>
+<body>
+  <div class="showcase-shell">
+    <aside class="showcase-side" id="showcase-side">
+      <div class="showcase-logo"><img src="../client/custom/res/fusanhe/logo-full.png" alt="福三和"><span>UI 展示</span></div>
+      <div class="showcase-side-scroll" id="showcase-navigation"></div>
+      <div class="showcase-side-foot">本机 · 虚构数据 · 只读</div>
+    </aside>
+    <main class="showcase-main">
+      <header class="showcase-top"><div><button id="showcase-menu" class="showcase-menu" aria-label="打开页面导航">☰</button><span id="showcase-breadcrumb">Web / 首页</span></div><span class="showcase-demo">原版组件预览</span></header>
+      <div class="showcase-content"><p class="showcase-notice" id="showcase-notice">页面主体直接运行仓库内的 React 组件；示例数据不连接 CRM，外发保持关闭。</p><div class="fsh-ui-mount" id="showcase-mount"></div><section id="showcase-catalog" hidden></section></div>
+    </main>
+  </div>
+  <div id="showcase-toast" class="showcase-toast" role="status" hidden></div>
+  <script src="./fixtures.js"></script>
+  <script src="../client/custom/src/fusanhe/ui-runtime.js"></script>
+  <script src="./showcase.js"></script>
+</body>
+</html>
