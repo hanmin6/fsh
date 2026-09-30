@@ -44,4 +44,6 @@ git switch -c codex/restore-hig archive/web-workbench-hig-20260930
 - `crm-web-vX.Y.Z`：Web 发布标签。兼容补丁升补丁号，新功能升次版本，破坏性变化升主版本。
 - `archive/*`：冻结的历史保存点，不移动、不复用。
 
+1.1.0 的临时开发分支 `codex/dual-ai-gateways-v1.1.0` 已通过 [PR #2](https://github.com/hanmin6/fsh/pull/2) 并入 `main`；发布标签核对后删除远程临时分支，开发提交由 main 历史和版本标签保留。
+
 回滚采用新提交 revert 发布改动，或在部署系统选择旧标签；不强推 main，不回滚数据库，不删除历史标签。客户外发继续由服务端权限、审核状态和停发开关控制。

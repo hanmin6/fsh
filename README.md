@@ -4,7 +4,7 @@
 
 **查找各分支的内容和合并状态，请先读 [GitHub 分支地图与开发交接](docs/BRANCH_GUIDE.md)。** 该文档逐一说明远端分支的用途、关键文件、历史验证记录和未完成事项。
 
-**当前 Web 正式版本：[`crm-web-v1.0.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.0.0)，主分支为 `main`。** 首页显示 Made-in-China 与阿里国际站独立抓取状态；审核、身份确认、接管、交接和历史洞察均在同一工作台完成。查看 [1.0.0 发布交接](docs/RELEASE_CRM_WEB_1.0.0.md)。
+**当前 Web 正式版本：[`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，主分支为 `main`。** 首页显示 Made-in-China 与阿里国际站独立抓取状态；审核、身份确认、接管、交接和历史洞察均在同一工作台完成。新增 APIMonth 文本模型选择与 TokenDance 视频工作流，静态图片生成暂不启用。查看 [1.1.0 发布交接](docs/RELEASE_CRM_WEB_1.1.0.md)。本次只发布 GitHub，服务器部署另行进行。
 
 **历史开发交接见 [2026-09-24 开发交接](docs/DEVELOPMENT_HANDOFF_2026-09-24.md)。** 它按日期列出已开发内容、验证边界、未完成任务和代码入口；[老板演示说明](docs/BOSS_DEMO.md)记录当前数据状态。旧交接文档是对应日期的历史快照。
 
@@ -19,7 +19,8 @@ flowchart LR
   MIC[Made-in-China] -. 官方 API / 执行端 .-> CRM
   CRM --> DB[(MariaDB)]
   SHARE[广州共享盘] -->|只读挂载和索引| CRM
-  CRM -->|已审核知识 + 会话上下文| AI[第三方 AI API]
+  CRM -->|本地匿名询盘信号| AI[APIMonth 文本 API]
+  CRM -->|手写创意描述 / 明确授权的公网图片 URL| VIDEO[TokenDance 视频 API]
   CRM -->|人工批准后的任务| AGENT[4070 Windows 执行端]
   AGENT -->|发送结果 / 风控状态| CRM
 ```
@@ -27,7 +28,7 @@ flowchart LR
 - CRM 数据库位于本机 Docker volume，不放在 SMB 共享盘。
 - `custom/` 和 `client/custom/` 直接从仓库挂载，全部二开可进行 Git 版本管理。
 - 共享盘在生产部署时映射到 `KNOWLEDGE_BASE_PATH` 和 `MATERIAL_LIBRARY_PATH`；原始视频不提交给 AI。
-- AI API Key、执行端 Token 和数据库密码只保存在被 Git 忽略的 `.env`。
+- AI API Key、执行端 Token 和数据库密码只保存在服务端被 Git 忽略的环境文件，不进入前端构建产物。
 
 ## 已实现
 
@@ -37,7 +38,8 @@ flowchart LR
 - 会话详情工作台：客户资料、消息时间线、AI 草稿编辑和人工批准区。
 - 客户匹配顺序：平台用户 ID、邮箱、手机号、公司加国家、姓名加公司；无法可靠匹配时保留待确认身份，必须由人工显式关联或建档。
 - 消息、会话和发送任务的数据库唯一约束。
-- OpenAI Compatible Provider；未配置 Key 时使用确定性的 Mock AI。
+- 独立文本通道：GPT-6.1 Sol 使用 Responses，Grok 4.7 与 Gemini 3.8 Flash 使用 Chat Completions；手动选模、校验实际返回模型，真实通道失败不会回退 Mock。旧 AI_* 通道仅在新文本通道未启用且无新密钥时兼容。
+- 独立视频通道：MiniMax H3 Max 视频生成、持久任务、后台核对、作品下载及私有素材权限；含糊提交进入人工核对，不盲目重提付费任务。静态图片生成关闭。
 - PDF、DOCX、XLSX、TXT、Markdown 扫描和校验值更新。PDF 文本提取在容器存在 `pdftotext` 时启用。
 - Alibaba、MadeInChina、Website、Email 的连接器骨架及可演示的 MockConnector。
 - 执行端注册、心跳、任务领取、发送中、成功/失败回写、三次重试、领取超时、审计和每 Agent 独立凭据轮换。
@@ -63,7 +65,8 @@ scripts/restore.sh                  备份恢复（需明确传入备份目录�
 docs/permissions.md                 角色权限说明
 docs/API_AGENT_HANDOFF.md           接口开发交接与技术债
 docs/PROJECT_STATUS.md              项目完成度与版本基线
-docs/DEVELOPMENT_HANDOFF_2026-09-24.md  最新开发交接与未完成事项
+docs/RELEASE_CRM_WEB_1.1.0.md         当前 Web 版本、验收边界与回退
+docs/DEVELOPMENT_HANDOFF_2026-09-24.md  历史开发交接与未完成事项
 docs/BOSS_DEMO.md                   老板历史客户演示与对账操作
 docs/RELEASE_HANDOFF_2026-09-21.md  本次整合发布、验证、回退和分支说明
 android-client/                     Android 1.0.0 UI 演示版
@@ -119,8 +122,15 @@ docker compose exec espocrm bin/command rebuild
 
 | 变量 | 用途 |
 |---|---|
-| `AI_API_BASE_URL` | OpenAI Compatible `/v1` 根地址 |
-| `AI_API_KEY` | 留空时使用 Mock AI |
+| `FUSANHE_TEXT_ENABLED` / `FUSANHE_TEXT_API_KEY` | 新文本通道开关和服务端密钥，默认关闭 |
+| `FUSANHE_TEXT_API_BASE_URL` | APIMonth `/v1` 根地址 |
+| `FUSANHE_TEXT_DEFAULT_MODEL` | 默认模型别名：`gpt`、`grok` 或 `gemini` |
+| `FUSANHE_MEDIA_ENABLED` / `FUSANHE_MEDIA_API_KEY` | 视频通道开关和服务端密钥，默认关闭 |
+| `FUSANHE_MEDIA_API_BASE_URL` / `FUSANHE_MEDIA_VIDEO_MODEL` | TokenDance 根地址与 `minimax-h3-max` |
+| `FUSANHE_MEDIA_IMAGE_MODEL` | 本版保持为空，静态图片生成关闭 |
+| `FUSANHE_MEDIA_MAX_DAILY_JOBS` / `FUSANHE_MEDIA_MAX_ACTIVE_JOBS` | 视频每日次数和并发任务上限 |
+| `AI_API_BASE_URL` | 旧兼容通道的 OpenAI Compatible `/v1` 根地址 |
+| `AI_API_KEY` | 旧兼容通道留空时使用 Mock AI；新真实通道不回退 Mock |
 | `AI_MODEL` | 模型名 |
 | `AI_TIMEOUT` / `AI_MAX_RETRIES` | 超时秒数和重试次数 |
 | `KNOWLEDGE_BASE_PATH` | 容器内知识库目录 |
@@ -138,7 +148,7 @@ docker compose exec espocrm bin/command rebuild
 | `FUSANHE_FEATURE_QUOTES` | 询价、报价和 PI 模块开关，默认关闭 |
 | `FUSANHE_FEATURE_ORDERS` | 销售订单和分批交付模块开关，默认关闭 |
 
-修改环境变量后使用 `docker compose up -d --force-recreate espocrm` 使 Apache 进程读取新值。
+完整配置见 `.env.example`。修改双通道环境变量后使用 `docker compose up -d --force-recreate espocrm daemon`，使 Web 与后台任务都读取新值。
 
 ## Mock 演示
 
@@ -194,6 +204,7 @@ docker compose exec espocrm bin/command rebuild
 
 ## 已知限制
 
+- 新真实文本通道只接收本地匿名固定词表信号，不发送原始客户消息或内部知识文档；当前侧重澄清草稿，完整翻译及事实丰富的业务回复仍需后续数据策略。创意规划基于手写描述，不分析上传图片；首帧视频需要明确授权的公网 HTTPS 图片 URL，本次真实验证为纯文本视频。
 - Alibaba CRM 入库、浏览器采集和增量同步代码已具备，合成数据及隔离运行时验证通过；当前真实账号全历史回填、完整性对账和实际页面适配尚未验收。OAuth Bridge 健康检查通过不等于消息历史可读。真实平台发送代码未经生产验收。Made-in-China、独立站和邮件仍是接口骨架。
 - 既有 Alibaba 浏览器执行端尚未在用户指定的“福三和主机”找到可复用安装，也未确认当前登录入口；Windows 桌面客户端读取方案尚未实现。
 - 食品外贸模块目前是 CRM 内的结构化业务记录与工作流，尚未连接 ERP、工厂排产、物流承运商或真实收付款系统；Feature Flag 只控制可见性，不替代权限。

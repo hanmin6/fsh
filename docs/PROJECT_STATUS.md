@@ -1,5 +1,9 @@
 # 福三和 CRM 项目状态
 
+最新发布：2026-09-30，Web 正式版本为 [`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，`main` 是唯一正式前端基线。统一五页 UI 已整合 HIG 能力，新增独立文本与视频通道；静态图片生成关闭。独立验收与 GitHub CI 通过，本次只发布 GitHub，尚未部署服务器。当前状态见 [1.1.0 发布交接](RELEASE_CRM_WEB_1.1.0.md)、[验收记录](../specs/006-dual-ai-gateways/verification.md)及 [分支索引](BRANCH_GUIDE.md)。
+
+以下保留历史快照，旧版本号、分支表和完成度用于追溯。
+
 更新时间：2026-09-24。本页主体是 **2026-09-21 的版本基线快照**，其中完成度百分比和“未接入”描述不代表 9 月 24 日的现状。接手开发请先看 [最新开发交接](DEVELOPMENT_HANDOFF_2026-09-24.md)；老板历史客户功能的实测状态见 [演示说明](BOSS_DEMO.md)和 [003 验证记录](../specs/003-boss-history-insights/verification.md)；Made-in-China 客户端与回填集成见 [MIC 交接说明](fusanhe-mic-crm-handoff-20260924.md)。
 
 

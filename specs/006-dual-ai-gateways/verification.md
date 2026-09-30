@@ -18,7 +18,9 @@ Independent acceptance found and resolved generic private-entity reads, missing 
 
 ## GitHub verification
 
-Initial PR commit 17281b4 passed all three verify jobs in [run 36689623302](https://github.com/hanmin6/fsh/actions/runs/36689623302). Final acceptance additions and fixes will receive a new CI run before merge.
+Initial PR commit 17281b4 passed all three verify jobs in [run 36689623302](https://github.com/hanmin6/fsh/actions/runs/36689623302). Final code commit `631fb8f6b39bb9d7b7c1dd08938f47978f3b1b8a` passed all three jobs in [run 36691801760](https://github.com/hanmin6/fsh/actions/runs/36691801760): spec-python-php (including isolated dual-AI acceptance), frontend (including both browser suites and committed build consistency), and Android test/lint/assembly.
+
+[PR #2](https://github.com/hanmin6/fsh/pull/2) merged into `main` at `095c9907966ec7d1e777889fe3724ed04a2d0bb7`. The subsequent release-record commit carries annotated tag `crm-web-v1.1.0`; it changes documentation only. The merged temporary remote branch is removed after the tag and main are verified on GitHub. Existing archive tags and unrelated branches remain intact. Per user instruction this release is GitHub-only; no server deployment occurred. Rollback instructions are in [release handoff](../../docs/RELEASE_CRM_WEB_1.1.0.md).
 
 ## Limits
 Static image generation intentionally disabled per user. Real video smoke used text-only 480P; actual first-frame generation with a user-owned public image, customer data, production deployment and real capture platforms were not exercised. Local images are not automatically published and text planning does not inspect them. Monetary fees remain unknown; count/concurrency limits are enforced. Raw customer messages/internal knowledge are omitted from real text prompts, so full translation and fact-rich responses require later explicitly approved data policy.
