@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class HistoryBehavior(unittest.TestCase):
     def php(self, expression):
-        source = "<?php\nrequire 'custom/Espo/Custom/Tools/Fusanhe/HistorySignals.php';\nrequire 'custom/Espo/Custom/Tools/Fusanhe/HistoryAiProvider.php';\nrequire 'custom/Espo/Custom/Tools/Fusanhe/HistoryReconciliation.php';\nuse Espo\\Custom\\Tools\\Fusanhe\\HistoryReconciliation as R;\nuse Espo\\Custom\\Tools\\Fusanhe\\HistorySignals as S;\nuse Espo\\Custom\\Tools\\Fusanhe\\HistoryAiProvider as A;\n" + expression
+        source = "<?php\nrequire 'custom/Espo/Custom/Tools/Fusanhe/HistorySignals.php';\nrequire 'custom/Espo/Custom/Tools/Fusanhe/TextGateway.php';\nrequire 'custom/Espo/Custom/Tools/Fusanhe/HistoryAiProvider.php';\nrequire 'custom/Espo/Custom/Tools/Fusanhe/HistoryReconciliation.php';\nuse Espo\\Custom\\Tools\\Fusanhe\\HistoryReconciliation as R;\nuse Espo\\Custom\\Tools\\Fusanhe\\HistorySignals as S;\nuse Espo\\Custom\\Tools\\Fusanhe\\HistoryAiProvider as A;\n" + expression
         result = subprocess.run(['docker', 'compose', 'exec', '-T', 'espocrm', 'php'], input=source, text=True, capture_output=True, cwd=ROOT)
         self.assertEqual(result.returncode, 0, result.stderr)
         return json.loads(result.stdout)

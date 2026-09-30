@@ -1,0 +1,144 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 255,
+      "required": true
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "assignedUser": {
+      "type": "link",
+      "readOnly": true
+    },
+    "sourceId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "planId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "kind": {
+      "type": "enum",
+      "readOnly": true,
+      "options": [
+        "image",
+        "video"
+      ]
+    },
+    "status": {
+      "type": "enum",
+      "readOnly": true,
+      "options": [
+        "submitting",
+        "queued",
+        "processing",
+        "completed",
+        "failed",
+        "reconcile_required"
+      ]
+    },
+    "sourceMode": {
+      "type": "enum",
+      "readOnly": true,
+      "options": [
+        "text_only",
+        "public_image"
+      ]
+    },
+    "selectedPlan": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "preferences": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "resultId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "idempotencyKey": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 80
+    },
+    "requestHash": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 64
+    },
+    "providerJobId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 255
+    },
+    "provider": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 50
+    },
+    "model": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 150
+    },
+    "errorCode": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 80
+    },
+    "accountId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "productId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "lastCheckedAt": {
+      "type": "datetime",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name"
+    ]
+  },
+  "indexes": {
+    "ownerDate": {
+      "columns": [
+        "assignedUserId",
+        "createdAt"
+      ]
+    },
+    "ownerIdempotency": {
+      "columns": [
+        "assignedUserId",
+        "idempotencyKey"
+      ],
+      "unique": true
+    }
+  }
+}

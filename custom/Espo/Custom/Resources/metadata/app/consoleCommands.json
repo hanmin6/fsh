@@ -4,5 +4,8 @@
   },
   "historyReconcile": {
     "className": "Espo\\Custom\\Commands\\HistoryReconcile"
+  },
+  "mediaReconcile": {
+    "className": "Espo\\Custom\\Commands\\MediaReconcile"
   }
 }

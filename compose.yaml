@@ -1,5 +1,23 @@
 name: fusanhe-crm
 
+x-ai-gateway-environment: &ai-gateway-environment
+  FUSANHE_CREATIVE_MAX_DAILY_PLANS: ${FUSANHE_CREATIVE_MAX_DAILY_PLANS:-20}
+  FUSANHE_TEXT_ENABLED: ${FUSANHE_TEXT_ENABLED:-false}
+  FUSANHE_TEXT_API_BASE_URL: ${FUSANHE_TEXT_API_BASE_URL:-https://gw.apimonth.com/v1}
+  FUSANHE_TEXT_API_KEY: ${FUSANHE_TEXT_API_KEY:-}
+  FUSANHE_TEXT_MODEL_GPT: ${FUSANHE_TEXT_MODEL_GPT:-gpt-6.1-sol}
+  FUSANHE_TEXT_MODEL_GROK: ${FUSANHE_TEXT_MODEL_GROK:-grok-4.7}
+  FUSANHE_TEXT_MODEL_GEMINI: ${FUSANHE_TEXT_MODEL_GEMINI:-gemini-3.8-flash}
+  FUSANHE_TEXT_DEFAULT_MODEL: ${FUSANHE_TEXT_DEFAULT_MODEL:-gpt}
+  FUSANHE_TEXT_TIMEOUT: ${FUSANHE_TEXT_TIMEOUT:-45}
+  FUSANHE_MEDIA_API_BASE_URL: ${FUSANHE_MEDIA_API_BASE_URL:-https://tokendance.space/gateway/v1}
+  FUSANHE_MEDIA_API_KEY: ${FUSANHE_MEDIA_API_KEY:-}
+  FUSANHE_MEDIA_VIDEO_MODEL: ${FUSANHE_MEDIA_VIDEO_MODEL:-minimax-h3-max}
+  FUSANHE_MEDIA_IMAGE_MODEL: ${FUSANHE_MEDIA_IMAGE_MODEL:-}
+  FUSANHE_MEDIA_ENABLED: ${FUSANHE_MEDIA_ENABLED:-false}
+  FUSANHE_MEDIA_MAX_DAILY_JOBS: ${FUSANHE_MEDIA_MAX_DAILY_JOBS:-20}
+  FUSANHE_MEDIA_MAX_ACTIVE_JOBS: ${FUSANHE_MEDIA_MAX_ACTIVE_JOBS:-2}
+
 services:
   db:
     image: mariadb:11.4
@@ -21,6 +39,7 @@ services:
   espocrm:
     image: espocrm/espocrm:10.0.8-apache
     environment:
+      <<: *ai-gateway-environment
       ESPOCRM_DATABASE_PLATFORM: Mysql
       ESPOCRM_DATABASE_HOST: db
       ESPOCRM_DATABASE_NAME: ${DB_NAME:-espocrm}
@@ -69,6 +88,8 @@ services:
 
   daemon:
     image: espocrm/espocrm:10.0.8-apache
+    environment:
+      <<: *ai-gateway-environment
     volumes_from:
       - espocrm
     restart: unless-stopped

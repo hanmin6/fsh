@@ -1,0 +1,11 @@
+{
+  "entity": true,
+  "layouts": false,
+  "tab": false,
+  "acl": true,
+  "customizable": false,
+  "importable": false,
+  "object": true,
+  "exportable": false,
+  "globalSearch": false
+}

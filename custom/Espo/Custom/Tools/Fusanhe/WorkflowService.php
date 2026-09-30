@@ -156,7 +156,7 @@ final class WorkflowService
         ];
     }
 
-    public function generateDraft(string $conversationId, ?User $user = null): array
+    public function generateDraft(string $conversationId, ?User $user = null, ?string $modelChoice = null): array
     {
         $conversation = $this->requireEntity('ExternalConversation', $conversationId);
         if (!$this->acl->checkEntityRead($conversation)) {
@@ -222,7 +222,7 @@ final class WorkflowService
             'customer' => $customerContext,
             'companyRules' => ['Do not promise price, MOQ, lead time, certification, payment, discounts, quality or compensation without approved evidence.'],
             'knowledge' => $knowledge,
-        ]);
+        ], $modelChoice);
         $draft = $this->kernel->create('AIReplyDraft', [
             'name' => 'AI 草稿 ' . gmdate('Y-m-d H:i'),
             'conversationId' => $conversationId,
@@ -237,7 +237,8 @@ final class WorkflowService
             'citedKnowledge' => $result['citedKnowledge'],
             'modelProvider' => $result['provider'],
             'modelName' => $result['model'],
-            'promptVersion' => 'phase1-v1',
+            'usageTokens' => $result['usageTokens'] ?? null,
+            'promptVersion' => $result['provider'] === 'mock' ? 'phase1-v1' : 'anonymous-reply-v1',
             'status' => 'generated',
         ]);
         if ($conversation->get('status') !== 'closed') {
@@ -246,8 +247,10 @@ final class WorkflowService
         }
         $this->kernel->audit('draft.generated', 'user', $user?->getId() ?? 'system', 'AIReplyDraft', $draft->getId(), 'success', [
             'provider' => $result['provider'],
+            'model' => $result['model'],
+            'usageTokens' => $result['usageTokens'] ?? null,
             'conversationId' => $conversationId,
-            'knowledgeUsed' => array_map(fn($k) => $k['id'], $knowledge),
+            'knowledgeUsed' => $result['provider'] === 'mock' ? array_map(fn($k) => $k['id'], $knowledge) : [],
         ]);
         return ['draftId' => $draft->getId()] + $result;
     }

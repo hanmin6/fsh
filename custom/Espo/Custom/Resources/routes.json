@@ -166,49 +166,104 @@
         "method": "get",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetQuotePrint"
     },
-  {
-    "route": "/Fusanhe/quote/:id/html",
-    "method": "get",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetQuoteHtml"
-  },
-  {
-    "route": "/Fusanhe/inquiry/:id/missing",
-    "method": "get",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInquiryMissing"
-  },
-  {
-    "route": "/Fusanhe/quote/:id/create-order",
-    "method": "post",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostQuoteCreateOrder"
-  },
-  {
-    "route": "/Fusanhe/quote/:id/:action",
-    "method": "post",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostQuoteTransition"
-  },
-  {
-    "route": "/Fusanhe/order/:id/:action",
-    "method": "post",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostOrderTransition"
-  },
-  {
-    "route": "/Fusanhe/shipment/:id/:action",
-    "method": "post",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostShipmentTransition"
-  },
-  {
-    "route": "/Fusanhe/orders/by-batch",
-    "method": "get",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetOrdersByBatch"
-  },
-  {
-    "route": "/Fusanhe/insights",
-    "method": "get",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInsights"
-  },
-  {
-    "route": "/Fusanhe/insights/:id",
-    "method": "get",
-    "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInsights"
-  }
+    {
+        "route": "/Fusanhe/quote/:id/html",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetQuoteHtml"
+    },
+    {
+        "route": "/Fusanhe/inquiry/:id/missing",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInquiryMissing"
+    },
+    {
+        "route": "/Fusanhe/quote/:id/create-order",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostQuoteCreateOrder"
+    },
+    {
+        "route": "/Fusanhe/quote/:id/:action",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostQuoteTransition"
+    },
+    {
+        "route": "/Fusanhe/order/:id/:action",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostOrderTransition"
+    },
+    {
+        "route": "/Fusanhe/shipment/:id/:action",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostShipmentTransition"
+    },
+    {
+        "route": "/Fusanhe/orders/by-batch",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetOrdersByBatch"
+    },
+    {
+        "route": "/Fusanhe/insights",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInsights"
+    },
+    {
+        "route": "/Fusanhe/insights/:id",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetInsights"
+    },
+    {
+        "route": "/Fusanhe/text/status",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetTextStatus"
+    },
+    {
+        "route": "/Fusanhe/creative/status",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCreativeStatus"
+    },
+    {
+        "route": "/Fusanhe/creative/source",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostCreativeSource"
+    },
+    {
+        "route": "/Fusanhe/creative/plan",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostCreativePlan"
+    },
+    {
+        "route": "/Fusanhe/media/jobs",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMediaJob"
+    },
+    {
+        "route": "/Fusanhe/media/jobs",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetMediaJobs"
+    },
+    {
+        "route": "/Fusanhe/media/job/:id",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetMediaJob"
+    },
+    {
+        "route": "/Fusanhe/media/job/:id/reconcile",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMediaReconcile"
+    },
+    {
+        "route": "/Fusanhe/media/job/:id/recover",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMediaRecover"
+    },
+    {
+        "route": "/Fusanhe/creative/assets",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCreativeAssets"
+    },
+    {
+        "route": "/Fusanhe/creative/asset/:id/content",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCreativeAssetContent"
+    }
 ]

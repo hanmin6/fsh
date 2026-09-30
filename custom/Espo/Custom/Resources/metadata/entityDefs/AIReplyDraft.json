@@ -89,15 +89,18 @@
     },
     "modelProvider": {
       "type": "varchar",
-      "maxLength": 100
+      "maxLength": 100,
+      "readOnly": true
     },
     "modelName": {
       "type": "varchar",
-      "maxLength": 100
+      "maxLength": 100,
+      "readOnly": true
     },
     "promptVersion": {
       "type": "varchar",
-      "maxLength": 50
+      "maxLength": 50,
+      "readOnly": true
     },
     "status": {
       "type": "enum",
@@ -118,6 +121,11 @@
     },
     "approvedAt": {
       "type": "datetime",
+      "readOnly": true
+    },
+    "usageTokens": {
+      "type": "int",
+      "min": 0,
       "readOnly": true
     }
   },

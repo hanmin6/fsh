@@ -1,0 +1,104 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 255,
+      "required": true
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "assignedUser": {
+      "type": "link",
+      "readOnly": true
+    },
+    "sourceId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "idea": {
+      "type": "text",
+      "readOnly": true
+    },
+    "preferences": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "plans": {
+      "type": "jsonArray",
+      "readOnly": true
+    },
+    "status": {
+      "type": "enum",
+      "readOnly": true,
+      "options": [
+        "submitting",
+        "completed",
+        "failed"
+      ]
+    },
+    "idempotencyKey": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 80
+    },
+    "requestHash": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 64
+    },
+    "provider": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 50
+    },
+    "model": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 150
+    },
+    "usageTokens": {
+      "type": "int",
+      "readOnly": true
+    },
+    "errorCode": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 80
+    }
+  },
+  "links": {
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name"
+    ]
+  },
+  "indexes": {
+    "ownerDate": {
+      "columns": [
+        "assignedUserId",
+        "createdAt"
+      ]
+    },
+    "ownerIdempotency": {
+      "columns": [
+        "assignedUserId",
+        "idempotencyKey"
+      ],
+      "unique": true
+    }
+  }
+}
