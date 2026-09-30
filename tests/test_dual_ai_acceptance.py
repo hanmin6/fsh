@@ -93,6 +93,7 @@ echo json_encode(['CreativePlan'=>$p->getId(),'MediaJob'=>$j->getId(),'MediaAsse
         self.assertNotEqual(own['id'], self.source['id'])
         _, content = api('/Fusanhe/creative/asset/' + own['id'] + '/content', auth=self.auth)
         self.assertEqual(content['dataUrl'], self.data_url)
+        self.assertEqual(admin_api('/Fusanhe/creative/asset/' + own['id'] + '/content', expect_error=True)[0], 404)
         self.assertNotIn('fileKey', own)
         self.assertNotIn('sha256', own)
 
@@ -106,12 +107,78 @@ echo json_encode(['CreativePlan'=>$p->getId(),'MediaJob'=>$j->getId(),'MediaAsse
         self.assertNotIn('API_KEY', json.dumps(status))
         self.assertEqual(api('/Fusanhe/creative/status', expect_error=True)[0], 401)
 
+    def test_custom_routes_enforce_scope_permissions(self):
+        tag = uuid.uuid4().hex[:12]
+        _, role = admin_api('/Role', 'POST', {'name': 'Acceptance denied ' + tag, 'data': {
+            scope: {'read': 'no', 'create': 'no', 'edit': 'no', 'delete': 'no'}
+            for scope in ['CreativePlan', 'MediaJob', 'MediaAsset']}})
+        password = 'Acceptance-Denied-Fictional-2026!'
+        login = 'accept-denied-' + tag
+        admin_api('/User', 'POST', {'userName': login, 'lastName': 'Acceptance denied fixture',
+            'type': 'regular', 'password': password, 'passwordConfirm': password,
+            'rolesIds': [role['id']]})
+        for path, method, body in [('/Fusanhe/creative/status', 'GET', None),
+            ('/Fusanhe/media/jobs', 'GET', None), ('/Fusanhe/creative/assets', 'GET', None),
+            ('/Fusanhe/creative/source', 'POST', {'dataUrl': self.data_url}),
+            ('/Fusanhe/creative/plan', 'POST', {}), ('/Fusanhe/media/jobs', 'POST', {}),
+            ('/Fusanhe/creative/asset/' + self.source['id'] + '/content', 'GET', None),
+            ('/Fusanhe/media/job/' + self.seed['MediaJob'] + '/reconcile', 'POST', {}),
+            ('/Fusanhe/media/job/' + self.seed['MediaJob'] + '/recover', 'POST', {})]:
+            self.assertEqual(api(path, method, body, auth=(login, password), expect_error=True)[0], 403, path)
+
     def test_scheduled_job_is_registered_and_active(self):
         _, jobs = admin_api('/ScheduledJob?maxSize=100')
         matching = [j for j in jobs['list'] if j['job'] == 'FusanheMediaReconcile']
         self.assertEqual(len(matching), 1)
         self.assertEqual(matching[0]['status'], 'Active')
         self.assertEqual(matching[0]['scheduling'], '* * * * *')
+
+    def test_admin_can_restore_uncertain_regular_owner_task_without_private_reads(self):
+        _, source = api('/Fusanhe/creative/source', 'POST', {'dataUrl': self.data_url}, auth=self.auth)
+        records = php('''<?php
+require 'bootstrap.php'; $app=new Espo\\Core\\Application(); $c=$app->getContainer();
+$c->get('injectableFactory')->create(Espo\\Core\\ApplicationUser::class)->setupSystemUser();
+$em=$c->get('entityManager');$k=new Espo\\Custom\\Tools\\Fusanhe\\ServiceKernel($em);$ids=[];
+$owner=%s;$source=%s;$private=['name'=>'Fictional owner-only concept','description'=>'Fictional private owner brief'];
+$plan=$k->create('CreativePlan',['name'=>'Fictional private recovery plan','assignedUserId'=>$owner,'sourceId'=>$source,'status'=>'completed','idea'=>$private['description'],'plans'=>[$private]]);
+for($i=0;$i<2;$i++){$j=$k->create('MediaJob',['name'=>'Fictional uncertain regular-owner task','assignedUserId'=>$owner,'sourceId'=>$source,'planId'=>$plan->getId(),'selectedPlan'=>$private,'kind'=>'video','status'=>'reconcile_required','errorCode'=>'submission_uncertain']);$ids[]=$j->getId();}
+echo json_encode(['jobs'=>$ids,'plan'=>$plan->getId()]);
+''' % (json.dumps(self.user_id), json.dumps(source['id'])))
+        plan_id = records['plan']
+        records = records['jobs']
+        remote = 'acceptance-manually-verified-' + uuid.uuid4().hex
+        path = '/Fusanhe/media/job/' + records[0]
+        self.assertEqual(api(path + '/recover', 'POST', {'providerJobId': remote}, auth=self.auth, expect_error=True)[0], 403)
+        _, recovered = admin_api(path + '/recover', 'POST', {'providerJobId': remote})
+        self.assertEqual(set(recovered), {'requestId', 'id', 'status'})
+        self.assertEqual(recovered['id'], records[0])
+        self.assertEqual(recovered['status'], 'queued')
+        self.assertEqual(admin_api(path, expect_error=True)[0], 404)
+        self.assertEqual(admin_api(path + '/reconcile', 'POST', {}, expect_error=True)[0], 404)
+        self.assertEqual(admin_api('/Fusanhe/creative/asset/' + source['id'] + '/content', expect_error=True)[0], 404)
+        self.assertIn(admin_api('/CreativePlan/' + plan_id, expect_error=True)[0], [403, 404])
+        _, admin_jobs = admin_api('/Fusanhe/media/jobs')
+        self.assertNotIn(records[0], json.dumps(admin_jobs))
+        self.assertNotIn('Fictional private owner brief', json.dumps(admin_jobs))
+        _, view = api(path, auth=self.auth)
+        self.assertEqual(view['status'], 'queued')
+        self.assertEqual(view['sourceId'], source['id'])
+        self.assertEqual(view['planId'], plan_id)
+        self.assertEqual(view['selectedPlan']['description'], 'Fictional private owner brief')
+        self.assertNotIn('providerJobId', view)
+        _, checked = api(path + '/reconcile', 'POST', {}, auth=self.auth)
+        self.assertEqual(checked['id'], records[0])
+        self.assertEqual(admin_api('/Fusanhe/media/job/' + records[1] + '/recover', 'POST',
+            {'providerJobId': remote}, expect_error=True)[0], 409)
+        check = php('''<?php
+require 'bootstrap.php'; $app=new Espo\\Core\\Application();$em=$app->getContainer()->get('entityManager');
+$j=$em->getEntityById('MediaJob',%s);$audit=$em->getRDBRepository('AutomationAudit')->where(['entityId'=>$j->getId(),'eventType'=>'creative.job.recovered'])->findOne();
+$duplicate=$em->getEntityById('MediaJob',%s);$plan=$em->getEntityById('CreativePlan',$j->get('planId'));
+echo json_encode(['owner'=>$j->get('assignedUserId'),'remote'=>$j->get('providerJobId'),'source'=>$j->get('sourceId'),'plan'=>$j->get('planId'),'brief'=>$plan->get('idea'),'actor'=>$audit?->get('actorId'),'actorType'=>$audit?->get('actorType'),'duplicateRemote'=>$duplicate->get('providerJobId'),'duplicateStatus'=>$duplicate->get('status')]);
+''' % (json.dumps(records[0]), json.dumps(records[1])))
+        self.assertEqual(check, {'owner': self.user_id, 'remote': remote, 'source': source['id'],
+            'plan': plan_id, 'brief': 'Fictional private owner brief', 'actor': self.admin_id,
+            'actorType': 'user', 'duplicateRemote': None, 'duplicateStatus': 'reconcile_required'})
 
     def test_fake_paid_submission_crash_recovery_archive_and_budgets(self):
         result = php('''<?php

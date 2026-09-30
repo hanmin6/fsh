@@ -15,5 +15,8 @@ User selected “暂不启用图片生成，先接好视频”. Static image gen
 ## Known gaps before implementation
 Model IDs and media endpoint protocols are unverified. The user-supplied minimax-h3-max alias may not be a media model. Integration must fail closed where provider evidence is absent.
 
+## Privileged recovery boundary
+Ordinary creative reads/downloads remain owner-only, including administrators. Administrators may restore only a missing provider task ID on another owner’s uncertain video job after verifying it in the provider console. Preserve assignment, reject duplicate remote IDs, audit the administrator, and return only id/status for non-owner recovery; no private brief, source or content access is granted.
+
 ## Acceptance
 Meaningful provider fake-transport contracts, ACL and retry tests, existing regression/build checks, runtime/browser creative workflows, secret isolation review by independent agent, and read-only live catalogs. External unsupported capabilities are recorded explicitly.

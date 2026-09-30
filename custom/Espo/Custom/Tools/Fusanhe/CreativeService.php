@@ -164,9 +164,12 @@ final class CreativeService
     }
     public function recover(string $id, object $input, User $user): array
     {
+        // Narrow operational exception: administrators may restore a verified remote ID,
+        // while ordinary reads/downloads/lists remain strictly scoped to the record owner.
+        if (!$user->isAdmin()) throw new \Espo\Core\Exceptions\Forbidden('Recovery requires an administrator to verify the provider task ownership.');
         return $this->storage->locked(function () use ($id, $input, $user) {
-            $job = $this->owned('MediaJob', $id, $user);
-            if (!$user->isAdmin()) throw new \Espo\Core\Exceptions\Forbidden('Recovery requires an administrator to verify the provider task ownership.');
+            $job = $this->em->getEntityById('MediaJob', $id);
+            if (!$job) throw new NotFound('Creative record not found.');
             $remote = (string) ($input->providerJobId ?? '');
             if ($job->get('kind') !== 'video' || !in_array($job->get('status'), ['submitting', 'reconcile_required'], true) || $job->get('providerJobId') || !preg_match('/^[A-Za-z0-9._:-]{1,255}$/D', $remote)) throw new BadRequest('Only an uncertain video submission without a task ID can be recovered.');
             $claimed = $this->repo('MediaJob')->where(['providerJobId' => $remote])->findOne();
@@ -174,7 +177,7 @@ final class CreativeService
             $job->set(['providerJobId' => $remote, 'status' => 'queued', 'errorCode' => null]);
             $this->kernel->save($job);
             $this->kernel->audit('creative.job.recovered', 'user', $user->getId(), 'MediaJob', $job->getId());
-            return $this->job($job);
+            return $job->get('assignedUserId') === $user->getId() ? $this->job($job) : ['id' => $job->getId(), 'status' => $job->get('status')];
         });
     }
     public function tick(): int

@@ -32,6 +32,18 @@ $media->uncertain=false;$media->syncComplete=true;$em->failCompletion=true;$subm
 $media->syncComplete=false;$submit->idempotencyKey='job-key-background123';$background=$service->submit($submit,$owner);$service->tick();serviceCheck($service->detail($background['id'],$owner)['status']==='completed','background tick archives without browser');
 $media->rejected=true;$submit->idempotencyKey='job-key-rejected123';$rejected=$service->submit($submit,$owner);serviceCheck($rejected['status']==='failed'&&$rejected['errorCode']==='provider_rejected_submission','definitive rejection terminal without retry');
 putenv('FUSANHE_CREATIVE_MAX_DAILY_PLANS=1');$input->idempotencyKey='plan-key-cap1234567';serviceFails(fn()=>$service->plan($input,$owner),'Daily creative planning limit reached.');
+// The admin recovery exception changes only remote ID/state and returns no other owner's content.
+$beforeRecoverySubmits=$media->submits;$beforeRecoveryPolls=$media->polls;
+serviceFails(fn()=>$service->recover('missing-job',(object)['providerJobId'=>'arbitrary'],$owner),'Recovery requires an administrator to verify the provider task ownership.');
+serviceFails(fn()=>$service->recover($uncertain['id'],(object)['providerJobId'=>'remote-1'],$admin),'Provider task is already linked to a CRM task.');
+$recovered=$service->recover($uncertain['id'],(object)['providerJobId'=>'recovered-remote-2'],$admin);
+serviceCheck($recovered===['id'=>$uncertain['id'],'status'=>'queued'],'non-owner admin recovery returns minimal DTO');
+serviceCheck($em->getEntityById('MediaJob',$uncertain['id'])->get('assignedUserId')===$owner->getId(),'admin recovery preserves owner assignment');
+serviceCheck($media->submits===$beforeRecoverySubmits&&$media->polls===$beforeRecoveryPolls,'admin recovery creates no paid submission or provider read');
+serviceFails(fn()=>$service->detail($uncertain['id'],$admin),'Creative record not found.');serviceFails(fn()=>$service->content($source['id'],$admin),'Creative record not found.');serviceCheck($service->list($admin)['total']===0,'admin recovery does not expand list access');
+$audit=$em->getRDBRepository('AutomationAudit')->where(['eventType'=>'creative.job.recovered','entityId'=>$uncertain['id']])->findOne();serviceCheck($audit&&$audit->get('actorId')===$admin->getId()&&$audit->get('actorType')==='user','recovery audit identifies administrator actor');
+$adminJob=(new ServiceKernel($em))->create('MediaJob',['assignedUserId'=>$admin->getId(),'kind'=>'video','status'=>'reconcile_required']);
+$ownRecovery=$service->recover($adminJob->getId(),(object)['providerJobId'=>'recovered-admin-task'],$admin);serviceCheck(array_key_exists('selectedPlan',$ownRecovery)&&$ownRecovery['status']==='queued','owner administrator retains normal own-job DTO');
 // No fixture bytes or private runtime files live in the repository.
 chdir($root);$iter=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($temporary,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);foreach($iter as $file){$file->isDir()?rmdir($file->getPathname()):unlink($file->getPathname());}rmdir($temporary);
 echo "Media service contracts passed\n";

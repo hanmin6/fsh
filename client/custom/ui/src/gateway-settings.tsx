@@ -16,7 +16,7 @@ export function GatewaySettings({source}:{source:DataSource}){
  useEffect(()=>{void refresh()},[source]);
  return <section aria-label="AI 通道配置"><h3>AI 通道</h3>{source.demo?<Notice>示例预览不会连接模型或产生费用。真实通道状态请切换到真实数据查看。</Notice>:<>
   {error&&<p role="alert" className="w-error">{error}</p>}
-  <p><strong>文本 · APIMonth</strong> {text?(text.available?'已配置':'未就绪'):'状态待读取'}</p>
+  <p><strong>文本 · APIMonth</strong> {text?(text.models?.some((m:any)=>m.available)?'已配置':'未就绪'):'状态待读取'}</p>
   {text?.models?.map((m:any)=><p className="w-muted" key={m.choice}>{m.label} · {m.available?'可选':'不可用'}{m.choice===text.defaultChoice?' · 默认':''}</p>)}
   <p><strong>图片与视频 · TokenDance</strong> {media?(media.enabled&&media.configured?'已启用':'未启用'):'状态待读取'}</p>
   {media&&<p className="w-muted">图片：{media.capabilities?.image?'可用':'未就绪'} · 视频：{media.capabilities?.video?'可用':'未就绪'}</p>}

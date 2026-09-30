@@ -78,11 +78,14 @@ jobs:
             sleep 1
           done
           python tests/unified_ui_browser.py
+          python tests/dual_ai_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unified-ui-synthetic-screenshots
-          path: test-results/unified-ui
+          path: |
+            test-results/unified-ui
+            test-results/dual-ai
           if-no-files-found: ignore
 
   android:
