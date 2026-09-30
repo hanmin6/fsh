@@ -1,0 +1,9 @@
+{
+  "FusanheMediaReconcile": {
+    "name": "Fusanhe media task reconciliation",
+    "isSystem": false,
+    "scheduling": "* * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\MediaReconcile",
+    "isDefault": true
+  }
+}

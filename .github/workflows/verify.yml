@@ -16,12 +16,36 @@ jobs:
         run: docker compose config --quiet
       - name: Validate Spec Kit and offline contracts
         env:
-          SPECIFY_FEATURE_DIRECTORY: specs/005-unified-crm-web
+          SPECIFY_FEATURE_DIRECTORY: specs/006-dual-ai-gateways
         run: |
           make spec-check
           make verify-offline
       - name: Lint custom PHP
         run: find custom -name '*.php' -print0 | xargs -0 -n1 php -l
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify private AI workflows in isolated EspoCRM
+        env:
+          ESPOCRM_API_URL: http://localhost:18082/api/v1
+          ESPOCRM_ADMIN_USERNAME: admin
+          ESPOCRM_ADMIN_PASSWORD: ci-fictional-admin-password-2026
+          RUN_DUAL_AI_ACCEPTANCE: '1'
+        run: |
+          cp .env.test.example .env.test
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.env.test')
+          s=p.read_text().replace('ESPOCRM_ADMIN_PASSWORD=123456','ESPOCRM_ADMIN_PASSWORD=ci-fictional-admin-password-2026').replace('ESPOCRM_PORT=18080','ESPOCRM_PORT=18082').replace('http://localhost:18080','http://localhost:18082')
+          p.write_text(s)
+          PY
+          docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml up -d --wait
+          docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml exec -T espocrm bin/command rebuild
+          python3 scripts/bootstrap.py
+          python3 -m unittest tests.test_dual_ai_acceptance -v
+      - name: Remove isolated acceptance stack
+        if: always()
+        run: docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml down -v
 
   frontend:
     runs-on: ubuntu-latest
@@ -54,11 +78,14 @@ jobs:
             sleep 1
           done
           python tests/unified_ui_browser.py
+          python tests/dual_ai_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unified-ui-synthetic-screenshots
-          path: test-results/unified-ui
+          path: |
+            test-results/unified-ui
+            test-results/dual-ai
           if-no-files-found: ignore
 
   android:

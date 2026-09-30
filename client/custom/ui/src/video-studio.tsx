@@ -3,6 +3,7 @@ import {Upload,Video,History,Check,ArrowRight,RefreshCw,X} from 'lucide-react';
 import type {Props} from './work';
 import {Button,Dialog,Empty,Notice,Field,SearchBox,Tabs,useStored} from './ui';
 import './video-studio.css';
+import {LiveCreativePage} from './creative-live';
 type Plan={name:string;description:string;motion:string;use:string};
 type Round={id:string;image:string;idea:string;plans:Plan[]};
 type Job={id:string;at:number;plan:Plan;idea:string;image:string;state:'queued'|'completed'};
@@ -11,7 +12,8 @@ const directions:Plan[]=[
  {name:'轻移展示',description:'用轻微镜头变化带出层次。',motion:'镜头小幅横向移动，主体居中，背景保持简洁。',use:'商品展示'},
  {name:'柔光氛围',description:'用光线与节奏营造自然感。',motion:'柔和光线变化，配合缓慢拉近，不添加文字或未经确认的信息。',use:'营销素材'}
 ];
-export function AIPage({source,notify,route,navigate}:Props){
+export function AIPage(props:Props){return props.source.demo?<DemoAIPage {...props}/>:<LiveCreativePage {...props}/>;}
+function DemoAIPage({source,notify,route,navigate}:Props){
  const tab=['tasks','assets'].includes(route.tab)?route.tab:'create';const [purpose,setPurpose]=useState('产品介绍'),[language,setLanguage]=useState('英语'),[aspect,setAspect]=useState('16:9'),[duration,setDuration]=useState('5'),[query,setQuery]=useState('');
  const [image,setImage]=useState(''),[idea,setIdea]=useStored('video:idea',''),[error,setError]=useState(''),[reading,setReading]=useState(false);
  const [rounds,setRounds]=useState<Round[]>([]),[roundIndex,setRoundIndex]=useState(0),[choice,setChoice]=useState<number|null>(null);

@@ -1,0 +1,107 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 255,
+      "required": true
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "assignedUser": {
+      "type": "link",
+      "readOnly": true
+    },
+    "kind": {
+      "type": "enum",
+      "readOnly": true,
+      "options": [
+        "source",
+        "image",
+        "video"
+      ]
+    },
+    "mime": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 100
+    },
+    "size": {
+      "type": "int",
+      "readOnly": true
+    },
+    "version": {
+      "type": "int",
+      "readOnly": true
+    },
+    "sha256": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 64
+    },
+    "fileKey": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 48
+    },
+    "sourceId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "jobId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "accountId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    },
+    "productId": {
+      "type": "varchar",
+      "readOnly": true,
+      "maxLength": 24
+    }
+  },
+  "links": {
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name"
+    ]
+  },
+  "indexes": {
+    "ownerDate": {
+      "columns": [
+        "assignedUserId",
+        "createdAt"
+      ]
+    },
+    "ownerHash": {
+      "columns": [
+        "assignedUserId",
+        "sha256",
+        "kind"
+      ]
+    },
+    "jobResult": {
+      "columns": [
+        "jobId"
+      ],
+      "unique": true
+    }
+  }
+}

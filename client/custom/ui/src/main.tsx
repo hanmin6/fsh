@@ -10,6 +10,7 @@ import {KnowledgePage,AIPage} from './library';
 import './style.css';
 import {CaptureStrip} from './capture';
 import {Queue} from './queues';
+import {GatewaySettings} from './gateway-settings';
 export type Navigate=(page:Page,params?:Partial<Route>)=>void;
 const entries=[{id:'home',name:'首页',icon:Home},{id:'messages',name:'消息中心',icon:MessagesSquare},{id:'customers',name:'客户与评级',icon:Users},{id:'ai',name:'AI 工作中心',icon:Image},{id:'knowledge',name:'知识库',icon:BookOpen}] as const;
 function App({host}:{host:HostBridge}){
@@ -36,7 +37,7 @@ function App({host}:{host:HostBridge}){
  {route.page==='home'?<HomePage {...props}/>:route.page==='messages'?<MessagesPage {...props}/>:route.page==='customers'?<CustomersPage {...props}/>:route.page==='knowledge'?<KnowledgePage {...props}/>:<AIPage {...props}/>}
  <footer className="w-footer">广州福三和食品有限公司 <span>Powered by <a href="https://www.espocrm.com" target="_blank" rel="noreferrer">EspoCRM</a></span></footer></main></div>
  {toast&&<div className="w-toast" role="status"><Check size={16}/>{toast}<button aria-label="关闭提示" onClick={()=>setToast('')}><X size={16}/></button></div>}
- {settings&&<Dialog title="工作台设置" onClose={()=>setSettings(false)}><div className="w-dialog-body"><h3>数据模式</h3><p>真实数据直接连接现有 CRM；示例预览用于体验评级、媒体创作和完整页面状态。</p><Button primary onClick={changeMode}>{demo?'使用真实数据':'查看示例预览'}</Button><hr/><h3>账号与权限</h3><p>当前以{source.user.name}访问。业务权限和发送策略由服务端控制。</p><Notice>图片和视频生成服务尚未配置；客户评级和业务操作按当前权限保存。</Notice><h3>平台抓取</h3><CaptureStrip source={source} compact/><h3>执行端</h3><Queue {...props} entity="AutomationAgent"/>{!demo&&<Button onClick={()=>host.native('Preferences')}>个人偏好<ArrowUpRight size={14}/></Button>}</div></Dialog>}
+ {settings&&<Dialog title="工作台设置" onClose={()=>setSettings(false)}><div className="w-dialog-body"><h3>数据模式</h3><p>真实数据直接连接现有 CRM；示例预览用于体验评级、媒体创作和完整页面状态。</p><Button primary onClick={changeMode}>{demo?'使用真实数据':'查看示例预览'}</Button><hr/><h3>账号与权限</h3><p>当前以{source.user.name}访问。业务权限和发送策略由服务端控制。</p><GatewaySettings source={source}/><h3>平台抓取</h3><CaptureStrip source={source} compact/><h3>执行端</h3><Queue {...props} entity="AutomationAgent"/>{!demo&&<Button onClick={()=>host.native('Preferences')}>个人偏好<ArrowUpRight size={14}/></Button>}</div></Dialog>}
  {search!==null&&<Dialog title="搜索工作台" onClose={()=>setSearch(null)}><div className="w-dialog-body"><GlobalSearch source={source} value={search} onChange={setSearch} choose={(page,id,entity)=>{navigate(page,{id,entity,...(entity==='KnowledgeDocument'?{tab:'documents'}:{})});setSearch(null)}}/></div></Dialog>}
  </div>
 }

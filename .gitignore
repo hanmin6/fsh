@@ -45,3 +45,6 @@ mic-client/**/.run-worker-test-tmp/
 
 # Local acceptance overlays (the reproducible unified UI stack is versioned).
 tests/*.local.yaml
+
+# Private relay credentials, discovery data and preserved local assets.
+.local/

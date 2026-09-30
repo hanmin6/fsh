@@ -2,6 +2,14 @@
 
 本仓库同时维护 CRM 后端、Web 工作台和 Android 客户端。组件版本使用独立标签，避免把 UI 演示版误认为生产系统版本。
 
+## CRM Web 1.1.0 — 2026-09-30（双 AI 通道）
+
+- 文本独立接入 APIMonth：GPT-6.1 Sol 使用 Responses；Grok 4.7、Gemini 3.8 Flash 使用 Chat Completions，支持手动选择并保存实际模型/用量。
+- 视频独立接入 TokenDance MiniMax H3 Max V2：方案、原图、任务、作品持久化；授权公开首帧或明确文生视频；作品预览/下载及客户商品关联。
+- 服务端付费请求幂等、并发/每日数量限制、提交不确定状态与管理员任务号恢复；后台查询已有任务，不自动重发生成。
+- 私有内容仅由专用所有者接口读取；密钥只留服务端。静态图片生成按用户选择暂不启用。
+- 详见 [发布交接](docs/RELEASE_CRM_WEB_1.1.0.md)、[接口实测](specs/006-dual-ai-gateways/provider-evidence.md) 和 [验收记录](specs/006-dual-ai-gateways/verification.md)。
+
 ## CRM Web 1.0.0 — 2026-09-30（统一前端正式基线）
 
 - 按批准的五页文字方案完成统一工作台，main 为唯一 Web 集成基线；历史 Web UI 保存为 archive 标签。

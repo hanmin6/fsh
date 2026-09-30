@@ -33,6 +33,15 @@ final class PostGenerateDraft extends AbstractFusanheAction
             throw new BadRequest();
         }
         $this->requireEntityScope('ExternalConversation', $id, 'read');
-        return ResponseComposer::json($this->service->generateDraft($id, $this->user));
+        $input = $request->getParsedBody();
+        $choice = $input->modelChoice ?? null;
+        if ($choice !== null && (!is_string($choice) || !in_array($choice, ['gpt', 'grok', 'gemini', 'legacy'], true))) throw new BadRequest('Invalid model choice.');
+        try {
+            return ResponseComposer::json($this->service->generateDraft($id, $this->user, $choice));
+        } catch (\RuntimeException $error) {
+            $safe = ['text_not_configured', 'text_invalid_choice', 'text_auth_failed', 'text_rate_limited', 'text_transport_failed', 'text_invalid_response','text_model_mismatch', 'text_incomplete_response', 'text_invalid_json', 'text_invalid_reply', 'text_invalid_evidence', 'text_response_too_large'];
+            $code = in_array($error->getMessage(), $safe, true) ? $error->getMessage() : 'text_generation_failed';
+            return $this->json($request, ['errorCode' => $code], 503);
+        }
     }
 }

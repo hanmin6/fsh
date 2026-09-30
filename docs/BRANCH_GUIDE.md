@@ -1,8 +1,10 @@
 # 福三和版本与分支索引
 
-更新日期：2026-09-30。Web 正式基线为 `main`，发布标签为 [`crm-web-v1.0.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.0.0)。日常部署、评审和后续开发均从 `main` 开始。
+更新日期：2026-09-30。Web 正式基线为 `main`，发布标签为 [`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)。日常部署、评审和后续开发均从 `main` 开始。
 
 ## 当前 Web 版本
+
+1.1.0 沿用 1.0.0 的统一 UI，新增 APIMonth 文本通道和 TokenDance MiniMax H3 Max 视频工作流。图片生成暂不启用。详见 [1.1.0 发布交接](RELEASE_CRM_WEB_1.1.0.md) 和 [双通道验收](../specs/006-dual-ai-gateways/verification.md)。
 
 统一五页工作台以 crm-web 0.5.0 为底座，整合 HIG 的会话审核、身份确认、人工接管、销售交接、队列、历史洞察以及权限与原生布局修复。保留一套 React 源码、构建产物和宿主桥接；没有引入 HIG 的第二套运行时。
 

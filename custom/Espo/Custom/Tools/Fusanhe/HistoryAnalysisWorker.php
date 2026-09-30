@@ -12,7 +12,7 @@ final class HistoryAnalysisWorker
     public function snapshot(Entity $conversation): array
     {
         $hash = hash_init('sha256');
-        hash_update($hash, HistorySignals::VERSION . '|' . (string) getenv('AI_MODEL'));
+        hash_update($hash, HistorySignals::VERSION . '|' . (new TextGateway())->fingerprint());
         $counts = ['inbound' => 0, 'outbound' => 0]; $buckets = []; $last = null;
         for ($offset = 0; ; $offset += 200) {
             $rows = $this->em->getRDBRepository('ExternalMessage')->where(['conversationId' => $conversation->getId()])
@@ -66,7 +66,7 @@ final class HistoryAnalysisWorker
                 try {
                     if (!$snap['map']) throw new \RuntimeException('no_source_messages');
                     $result = $this->provider->analyze($snap['input']);
-                    $stats['usageTokens'] += $result['usageTokens'];
+                    $stats['usageTokens'] += $result['usageTokens'] ?? 0;
                     $result['evidenceMessageIds'] = array_values(array_unique(array_map(fn($ref) => $snap['map'][$ref], $result['evidenceMessageIds'])));
                     $result['promptVersion'] = HistorySignals::VERSION;
                     $result['sourceMessageCount'] = array_sum($snap['input']['messageCounts']);
@@ -79,7 +79,7 @@ final class HistoryAnalysisWorker
                         'insightsAt' => $result['analyzedAt'], 'insightsModel' => $result['model']]);
                     $stats['completed'] += (int) ($state === 'completed');
                 } catch (\Throwable $e) {
-                    $safe = ['ai_not_configured','ai_transport_failed','ai_response_too_large','ai_invalid_json','ai_invalid_schema','ai_invalid_evidence','ai_unsupported_products','no_source_messages'];
+                    $safe = ['ai_not_configured','ai_transport_failed','ai_response_too_large','ai_invalid_json','ai_invalid_schema','ai_invalid_evidence','ai_unsupported_products','no_source_messages','text_not_configured','text_invalid_choice','text_transport_failed','text_auth_failed','text_rate_limited','text_response_too_large','text_invalid_response','text_model_mismatch','text_incomplete_response','text_invalid_json'];
                     $c->set(['insightsStatus' => 'failed', 'insightsError' => in_array($e->getMessage(), $safe, true) ? $e->getMessage() : 'analysis_failed']);
                     $stats['failed']++;
                 }

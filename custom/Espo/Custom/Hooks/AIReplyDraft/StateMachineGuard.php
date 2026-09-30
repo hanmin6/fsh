@@ -21,6 +21,12 @@ class StateMachineGuard implements BeforeSave
         if ($options->get('fusanheService')) {
             return;
         }
+        foreach (['modelProvider', 'modelName', 'usageTokens', 'promptVersion'] as $field) {
+            if (($entity->isNew() && $entity->get($field) !== null) ||
+                (!$entity->isNew() && $entity->isAttributeChanged($field))) {
+                throw new Forbidden('AI provenance can only be set by the generation service.');
+            }
+        }
         if ($entity->isNew()) {
             if (in_array($entity->get('status'), self::SERVICE_STATUSES, true)) {
                 throw new Forbidden('Draft status approved/sent can only be set by the review action.');
