@@ -20,7 +20,6 @@ __pycache__/
 .pytest_cache/
 playwright-report/
 test-results/
-.superpowers/
 
 # Alibaba client runtime ignore rules
 alibaba-client/.env
@@ -32,11 +31,14 @@ alibaba-client/token_storage.json
 # Local Codex handoff containing the user-provided AI credential.
 docs/CODEX_BOSS_DEMO_2026-09-24.private.md
 
-# MIC client runtime ignore rules
+# Frontend dependencies (built workspace assets are deployed with the repository).
+client/custom/ui/node_modules/
+
+# Preserve local tool and MIC runtime exclusions.
+.superpowers/
 mic-client/.env
 mic-client/**/profile/
 mic-client/**/logs/
 mic-client/**/data/
 mic-client/**/.outbound-test-tmp/
 mic-client/**/.run-worker-test-tmp/
-

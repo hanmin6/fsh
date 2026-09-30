@@ -269,24 +269,51 @@ test("Entry page metrics are read-only totals, ACL-gated, no full scans", async 
   assert.equal(denied[0], "无权限");
   assert.equal(requests.length, 0, "no request is issued without read permission");
 });
-test("Entry page renders both module links only when the scope is readable", async () => {
+test("Home contains only three business sections and respects order availability", async () => {
+  const requests = [];
   const Class = load("views/fusanhe/home.js", {
     "views/main": class {},
-    ajax: { getRequest: async () => ({ total: 3, list: [] }) },
+    ajax: { getRequest: async (entity, params) => {
+      requests.push([entity, params]);
+      return { total: 3, list: [] };
+    } },
     "custom:views/fusanhe/common": U,
   });
   const view = new Class();
-  view.getAcl = () => ({ checkScope: (scope) => scope !== "ExternalConversation" });
+  view.getAcl = () => ({ checkScope: scope => scope !== "Lead" });
   view.getUser = () => ({ id: "u1" });
-  const html = {};
-  view.$el = {
-    find: (selector) => (html[selector] ||= {
-      html(v) { html[selector] = v; return this; },
-    }),
-  };
-  await view.render();
-  assert.match(html[".fsh-entry-body"], /#Home\/crm/);
-  assert.doesNotMatch(html[".fsh-entry-body"], /#Home\/service/);
+  view.getConfig = () => ({ get: () => ["Account"] });
+  let output = "";
+  view.$el = { find: () => ({
+    html(v) { output = v; return this; },
+    prop() { return this; }, attr() { return this; },
+  }) };
+  await view.load();
+  assert.equal((output.match(/<section /g) || []).length, 3);
+  for (const title of ["今日客户概览", "已购客户流程跟踪", "本周小结"]) assert.ok(output.includes(title));
+  assert.match(output, /无权限/);
+  assert.match(output, /尚未启用/);
+  assert.doesNotMatch(output, /#Home\/crm|#Home\/service/);
+  assert.ok(requests.every(([entity]) => !["Lead", "FusanheSalesOrder"].includes(entity)));
+  const account = requests.find(([entity]) => entity === "Account")[1];
+  assert.deepEqual(Array.from(account.where[0].value, f => f.type), ["greaterThanOrEquals", "lessThanOrEquals"]);
+  const task = requests.find(([entity]) => entity === "Task")[1];
+  assert.ok(task.where[0].value.some(f => f.attribute === "dateEnd" && f.type === "lessThanOrEquals"));
+  assert.ok(task.where[0].value.some(f => f.attribute === "status" && f.type === "notIn"));
+  assert.ok(task.where[0].value.some(f => f.attribute === "assignedUserId" && f.value === "u1"));
+  view.getConfig = () => ({ get: () => [{ itemList: ["FusanheSalesOrder"] }] });
+  assert.equal(view.ordersEnabled(), true);
+  await view.orders(true);
+  const order = requests.find(([entity]) => entity === "FusanheSalesOrder")[1];
+  assert.deepEqual(Array.from(order.where[0].value), ["confirmed", "completed"]);
+  assert.equal(order.maxSize, 8);
+  assert.match(view.renderOrders({ list: [{ id: 'x/#', name: '<script>', accountName: '<img>', status: 'confirmed' }] }), /&lt;img&gt;/);
+  assert.doesNotMatch(view.renderOrders({ list: [] }), /<table/);
+  const period = view.period(new Date("2026-09-27T16:30:00Z"));
+  assert.equal(period.today, "2026-09-27 16:00:00");
+  assert.equal(period.week, "2026-09-27 16:00:00");
+  assert.equal(period.label, "2026-09-28");
+  assert.equal(view.period(new Date("2026-09-27T15:30:00Z")).weekLabel, "2026-09-21");
 });
 
 test("Phase 1 statuses translate: replied, control modes and mock receipts", () => {

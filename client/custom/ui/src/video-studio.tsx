@@ -1,0 +1,45 @@
+import {useEffect,useRef,useState} from 'react';
+import {Upload,Video,History,Check,ArrowRight,RefreshCw,X} from 'lucide-react';
+import type {Props} from './work';
+import {Button,Dialog,Empty,Notice,useStored} from './ui';
+import './video-studio.css';
+type Plan={name:string;description:string;motion:string;use:string};
+type Round={id:string;image:string;idea:string;plans:Plan[]};
+type Job={id:string;at:number;plan:Plan;idea:string;image:string;state:'queued'|'completed'};
+const directions:Plan[]=[
+ {name:'产品特写',description:'让客户先看清商品本身。',motion:'从完整构图缓慢推进，停留在主体细节，保持原图外观。',use:'客户产品介绍'},
+ {name:'轻移展示',description:'用轻微镜头变化带出层次。',motion:'镜头小幅横向移动，主体居中，背景保持简洁。',use:'商品展示'},
+ {name:'柔光氛围',description:'用光线与节奏营造自然感。',motion:'柔和光线变化，配合缓慢拉近，不添加文字或未经确认的信息。',use:'营销素材'}
+];
+export function AIPage({source,notify}:Props){
+ const [image,setImage]=useState(''),[idea,setIdea]=useStored('video:idea',''),[error,setError]=useState(''),[reading,setReading]=useState(false);
+ const [rounds,setRounds]=useState<Round[]>([]),[roundIndex,setRoundIndex]=useState(0),[choice,setChoice]=useState<number|null>(null);
+ const [jobs,setJobs]=useStored<Job[]>('video:demo-history',[]),[jobId,setJobId]=useState(''),[historyOpen,setHistoryOpen]=useState(false);
+ const input=useRef<HTMLInputElement>(null),readVersion=useRef(0),submitLock=useRef(false);
+ const round=rounds[roundIndex],job=source.demo?jobs.find(j=>j.id===jobId):undefined;
+ const stale=!!round&&(round.image!==image||round.idea!==idea.trim());
+ useEffect(()=>()=>{readVersion.current++},[]);
+ useEffect(()=>{if(!source.demo||!jobs.some(j=>j.state==='queued'))return;const t=setTimeout(()=>setJobs(jobs.map(j=>j.state==='queued'?{...j,state:'completed'}:j)),1600);return()=>clearTimeout(t)},[jobs,source.demo]);
+ const upload=(file?:File)=>{if(!file)return;const version=++readVersion.current;setError('');setReading(false);if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024){setError('请选择 2 MB 以内的 PNG、JPEG 或 WebP 图片。');return}setReading(true);const reader=new FileReader();reader.onerror=()=>{if(version===readVersion.current){setError('图片读取失败，请重新选择。');setReading(false)}};reader.onload=()=>{const picture=new window.Image();picture.onerror=()=>{if(version===readVersion.current){setError('图片无法打开，请换一张图片。');setReading(false)}};picture.onload=()=>{if(version!==readVersion.current)return;setImage(String(reader.result));setChoice(null);setJobId('');setReading(false)};picture.src=String(reader.result)};reader.readAsDataURL(file)};
+ const recommend=()=>{if(!image||!source.demo||reading)return;setRounds([{id:crypto.randomUUID(),image,idea:idea.trim(),plans:directions},...rounds].slice(0,3));setRoundIndex(0);setChoice(null);setJobId('');submitLock.current=false};
+ const generate=()=>{if(!source.demo||!round||choice===null||stale||submitLock.current)return;submitLock.current=true;const next:Job={id:crypto.randomUUID(),at:Date.now(),image:round.image,idea:round.idea,plan:round.plans[choice],state:'queued'};setJobs([next,...jobs].slice(0,8));setJobId(next.id);notify('已创建示例视频任务，不调用模型或产生费用')};
+ return <div className="v-studio">
+ <div className="v-workflow"><ol aria-label="视频创作流程">{['上传图片与构想','选择方案','生成视频'].map((s,i)=><li key={s} aria-current={(job?2:round?1:0)===i?'step':undefined}><span>{i+1}</span>{s}{i<2&&<ArrowRight size={14}/>}</li>)}</ol><Button onClick={()=>setHistoryOpen(true)}><History size={16}/>历史视频</Button></div>
+ {!source.demo&&<Notice>图片分析与视频生成服务尚未接入。可先准备图片和构想，切换右上角“示例预览”体验选择流程。</Notice>}
+ <div className="v-layout"><aside className="w-panel v-input"><h2>商品图片</h2><p className="w-muted">上传一张图片，作为视频的起点。</p>
+ <input className="v-file" ref={input} type="file" aria-label="上传商品图片" accept="image/png,image/jpeg,image/webp" onChange={e=>{upload(e.target.files?.[0]);e.target.value=''}}/>
+ {image?<div className="v-image"><img src={image} alt="已上传的商品图片"/><div><Button onClick={()=>input.current?.click()}>更换图片</Button><button className="w-link" aria-label="移除商品图片" onClick={()=>{readVersion.current++;setImage('');setReading(false);setChoice(null);setJobId('')}}><X size={16}/></button></div></div>:<button className="v-upload" onClick={()=>input.current?.click()}><Upload size={25}/><strong>{reading?'正在读取图片…':'上传商品图片'}</strong><span>PNG / JPEG / WebP · 2 MB 以内</span></button>}
+ {error&&<p role="alert" className="w-error">{error}</p>}<small className="v-local">图片仅保留在本地预览，尚未上传服务端。</small>
+ <label className="v-idea"><span>大概想法 <small>选填</small></span><textarea maxLength={500} rows={4} value={idea} onChange={e=>{setIdea(e.target.value);setJobId('')}} placeholder="比如：突出蓝莓的新鲜感，发给国外客户看，画面干净一点。"/><small>简单说说就好，不用写专业提示词。留空则根据图片推荐。</small></label>
+ <Button primary disabled={!image||reading||!source.demo} onClick={recommend}>{round?<RefreshCw size={15}/>:<ArrowRight size={15}/>} {round?'重新推荐方案':'推荐视频方案'}</Button>
+ <small className="v-local">{source.demo?'示例使用固定方案演示交互，不进行 AI 图片分析。':'推荐功能将在服务接入后启用。'}</small></aside>
+ <section className="w-panel v-content"><div className="v-content-head"><div><h2>{job?'视频任务':'推荐方案'}</h2><p className="w-muted">{job?'保留图片与方案，随时回来查看。':'比较不同表现方式，选择你想要的一种。'}</p></div>{rounds.length>1&&!job&&<label>方案记录<select aria-label="方案记录" value={roundIndex} onChange={e=>{setRoundIndex(Number(e.target.value));setChoice(null);submitLock.current=false}}>{rounds.map((r,i)=><option key={r.id} value={i}>{i===0?'最新方案':`上一轮 ${i}`}</option>)}</select></label>}</div>
+ {job?<div className="v-job"><div className="v-job-preview"><img src={job.image} alt="任务原图，不是生成的视频"/><span><Video size={20}/>原图预览 · 未生成视频</span></div><h3 role="status">{job.state==='queued'?'模拟排队中':'示例流程完成'}</h3><p>{job.plan.name} · 5 秒 · 沿用原图比例（示例）</p><p className="w-muted">{job.state==='queued'?'正在演示任务状态变化。':'此任务仅演示流程，尚未生成可播放或下载的视频。'}</p>{job.idea&&<p>构想：{job.idea}</p>}<Button disabled={job.state==='queued'} onClick={()=>{setJobId('');submitLock.current=false}}>换个方案生成</Button></div>:!round?<div className="v-empty"><Video size={40} strokeWidth={1.2}/><h3>从一张商品图片开始</h3><p>上传图片，写下简单构想。<br/>这里将展示 3 个视频方案，选中后再生成。</p><div><span>产品特写</span><span>镜头变化</span><span>氛围表达</span></div></div>:<>
+ <div className="v-brief"><strong>{round.idea?'本轮构想':'本轮方向'}</strong><p>{round.idea||'根据商品图片推荐视频表现方式。'}</p><small>以下为示例方案说明，不是生成预览或真实 AI 推荐。</small></div>
+ {stale&&<Notice>图片或构想已改变，请重新推荐后生成。</Notice>}
+ <div className="v-plans" role="group" aria-label="选择视频方案">{round.plans.map((p,i)=><button key={p.name} className={'v-plan'+(choice===i?' selected':'')} aria-pressed={choice===i} onClick={()=>{setChoice(i);submitLock.current=false}}><div className="v-plan-top"><span>方案 {i+1}</span><span className="v-select">{choice===i&&<Check size={14}/>}</span></div><h3>{p.name}</h3><p>{p.description}</p><div className="v-motion">{p.motion}</div><small>适合：{p.use}</small><small>5 秒 · 原图比例（示例）</small></button>)}</div>
+ <div className="v-generate"><div><strong>{choice===null?'选择一个方案继续':`已选：${round.plans[choice].name}`}</strong><small>示例任务不调用模型，不产生费用。</small></div><Button primary disabled={choice===null||stale||!image||reading} onClick={generate}><Video size={16}/>生成视频</Button></div></>}
+ </section></div>
+ {historyOpen&&<Dialog title="历史视频" onClose={()=>setHistoryOpen(false)}><div className="w-dialog-body">{!source.demo?<Notice>视频服务尚未接入，暂无真实任务记录。</Notice>:!jobs.length?<Empty title="还没有视频任务" detail="选择一个方案后，生成任务会保留在这里。"/>:<><Notice>以下均为示例任务，未生成真实视频。仅保留当前浏览器会话最近 8 条。</Notice>{jobs.map(j=><button className="v-history" key={j.id} onClick={()=>{setJobId(j.id);setHistoryOpen(false)}}><img src={j.image} alt="任务原图"/><span><strong>{j.plan.name}</strong><small>{new Date(j.at).toLocaleString('zh-CN')}</small></span><span>{j.state==='queued'?'模拟排队中':'示例流程完成'}</span></button>)}</>}</div></Dialog>}
+ </div>
+}

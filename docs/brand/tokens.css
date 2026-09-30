@@ -1,0 +1,18 @@
+/* Fusanhe product tokens v0.1 — extracted from web-workbench-hig 9075d39. Opt-in scope. */
+.fsh-brand {
+  --fsh-brand-red: #C83A28;
+  --fsh-primary: #AA3022;
+  --fsh-foreground: #20251F;
+  --fsh-background: #F6F7F5;
+  --fsh-surface: #FFFFFF;
+  --fsh-border: #D8DED8;
+  --fsh-muted: #526056;
+  --fsh-success: #245B3C;
+  --fsh-warning: #79541C;
+  --fsh-danger: #A62727;
+  --fsh-radius: 6px;
+  --fsh-control-height: 34px;
+  --fsh-touch-target: 44px;
+  --fsh-row-height: 40px;
+  --fsh-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
