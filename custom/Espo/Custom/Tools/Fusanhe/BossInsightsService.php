@@ -12,11 +12,11 @@ final class BossInsightsService
 {
     public function __construct(private EntityManager $em, private Acl $acl, private User $user) {}
 
-    private function base(): array
+    private function base(string $channelType = ''): array
     {
         if (!$this->user->isAdmin() && !$this->acl->checkScope('ExternalConversation', 'read')) throw new Forbidden();
         $channels = [];
-        foreach ($this->em->getRDBRepository('ExternalChannel')->where(['type' => 'Alibaba'])->find() as $c) $channels[] = $c->getId();
+        foreach ($this->em->getRDBRepository('ExternalChannel')->where(['type' => in_array($channelType, ['Alibaba', 'MadeInChina'], true) ? $channelType : ['Alibaba', 'MadeInChina']])->find() as $c) $channels[] = $c->getId();
         $where = ['channelId' => $channels ?: ['__none__'], 'lastSourceSyncAt!=' => null];
         // A conservative own-only subset for team/own ACL; never leak org totals.
         if (!$this->user->isAdmin() && $this->acl->getLevel('ExternalConversation', 'read') !== 'all') $where['assignedUserId'] = $this->user->getId();
@@ -25,9 +25,9 @@ final class BossInsightsService
 
     private function repo() { return $this->em->getRDBRepository('ExternalConversation'); }
 
-    public function overview(string $query = '', string $status = '', int $offset = 0, int $limit = 25): array
+    public function overview(string $query = '', string $status = '', int $offset = 0, int $limit = 25, string $channelType = ''): array
     {
-        $base = $this->base();
+        $base = $this->base($channelType);
         $where = $base;
         $query = mb_substr(trim($query), 0, 100);
         if ($query !== '') $where['OR'] = [['name*' => '%' . $query . '%'], ['externalId*' => '%' . $query . '%'], ['externalUserId*' => '%' . $query . '%']];
@@ -63,7 +63,7 @@ final class BossInsightsService
                 'analysisCompleted' => $count(['insightsStatus' => 'completed']), 'analysisFailed' => $count(['insightsStatus' => 'failed']),
                 'analysisStale' => $count(['insightsStatus' => 'stale']),
                 'lastSyncAt' => $latest?->get('lastSourceSyncAt'), 'lastAnalysisAt' => $analyzed?->get('insightsAt'),
-                'reconciled' => false, 'reason' => '待采集端提供完整分页及消息对账；平台可见总数和未入库失败数未知。仅统计带同步来源的 Alibaba 会话。'], $coverageReport),
+                'reconciled' => false, 'reason' => '待采集端提供完整分页及消息对账；平台可见总数和未入库失败数未知。仅统计带同步来源的阿里国际站和 Made-in-China 会话。'], $coverageReport),
             'list' => $list, 'total' => $this->repo()->where($where)->count(), 'offset' => $offset, 'limit' => $limit,
             'suggestions' => array_slice($suggestions, 0, 50), 'suggestionTotal' => $suggestionTotal,
         ];

@@ -1,20 +1,22 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "version"
-      }
-    ],
-    [
-      {
-        "name": "product"
-      },
-      {
-        "name": "status"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "version"
+        }
+      ],
+      [
+        {
+          "name": "product"
+        },
+        {
+          "name": "status"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

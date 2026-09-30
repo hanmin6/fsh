@@ -50,7 +50,7 @@ final class HistoryAnalysisWorker
     {
         $stats = ['scanned' => 0, 'cached' => 0, 'completed' => 0, 'failed' => 0, 'calls' => 0, 'usageTokens' => 0];
         $channels = [];
-        foreach ($this->em->getRDBRepository('ExternalChannel')->where(['type' => 'Alibaba'])->find() as $c) $channels[] = $c->getId();
+        foreach ($this->em->getRDBRepository('ExternalChannel')->where(['type' => ['Alibaba', 'MadeInChina']])->find() as $c) $channels[] = $c->getId();
         if (!$channels) return $stats;
         for ($offset = 0; ; $offset += 100) {
             $rows = $this->kernel->repo('ExternalConversation')->where(['channelId' => $channels, 'lastSourceSyncAt!=' => null])->order('id')->limit($offset, 100)->find();

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {origin,certificateState,sortFollowups} from './domain';
+import {origin,certificateState,sortFollowups,attachmentInfo} from './domain';
 test('production attribution never infers AI from current mode or demo fields',()=>{
  assert.equal(origin({id:'1',direction:'outbound',senderName:'客服',controlMode:'ai',origin:'ai'}),'来源未确认 · 客服');
  assert.equal(origin({id:'2',direction:'inbound',senderName:'王先生'}),'客户 · 王先生');
@@ -14,4 +14,10 @@ test('certificate requires approval and expiry and respects Shanghai calendar bo
 });
 test('followups sort overdue first and missing rating after rated ties',()=>{
  assert.deepEqual(sortFollowups([{id:'none'},{id:'a',rating:'A'},{id:'late',dateEnd:'2026-09-28 00:00:00'},{id:'s',rating:'S'}]).map(r=>r.id),['late','s','a','none']);
+});
+
+test('attachment metadata never turns untrusted URLs into download authority',()=>{
+ assert.deepEqual(attachmentInfo({items:[{name:'<img src=x>',url:'javascript:alert(1)',size:1536}]}),[{name:'<img src=x>',mediaType:'',size:'1.5 KB'}]);
+ assert.deepEqual(attachmentInfo({files:[{fileName:'legacy.pdf'}]}),[{name:'legacy.pdf',mediaType:'',size:''}]);
+ assert.deepEqual(attachmentInfo({items:'malformed'}),[]);
 });

@@ -1,20 +1,18 @@
-{
-  "layout": [
-    {
-      "name": "name",
-      "link": true
-    },
-    {
-      "name": "nameEn"
-    },
-    {
-      "name": "category"
-    },
-    {
-      "name": "status"
-    },
-    {
-      "name": "createdAt"
-    }
-  ]
-}
+[
+  {
+    "name": "name",
+    "link": true
+  },
+  {
+    "name": "nameEn"
+  },
+  {
+    "name": "category"
+  },
+  {
+    "name": "status"
+  },
+  {
+    "name": "createdAt"
+  }
+]

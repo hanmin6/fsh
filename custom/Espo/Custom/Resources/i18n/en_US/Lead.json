@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "rating": "Human rating",
+    "ratingReason": "Rating rationale",
+    "ratingConfirmedAt": "Confirmed at",
+    "ratingConfirmedBy": "Confirmed by"
+  }
+}

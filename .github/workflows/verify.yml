@@ -16,12 +16,50 @@ jobs:
         run: docker compose config --quiet
       - name: Validate Spec Kit and offline contracts
         env:
-          SPECIFY_FEATURE_DIRECTORY: specs/002-non-channel-production-readiness
+          SPECIFY_FEATURE_DIRECTORY: specs/005-unified-crm-web
         run: |
           make spec-check
           make verify-offline
       - name: Lint custom PHP
         run: find custom -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: client/custom/ui/package-lock.json
+      - name: Install, test and build unified frontend
+        run: |
+          npm ci --prefix client/custom/ui
+          npm test --prefix client/custom/ui
+          node --test client/custom/tests/frontend.test.cjs
+          npm run build --prefix client/custom/ui
+          git diff --exit-code -- client/custom/res/workspace
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test runtime
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+      - name: Verify synthetic workflows and responsive layouts
+        run: |
+          (cd client/custom/ui && npx vite --host 127.0.0.1 --port 5176 --strictPort > /tmp/vite.log 2>&1 &)
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:5176/preview.html > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/unified_ui_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unified-ui-synthetic-screenshots
+          path: test-results/unified-ui
+          if-no-files-found: ignore
 
   android:
     runs-on: ubuntu-latest

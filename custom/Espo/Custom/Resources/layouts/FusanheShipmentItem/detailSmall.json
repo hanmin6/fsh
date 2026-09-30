@@ -1,20 +1,22 @@
-{
-  "layout": [
-    [
-      {
-        "name": "shipment"
-      },
-      {
-        "name": "orderLine"
-      }
-    ],
-    [
-      {
-        "name": "quantity"
-      },
-      {
-        "name": "unit"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "shipment"
+        },
+        {
+          "name": "orderLine"
+        }
+      ],
+      [
+        {
+          "name": "quantity"
+        },
+        {
+          "name": "unit"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

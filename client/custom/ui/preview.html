@@ -1,0 +1,6 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>福三和工作台预览</title></head><body style="margin:0"><div id="workspace"></div><script type="module">
+import {mount} from './src/main.tsx';
+if(!new URLSearchParams(location.search).has('preview')){history.replaceState(null,'',location.pathname+'?preview=1')}
+const denied=()=>Promise.reject(new Error('独立预览仅允许使用示例数据'));
+mount(document.getElementById('workspace'),{get:denied,post:denied,patch:denied,can:()=>false,native:()=>{},user:{id:'preview',name:'独立预览'}});
+</script></body></html>

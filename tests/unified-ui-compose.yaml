@@ -1,0 +1,73 @@
+# Isolated unified CRM Web acceptance stack.
+# Use port 18082 and these dedicated volumes; never touches fusanhe-crm.
+# Usage:
+#   docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml up -d --wait
+
+services:
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME:-espocrm}
+      MARIADB_USER: ${DB_USER:-espocrm}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      start_period: 20s
+      timeout: 10s
+      retries: 10
+
+  espocrm:
+    image: espocrm/espocrm:10.0.8-apache
+    environment:
+      ESPOCRM_DATABASE_PLATFORM: Mysql
+      ESPOCRM_DATABASE_HOST: db
+      ESPOCRM_DATABASE_NAME: ${DB_NAME:-espocrm}
+      ESPOCRM_DATABASE_USER: ${DB_USER:-espocrm}
+      ESPOCRM_DATABASE_PASSWORD: ${DB_PASSWORD}
+      ESPOCRM_ADMIN_USERNAME: ${ESPOCRM_ADMIN_USERNAME:-admin}
+      ESPOCRM_ADMIN_PASSWORD: ${ESPOCRM_ADMIN_PASSWORD}
+      ESPOCRM_SITE_URL: ${ESPOCRM_SITE_URL:-http://localhost:18080}
+      AI_API_BASE_URL: ${AI_API_BASE_URL:-https://api.openai.com/v1}
+      AI_API_KEY: ""
+      AI_MODEL: ${AI_MODEL:-gpt-4.1-mini}
+      KNOWLEDGE_BASE_PATH: /var/www/html/knowledge
+      MATERIAL_LIBRARY_PATH: /var/www/html/materials
+      FUSANHE_AUTOMATION_TOKEN: ${FUSANHE_AUTOMATION_TOKEN}
+      FUSANHE_AGENT_CREDENTIAL_TTL_DAYS: 90
+      FUSANHE_AUTOMATION_LEGACY_UNTIL: ""
+      FUSANHE_KNOWLEDGE_MAX_BYTES: 26214400
+      FUSANHE_FEATURE_PRODUCTS: "true"
+      FUSANHE_FEATURE_CERTIFICATES: "true"
+      FUSANHE_FEATURE_SAMPLES: "true"
+      FUSANHE_FEATURE_QUOTES: "true"
+      FUSANHE_FEATURE_ORDERS: "true"
+      FUSANHE_OUTBOUND_PAUSED: ${FUSANHE_OUTBOUND_PAUSED:-true}
+    volumes:
+      - espocrm-data:/var/www/html/data
+      - ../custom:/var/www/html/custom
+      - ../client/custom:/var/www/html/client/custom
+      - ../knowledge:/var/www/html/knowledge:ro
+      - ../materials:/var/www/html/materials:ro
+    ports:
+      - "${ESPOCRM_PORT:-18080}:80"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bin/command", "app-check"]
+      start_period: 30s
+      interval: 30s
+      timeout: 20s
+      retries: 5
+
+volumes:
+  db-data:
+    name: fusanhe-ui-v1-test-db-data
+  espocrm-data:
+    name: fusanhe-ui-v1-test-espocrm-data

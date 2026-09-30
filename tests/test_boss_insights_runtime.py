@@ -84,7 +84,7 @@ $c->set(['insightsVersion'=>$s['version'],'insightsStatus'=>'completed']);
 $em->saveEntity($c,['fusanheInsights'=>true]);
 echo json_encode(['version'=>$s['version'],'input'=>$s['input']]);
 """ % json.dumps(cid)
-        cmd=['docker','compose','-p','fusanhe-phase1-test','--env-file','.env.test','-f','tests/phase1-compose.yaml','exec','-T','espocrm','php']
+        cmd=['docker','compose','-p',os.getenv('COMPOSE_PROJECT_NAME','fusanhe-phase1-test'),'--env-file','.env.test','-f',os.getenv('COMPOSE_FILE','tests/phase1-compose.yaml'),'exec','-T','espocrm','php']
         result=subprocess.run(cmd,input=source,text=True,capture_output=True)
         self.assertEqual(result.returncode,0,result.stderr + result.stdout)
         snapshot=json.loads(result.stdout)

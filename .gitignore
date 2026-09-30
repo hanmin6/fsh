@@ -42,3 +42,6 @@ mic-client/**/logs/
 mic-client/**/data/
 mic-client/**/.outbound-test-tmp/
 mic-client/**/.run-worker-test-tmp/
+
+# Local acceptance overlays (the reproducible unified UI stack is versioned).
+tests/*.local.yaml

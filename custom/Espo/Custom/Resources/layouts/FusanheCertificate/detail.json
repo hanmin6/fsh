@@ -1,88 +1,90 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "status"
-      }
-    ],
-    [
-      {
-        "name": "type"
-      },
-      {
-        "name": "scopeLevel"
-      }
-    ],
-    [
-      {
-        "name": "factoryName"
-      },
-      {
-        "name": "certificateNo"
-      }
-    ],
-    [
-      {
-        "name": "product"
-      },
-      {
-        "name": "productSpec"
-      }
-    ],
-    [
-      {
-        "name": "batchCode"
-      },
-      {
-        "name": "issuer"
-      }
-    ],
-    [
-      {
-        "name": "issueDate"
-      },
-      {
-        "name": "validFrom"
-      }
-    ],
-    [
-      {
-        "name": "validTo"
-      },
-      {
-        "name": "reviewer"
-      }
-    ],
-    [
-      {
-        "name": "files"
-      }
-    ],
-    [
-      {
-        "name": "markets"
-      }
-    ],
-    [
-      {
-        "name": "notes"
-      }
-    ],
-    [
-      {
-        "name": "assignedUser"
-      },
-      {
-        "name": "teams"
-      }
-    ],
-    [
-      {
-        "name": "description"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "type"
+        },
+        {
+          "name": "scopeLevel"
+        }
+      ],
+      [
+        {
+          "name": "factoryName"
+        },
+        {
+          "name": "certificateNo"
+        }
+      ],
+      [
+        {
+          "name": "product"
+        },
+        {
+          "name": "productSpec"
+        }
+      ],
+      [
+        {
+          "name": "batchCode"
+        },
+        {
+          "name": "issuer"
+        }
+      ],
+      [
+        {
+          "name": "issueDate"
+        },
+        {
+          "name": "validFrom"
+        }
+      ],
+      [
+        {
+          "name": "validTo"
+        },
+        {
+          "name": "reviewer"
+        }
+      ],
+      [
+        {
+          "name": "files"
+        }
+      ],
+      [
+        {
+          "name": "markets"
+        }
+      ],
+      [
+        {
+          "name": "notes"
+        }
+      ],
+      [
+        {
+          "name": "assignedUser"
+        },
+        {
+          "name": "teams"
+        }
+      ],
+      [
+        {
+          "name": "description"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

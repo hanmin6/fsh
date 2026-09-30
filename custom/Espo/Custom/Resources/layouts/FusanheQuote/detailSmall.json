@@ -1,20 +1,22 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "number"
-      }
-    ],
-    [
-      {
-        "name": "status"
-      },
-      {
-        "name": "currency"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "number"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        },
+        {
+          "name": "currency"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

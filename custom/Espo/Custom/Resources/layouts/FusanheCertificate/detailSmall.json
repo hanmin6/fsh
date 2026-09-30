@@ -1,20 +1,22 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "status"
-      }
-    ],
-    [
-      {
-        "name": "type"
-      },
-      {
-        "name": "validTo"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "type"
+        },
+        {
+          "name": "validTo"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

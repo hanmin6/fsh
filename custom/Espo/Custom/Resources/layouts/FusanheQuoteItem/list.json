@@ -1,25 +1,23 @@
-{
-  "layout": [
-    {
-      "name": "position"
-    },
-    {
-      "name": "name"
-    },
-    {
-      "name": "product"
-    },
-    {
-      "name": "quantity"
-    },
-    {
-      "name": "unit"
-    },
-    {
-      "name": "unitPrice"
-    },
-    {
-      "name": "amount"
-    }
-  ]
-}
+[
+  {
+    "name": "position"
+  },
+  {
+    "name": "name"
+  },
+  {
+    "name": "product"
+  },
+  {
+    "name": "quantity"
+  },
+  {
+    "name": "unit"
+  },
+  {
+    "name": "unitPrice"
+  },
+  {
+    "name": "amount"
+  }
+]

@@ -13,6 +13,6 @@ final class GetInsights implements Action
         $id = $request->getRouteParam('id');
         return ResponseComposer::json($id ? $this->service->detail($id) : $this->service->overview(
             (string) ($request->getQueryParam('q') ?? ''), (string) ($request->getQueryParam('status') ?? ''),
-            (int) ($request->getQueryParam('offset') ?? 0), (int) ($request->getQueryParam('limit') ?? 25)));
+            (int) ($request->getQueryParam('offset') ?? 0), (int) ($request->getQueryParam('limit') ?? 25), (string) ($request->getQueryParam('channelType') ?? '')));
     }
 }

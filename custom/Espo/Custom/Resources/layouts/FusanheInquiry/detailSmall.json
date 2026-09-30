@@ -1,20 +1,22 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "number"
-      }
-    ],
-    [
-      {
-        "name": "status"
-      },
-      {
-        "name": "destination"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "number"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        },
+        {
+          "name": "destination"
+        }
+      ]
     ]
-  ]
-}
+  }
+]
