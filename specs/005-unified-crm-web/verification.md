@@ -33,3 +33,9 @@ python3 -m unittest tests.test_boss_insights tests.test_boss_insights_runtime te
 未调用真实图片/视频供应商，未发送客户消息，未做生产部署或真实平台账号完整抓取验收。抓取依据是已报告的成功同步及心跳，未报告的空轮询无法证明成功；超时和未知可见。公开共享账号免登录的专用运行时套件本次未启用，本版没有更改认证实现或扩权。
 
 完整设计的媒体生成、实际视频下载/关联、来源平台原始附件下载及完整采集历史依赖外部服务/采集报告，本版保留明确可用状态和入口；不声称这些外部服务已接通。真实供应商接入沿用本版 UI。
+
+## GitHub 发布验证
+
+[PR #1](https://github.com/hanmin6/fsh/pull/1) 的核心提交 `8baa2ed6d2024ad104cc00816f00aa516afdb9dd` 已通过 [GitHub Actions verify #20](https://github.com/hanmin6/fsh/actions/runs/36668511534)：前端测试/构建/构建产物一致性/浏览器回归、Spec/Python/PHP 与 Android 测试/lint/组装均成功。PR 已合入 main（合并提交 `483dc510e6ffb81f9411077618bda9e9497dd234`）。
+
+五个 archive 标签在删除旧 Web 远程分支前已逐项核对到精确原提交；三条旧 Web 远程分支已经删除，活跃本地 worktree 和未提交文件保留。最后的文档完成提交与 crm-web-v1.0.0 标签通过同一次原子 push 发布到 main。临时整合远程分支发布后删除。

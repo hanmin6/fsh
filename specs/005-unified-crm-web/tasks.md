@@ -6,4 +6,4 @@
 - [x] T005 [US4] Complete knowledge/spec/material and creative navigation in `client/custom/ui/src/library.tsx`.
 - [x] T006 [US1] Integrate homepage, responsive styles and operation settings in `client/custom/ui/src/main.tsx`.
 - [x] T007 Verify build, workflow/capture regression and browser states in `specs/005-unified-crm-web/verification.md`.
-- [ ] T008 [US5] Release version, update branch documentation, archive UI refs and publish main in `docs/BRANCH_GUIDE.md`.
+- [x] T008 [US5] Release version, update branch documentation, archive UI refs and publish main in `docs/BRANCH_GUIDE.md`.

@@ -2,6 +2,8 @@
 
 日期：2026-09-30。正式 Web 基线为 main，版本标签 crm-web-v1.0.0。
 
+通过 [PR #1](https://github.com/hanmin6/fsh/pull/1) 发布；[GitHub 验证](https://github.com/hanmin6/fsh/actions/runs/36668511534) 的前端/浏览器、Spec/PHP/契约、Android 三项任务全部通过。
+
 ## 本版体验
 
 一套 React / TypeScript 前端、一个宿主桥接、一个部署资源目录。五个入口为首页、消息中心、客户与评级、AI 工作中心、知识库。首页保留新消息与正在跟进，上方用两条小状态栏显示平台抓取，异常展开，恢复收回。
