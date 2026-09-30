@@ -1,0 +1,44 @@
+import {useEffect,useMemo,useState} from 'react';
+import {createRoot} from 'react-dom/client';
+import {Home,MessagesSquare,Users,Image,BookOpen,Settings,Menu,ChevronLeft,ChevronRight,Search,ArrowUpRight,X,Check} from 'lucide-react';
+import {liveSource,type HostBridge,type DataSource} from './bridge';
+import {demoSource} from './demo';
+import {readRoute,type Route,type Page} from './domain';
+import {Dialog,Button,Notice,SearchBox,useList,Avatar} from './ui';
+import {HomePage,CustomersPage,MessagesPage} from './work';
+import {KnowledgePage,AIPage} from './library';
+import './style.css';
+import {CaptureStrip} from './capture';
+import {Queue} from './queues';
+export type Navigate=(page:Page,params?:Partial<Route>)=>void;
+const entries=[{id:'home',name:'首页',icon:Home},{id:'messages',name:'消息中心',icon:MessagesSquare},{id:'customers',name:'客户与评级',icon:Users},{id:'ai',name:'AI 工作中心',icon:Image},{id:'knowledge',name:'知识库',icon:BookOpen}] as const;
+function App({host}:{host:HostBridge}){
+ const [route,setRoute]=useState(readRoute),[demo,setDemo]=useState(new URLSearchParams(location.search).get('preview')==='1'),[menu,setMenu]=useState(false),[collapsed,setCollapsed]=useState(false),[settings,setSettings]=useState(false),[search,setSearch]=useState<string|null>(null),[toast,setToast]=useState('');
+ const source=useMemo(()=>demo?demoSource(host):liveSource(host),[host,demo]);
+ const navigate:Navigate=(page,params={})=>{const r={page,tab:'',id:'',entity:'Account',...params};const q=new URLSearchParams(location.search);q.set('workspace',page);for(const [key,val] of Object.entries({tab:r.tab,record:r.id,entity:r.entity}))val?q.set(key,val):q.delete(key);history.pushState(null,'',location.pathname+'?'+q+'#Home/workspace');setRoute(r);setMenu(false)};
+ useEffect(()=>{const pop=()=>{setRoute(readRoute());setDemo(new URLSearchParams(location.search).get('preview')==='1')};window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop)},[]);
+ useEffect(()=>{const saved=Number(sessionStorage.getItem('fsh-ui:scroll:'+route.page)||0);const timer=setTimeout(()=>{const main=document.getElementById('w-main');if(main)main.scrollTop=saved},160);return()=>clearTimeout(timer)},[route.page]);
+ useEffect(()=>{document.title=entries.find(e=>e.id===route.page)?.name+' · 福三和';},[route.page]);
+ useEffect(()=>{const key=(e:KeyboardEvent)=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setSearch('')}if(e.key==='Escape')setMenu(false)};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[]);
+ useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),5000);return()=>clearTimeout(t)},[toast]);
+ const changeMode=()=>{const q=new URLSearchParams(location.search);q.set('preview',demo?'0':'1');q.delete('record');history.pushState(null,'',location.pathname+'?'+q+'#Home/workspace');setDemo(!demo);setRoute(readRoute());setSettings(false)};
+ const title=entries.find(e=>e.id===route.page)?.name;
+ const props={source,navigate,notify:setToast,route};
+ return <div className={'w-app'+(collapsed?' collapsed':'')+(menu?' menu-open':'')}>
+ <a className="w-skip" href="#w-main" onClick={e=>{e.preventDefault();document.getElementById('w-main')?.focus()}}>跳转到内容</a>
+ {menu&&<button className="w-scrim" aria-label="关闭导航" onClick={()=>setMenu(false)}/>}
+ <aside className="w-sidebar"><div className="w-brand"><img src="client/custom/res/fusanhe/logo-full.png" alt="福三和 FUSANHE"/><span>客户工作台</span><button className="w-mobile-close" onClick={()=>setMenu(false)} aria-label="关闭导航"><X size={18}/></button></div>
+ <nav aria-label="主导航">{entries.map(e=><button title={e.name} key={e.id} className={route.page===e.id?'active':''} aria-current={route.page===e.id?'page':undefined} onClick={()=>navigate(e.id)}><e.icon size={19} strokeWidth={1.65}/><span>{e.name}</span></button>)}</nav>
+ <div className="w-sidebar-bottom"><button onClick={()=>setSettings(true)} title="设置"><Settings size={18}/><span>设置与预览</span></button><div className="w-account"><Avatar name={source.user.name} small/><div><strong>{source.user.name}</strong><small>{demo?'示例数据 · 不写入后台':'业务工作空间'}</small></div></div><button className="w-collapse" onClick={()=>setCollapsed(!collapsed)} aria-label={collapsed?'展开侧栏':'收起侧栏'}>{collapsed?<ChevronRight size={16}/>:<ChevronLeft size={16}/>}<span>收起侧栏</span></button></div></aside>
+ <div className="w-workspace"><header className="w-topbar"><div><button className="w-mobile-menu" onClick={()=>setMenu(true)} aria-label="展开导航"><Menu size={20}/></button><span className="w-breadcrumb">工作台 <ChevronRight size={12}/> <strong>{title}</strong></span></div><div className="w-top-actions"><button className="w-global-search" onClick={()=>setSearch('')}><Search size={15}/><span>搜索客户、消息与资料</span><kbd>⌘ K</kbd></button><button className={'w-mode '+(demo?'demo':'')} onClick={changeMode}>{demo?'示例预览 · 切换真实数据':'真实数据 · 查看示例'}</button><span className="w-top-account" title={source.user.name}><Avatar name={source.user.name} small/></span></div></header>
+ <main onScroll={e=>{try{sessionStorage.setItem('fsh-ui:scroll:'+route.page,String(e.currentTarget.scrollTop))}catch{}}} id="w-main" tabIndex={-1} className={'w-main page-'+route.page} key={String(demo)}><div className="w-page-heading"><div><h1>{title}</h1><p>{({home:'把每一次沟通，变成有进展的客户关系。',messages:'按客户整理沟通，清楚记录每一条消息。',customers:'客户资料、价值判断与下一步行动。',ai:'从商品素材出发，管理内容创作、任务与作品。',knowledge:'商品规格、证书、知识文档与素材集中查阅。'})[route.page]}</p></div><span className="w-date">{new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long',timeZone:'Asia/Shanghai'}).format(new Date())}</span></div>
+ {demo&&<div className="w-demo-label">示例预览：客户、评级、商品与生成任务均为演示，不会修改真实业务数据。</div>}
+ {route.page==='home'?<HomePage {...props}/>:route.page==='messages'?<MessagesPage {...props}/>:route.page==='customers'?<CustomersPage {...props}/>:route.page==='knowledge'?<KnowledgePage {...props}/>:<AIPage {...props}/>}
+ <footer className="w-footer">广州福三和食品有限公司 <span>Powered by <a href="https://www.espocrm.com" target="_blank" rel="noreferrer">EspoCRM</a></span></footer></main></div>
+ {toast&&<div className="w-toast" role="status"><Check size={16}/>{toast}<button aria-label="关闭提示" onClick={()=>setToast('')}><X size={16}/></button></div>}
+ {settings&&<Dialog title="工作台设置" onClose={()=>setSettings(false)}><div className="w-dialog-body"><h3>数据模式</h3><p>真实数据直接连接现有 CRM；示例预览用于体验评级、媒体创作和完整页面状态。</p><Button primary onClick={changeMode}>{demo?'使用真实数据':'查看示例预览'}</Button><hr/><h3>账号与权限</h3><p>当前以{source.user.name}访问。业务权限和发送策略由服务端控制。</p><Notice>图片和视频生成服务尚未配置；客户评级和业务操作按当前权限保存。</Notice><h3>平台抓取</h3><CaptureStrip source={source} compact/><h3>执行端</h3><Queue {...props} entity="AutomationAgent"/>{!demo&&<Button onClick={()=>host.native('Preferences')}>个人偏好<ArrowUpRight size={14}/></Button>}</div></Dialog>}
+ {search!==null&&<Dialog title="搜索工作台" onClose={()=>setSearch(null)}><div className="w-dialog-body"><GlobalSearch source={source} value={search} onChange={setSearch} choose={(page,id,entity)=>{navigate(page,{id,entity,...(entity==='KnowledgeDocument'?{tab:'documents'}:{})});setSearch(null)}}/></div></Dialog>}
+ </div>
+}
+function GlobalSearch({source,value,onChange,choose}:{source:DataSource;value:string;onChange:(v:string)=>void;choose:(p:Page,id:string,e:string)=>void}){const customers=useList(source,'Account',{search:value,limit:5});const conversations=useList(source,'ExternalConversation',{search:value,limit:5});const tasks=useList(source,'Task',{search:value,limit:5});const documents=useList(source,'KnowledgeDocument',{search:value,limit:5});return <><SearchBox value={value} onChange={onChange} placeholder="搜索客户名称或消息会话"/>{[['客户公司',customers,'customers','Account'],['消息会话',conversations,'messages','ExternalConversation'],['跟进事项',tasks,'home','Task'],['知识文档',documents,'knowledge','KnowledgeDocument']].map(([caption,result,page,entity])=>{const r=result as typeof customers;return <div className="w-search-results" key={String(caption)}><h3>{String(caption)}</h3>{r.loading?<p>正在搜索…</p>:r.error?<p>{r.error}</p>:!r.list.length?<p>没有匹配结果</p>:r.list.map(x=><button key={x.id} onClick={()=>choose(page as Page,x.id,String(entity))}>{x.name}<ChevronRight size={14}/></button>)}</div>})}<p className="w-muted">作品仅在 AI 工作中心内查找；尚未接入跨媒体搜索。</p></>}
+export function mount(element:HTMLElement,host:HostBridge){const root=createRoot(element);root.render(<App host={host}/>);return ()=>root.unmount()}

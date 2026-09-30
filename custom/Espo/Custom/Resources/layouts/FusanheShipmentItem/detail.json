@@ -1,28 +1,30 @@
-{
-  "layout": [
-    [
-      {
-        "name": "shipment"
-      },
-      {
-        "name": "orderLine"
-      }
-    ],
-    [
-      {
-        "name": "quantity"
-      },
-      {
-        "name": "unit"
-      }
-    ],
-    [
-      {
-        "name": "batchCode"
-      },
-      {
-        "name": "note"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "shipment"
+        },
+        {
+          "name": "orderLine"
+        }
+      ],
+      [
+        {
+          "name": "quantity"
+        },
+        {
+          "name": "unit"
+        }
+      ],
+      [
+        {
+          "name": "batchCode"
+        },
+        {
+          "name": "note"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

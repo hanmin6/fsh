@@ -1,46 +1,48 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "status"
-      }
-    ],
-    [
-      {
-        "name": "category"
-      },
-      {
-        "name": "code"
-      }
-    ],
-    [
-      {
-        "name": "nameEn"
-      }
-    ],
-    [
-      {
-        "name": "defaultMoq"
-      },
-      {
-        "name": "defaultMoqUnit"
-      }
-    ],
-    [
-      {
-        "name": "assignedUser"
-      },
-      {
-        "name": "teams"
-      }
-    ],
-    [
-      {
-        "name": "description"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "category"
+        },
+        {
+          "name": "code"
+        }
+      ],
+      [
+        {
+          "name": "nameEn"
+        }
+      ],
+      [
+        {
+          "name": "defaultMoq"
+        },
+        {
+          "name": "defaultMoqUnit"
+        }
+      ],
+      [
+        {
+          "name": "assignedUser"
+        },
+        {
+          "name": "teams"
+        }
+      ],
+      [
+        {
+          "name": "description"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

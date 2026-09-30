@@ -1,20 +1,22 @@
-{
-  "layout": [
-    [
-      {
-        "name": "name"
-      },
-      {
-        "name": "status"
-      }
-    ],
-    [
-      {
-        "name": "category"
-      },
-      {
-        "name": "code"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "category"
+        },
+        {
+          "name": "code"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

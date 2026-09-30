@@ -1,0 +1,11 @@
+{
+  "implementationClassName": "Espo\\Custom\\Authentication\\Workspace",
+  "portalDefault": false,
+  "settings": {
+    "isAvailable": true
+  },
+  "login": {
+    "handler": "custom:handlers/login/workspace",
+    "fallback": false
+  }
+}

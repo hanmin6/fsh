@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "rating": "人工评级",
+    "ratingReason": "评级依据",
+    "ratingConfirmedAt": "确认时间",
+    "ratingConfirmedBy": "确认人"
+  }
+}

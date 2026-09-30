@@ -1,0 +1,33 @@
+{
+  "fields": {
+    "rating": {
+      "type": "enum",
+      "options": [
+        "",
+        "S",
+        "A",
+        "B",
+        "C"
+      ],
+      "audited": true
+    },
+    "ratingReason": {
+      "type": "text",
+      "audited": true
+    },
+    "ratingConfirmedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "ratingConfirmedBy": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "ratingConfirmedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  }
+}

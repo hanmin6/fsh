@@ -1,46 +1,48 @@
-{
-  "layout": [
-    [
-      {
-        "name": "order"
-      },
-      {
-        "name": "position"
-      }
-    ],
-    [
-      {
-        "name": "product"
-      },
-      {
-        "name": "productSpec"
-      }
-    ],
-    [
-      {
-        "name": "description"
-      }
-    ],
-    [
-      {
-        "name": "quantity"
-      },
-      {
-        "name": "unit"
-      }
-    ],
-    [
-      {
-        "name": "unitPrice"
-      },
-      {
-        "name": "amount"
-      }
-    ],
-    [
-      {
-        "name": "packingSpec"
-      }
+[
+  {
+    "rows": [
+      [
+        {
+          "name": "order"
+        },
+        {
+          "name": "position"
+        }
+      ],
+      [
+        {
+          "name": "product"
+        },
+        {
+          "name": "productSpec"
+        }
+      ],
+      [
+        {
+          "name": "description"
+        }
+      ],
+      [
+        {
+          "name": "quantity"
+        },
+        {
+          "name": "unit"
+        }
+      ],
+      [
+        {
+          "name": "unitPrice"
+        },
+        {
+          "name": "amount"
+        }
+      ],
+      [
+        {
+          "name": "packingSpec"
+        }
+      ]
     ]
-  ]
-}
+  }
+]

@@ -633,3 +633,35 @@ body:has(.fsh-login) footer a {
 @media (max-width: 700px) { .fsh-insights-section, .fsh-insights-metrics { padding: 14px; } .fsh-insights-detail dl > div { grid-template-columns: 1fr; gap: 4px; } .fsh-insights-toolbar input { width: 210px; } }
 .fsh-insights-suggestions .table-responsive { max-height: 280px; overflow: auto; }
 .fsh-insights-suggestions th { position: sticky; top: 0; background: #f5f6f8; z-index: 1; }
+
+/* Home: brand-led, flat operational sections. */
+.fsh-home { padding: 20px; }
+.fsh-home .fsh-header { min-height: 40px; margin-bottom: 20px; }
+.fsh-home .btn { min-height: var(--fsh-control); }
+.fsh-home-section + .fsh-home-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-default); }
+.fsh-section-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+.fsh-section-heading h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.fsh-section-heading > span, .fsh-section-heading > a, .fsh-section-caption { font-size: 12px; color: var(--text-secondary); }
+.fsh-section-heading > a { color: var(--status-success); text-underline-offset: 3px; }
+.fsh-section-caption { margin: 8px 0 12px; line-height: 1.6; }
+.fsh-home-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 16px 0 0; }
+.fsh-home-metrics > div { padding: 0 20px; border-left: 1px solid var(--border-default); }
+.fsh-home-metrics > div:first-child { padding-left: 0; border-left: 0; }
+.fsh-home-metrics dt { color: var(--text-secondary); font-size: 12px; font-weight: 400; }
+.fsh-home-metrics dd { margin-top: 8px; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fsh-home-metrics .fsh-metric-unavailable { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+.fsh-home-table { overflow: auto; max-height: 440px; scrollbar-color: var(--border-strong) var(--surface-subtle); }
+.fsh-home-table .fsh-table { min-width: 740px; }
+.fsh-home-table td:first-child { min-width: 200px; white-space: normal; overflow-wrap: anywhere; }
+.fsh-home-table td small { display: block; margin-top: 4px; color: var(--text-muted); font-size: 12px; }
+.fsh-home .fsh-empty { margin: 0; padding: 20px 0; }
+.fsh-home ::selection { background: var(--border-default); color: var(--brand-forest); }
+#navbar .nav-divider-text { color: #e8e8df; font-size: 12px; }
+@media (max-width: 599px) {
+  .fsh-home { padding: 12px; }
+  .fsh-home-metrics { grid-template-columns: 1fr; gap: 12px; }
+  .fsh-home-metrics > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border: 0; padding: 0; }
+  .fsh-home-metrics dd { margin: 0; }
+  .fsh-home .btn, .fsh-section-heading > a { min-height: 44px; display: inline-flex; align-items: center; }
+  .fsh-home-section + .fsh-home-section { margin-top: 20px; padding-top: 16px; }
+}
