@@ -97,25 +97,13 @@ python3 client/custom/res/fusanhe/configure.py
 
 下一阶段建议：只读运营聚合与停发状态 API、标准食品行业客户字段、附件下载与历史分页、大数据量/多角色验收；继续保持外发暂停，另行安排真实平台接入。
 
-## 公共业务工作台（2026-09-29）
+## CRM 员工登录（2026-10-02）
 
-按用户明确选择，正式使用也不要求登录，默认允许编辑业务数据。任何能够访问部署地址的人都可以使用共享业务权限，操作人统一记录为“共享工作台”，不能区分实际操作者。没有把管理员密码、API Key 或固定特权会话写入前端。
+CRM 正式入口使用 `gzfusanhesp.com`，员工通过 EspoCRM 原生用户名和密码登录。登录页保留福三和品牌与工作台说明；服务端 ACL 继续决定客户、会话、任务和业务模块的实际权限。
 
-实现使用 EspoCRM 原生 `authenticationMethods` 扩展：`FusanheWorkspace` 只为公开入口标记建立固定普通账号的原生会话；后续请求仍验证原生 token 和 HttpOnly secret cookie，仍执行 ACL。普通凭证登录和既有集成认证保留，管理脚本不受影响。固定账号不存在、停用、变为管理员或非普通账号时拒绝进入，不降级为管理员。前端自动建立业务会话，不呈现账号/密码表单，失败仅显示重试。
+旧的共享公共工作台入口已经从正式 Web 流程移除。服务端 `FUSANHE_PUBLIC_WORKSPACE_ENABLED` 默认是 `false`，即使历史配置仍为 `FusanheWorkspace`，固定 `**workspace:public-workspace` 标记也会被拒绝。只有隔离演示环境显式开启该变量，才允许运行历史公共工作台测试。
 
-公共角色按已安装 ACL scope 默认拒绝，然后明确开放客户、联系人、线索、商机、任务和行业业务记录的新建、读取及编辑。删除、导出、批量更新、账号/角色/系统管理不开放。发送任务和执行端仅可读，不改变外发暂停、发送审批或执行端凭证。
-
-每个部署环境需在代码部署后执行一次（本机已执行）：
-
-```sh
-docker compose exec -T espocrm bin/command rebuild
-python3 scripts/configure_workspace.py
-FUSANHE_TEST_PUBLIC_WORKSPACE=1 python3 -m unittest tests.test_public_workspace -v
-```
-
-安装脚本可重复执行，不重置既有业务数据；从本地 `.env` 使用现有管理凭证，创建独立普通业务账号及专用角色，随机账号密码不输出、不交付前端。回滚：`python3 scripts/configure_workspace.py --disable`，恢复原生登录并停用共享账号（其会话不再具有有效用户身份）；未删除历史审计记录。
-
-验证：3 项只读运行时测试通过，验证业务 ACL、原生会话续用、新会话、管理访问拒绝、错误标记及无效 token 拒绝；原有 12 项前端测试通过。浏览器使用独立 origin 首次进入与刷新，均直接显示工作台，未填写账号密码；没有为验证编辑权限修改客户记录。仅本机完成启用，其他服务器须执行上述部署步骤。
+员工账号由管理员在 EspoCRM 中创建和停用，不开放公众注册。浏览器不保存管理员密码、API Key 或 Agent Token；文本、视频和渠道凭证只在服务器环境中读取。
 
 ## 新工作台 UI（2026-09-29）
 
@@ -123,7 +111,7 @@ FUSANHE_TEST_PUBLIC_WORKSPACE=1 python3 -m unittest tests.test_public_workspace 
 
 源码在 `client/custom/ui`，使用 React 19 + TypeScript + Vite。执行 `npm ci`、`npm test`、`npm run build`，构建到 `client/custom/res/workspace`。AMD 视图 `views/fusanhe/workspace` 提供 HostBridge，沿用 Espo Ajax、ACL、用户和实体导航；移除视图时卸载 React 并恢复原生外壳。发布后更新 Espo appTimestamp 以刷新静态资源。
 
-默认使用真实 API。右上角可切换明确标注的示例预览（URL preview=1），示例资料独立保存在会话存储，不写业务后台。现有免登录共享业务身份保持不变。
+默认使用真实 API。右上角可切换明确标注的示例预览（URL preview=1），示例资料独立保存在会话存储，不写业务后台。正式部署使用员工原生账号，不再依赖免登录共享身份。
 
 客户、会话、消息、Task 跟进以及商品 / 证书读取接入原生实体；模块是否可用仍由部署开关与 ACL 决定。原生创建、编辑、附件与审核入口继续复用。消息编辑器保存草稿，实际发送使用原有审核流程。
 

@@ -88,15 +88,5 @@ jobs:
             test-results/dual-ai
           if-no-files-found: ignore
 
-  android:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: gradle
-      - name: Test, lint and assemble Android
-        working-directory: android-client
-        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+  # Android 1.0.0 remains a historical snapshot. The maintained product
+  # surface is the browser CRM; Android is intentionally outside active CI.

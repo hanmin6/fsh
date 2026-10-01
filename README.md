@@ -4,7 +4,7 @@
 
 **查找各分支的内容和合并状态，请先读 [GitHub 分支地图与开发交接](docs/BRANCH_GUIDE.md)。** 该文档逐一说明远端分支的用途、关键文件、历史验证记录和未完成事项。
 
-**当前 Web 正式版本：[`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，主分支为 `main`。** 首页显示 Made-in-China 与阿里国际站独立抓取状态；审核、身份确认、接管、交接和历史洞察均在同一工作台完成。新增 APIMonth 文本模型选择与 TokenDance 视频工作流，静态图片生成暂不启用。查看 [1.1.0 发布交接](docs/RELEASE_CRM_WEB_1.1.0.md)。本次只发布 GitHub，服务器部署另行进行。
+**当前 Web 正式版本：[`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，主分支为 `main`。** 首页显示 Made-in-China 与阿里国际站独立抓取状态；审核、身份确认、接管、交接和历史洞察均在同一工作台完成。新增 APIMonth 文本模型选择与 TokenDance 视频工作流，静态图片生成暂不启用。员工 CRM 正式域名规划为 `https://gzfusanhesp.com`，部署配置见 [CRM Web 部署手册](docs/CRM_WEB_DEPLOYMENT.md)。
 
 **历史开发交接见 [2026-09-24 开发交接](docs/DEVELOPMENT_HANDOFF_2026-09-24.md)。** 它按日期列出已开发内容、验证边界、未完成任务和代码入口；[老板演示说明](docs/BOSS_DEMO.md)记录当前数据状态。旧交接文档是对应日期的历史快照。
 
@@ -49,7 +49,7 @@ flowchart LR
 - “外贸运营概览”Dashlet，展示询盘、待回复、待审核、超时、负责人、响应时间、AI 修改率和发送结果。
 - 老板、业务主管、业务员和平台执行端的权限基线；管理员使用 EspoCRM 内置管理员权限。
 - 食品外贸业务模块：产品与规格版本、证书与检测报告、样品、询价、报价/PI、轻量销售订单和分批交付；每个模块有服务端状态机、权限保护、幂等或冻结规则及 Feature Flag。
-- Android `1.0.0` UI 演示版：客户新增、客户历史、询盘会话、翻译和 AI 回复建议；已有认证、远程仓库与 DTO 映射基础，完整生产接入仍未完成。
+- Android `1.0.0` UI 演示版已冻结为历史归档，不再作为当前 CRM 用户入口或持续开发目标。
 
 ## 目录
 
@@ -69,7 +69,7 @@ docs/RELEASE_CRM_WEB_1.1.0.md         当前 Web 版本、验收边界与回退
 docs/DEVELOPMENT_HANDOFF_2026-09-24.md  历史开发交接与未完成事项
 docs/BOSS_DEMO.md                   老板历史客户演示与对账操作
 docs/RELEASE_HANDOFF_2026-09-21.md  本次整合发布、验证、回退和分支说明
-android-client/                     Android 1.0.0 UI 演示版
+android-client/                     Android 1.0.0 历史归档（冻结）
 ```
 
 ## Spec-Driven Development
@@ -167,16 +167,26 @@ python3 scripts/mock-agent.py
 
 真实连接器不得直接复用网页选择器写进 CRM。接入优先级为官方 API、邮件或接口组合、浏览器自动化、Windows UI 自动化。
 
-## Android 客户端
+## Android 历史归档
 
-Android 项目位于 `android-client/`。当前版本为 `1.0.0` UI 演示版，使用 Kotlin、Jetpack Compose、Material 3、Hilt、StateFlow、Room 占位和 Retrofit 占位。
+Android 项目位于 `android-client/`，仅保留 `1.0.0` UI 演示快照，用于历史追溯，不纳入当前 CRM 产品入口和持续开发流程。
 
 ```bash
 cd android-client
 ./gradlew testDebugUnitTest assembleDebug
 ```
 
-Android 已具备部分真实 API 接入基础，但尚未完成生产环境端到端验收。详细功能、Mock 数据和接入方式见 `android-client/README.md` 与 `android-client/docs/BACKEND_API_MAPPING.md`。
+历史功能、Mock 数据和接入方式见 `android-client/README.md` 与 `android-client/docs/BACKEND_API_MAPPING.md`。
+
+## CRM Web 正式入口
+
+员工通过 `https://gzfusanhesp.com` 使用 CRM。生产环境使用 EspoCRM 原生账号登录，Caddy 负责 HTTPS 和 WebSocket 入口，MariaDB、CRM、后台 daemon 和 WebSocket 服务运行在 CRM 服务器内部。独立站不属于本仓库本次 CRM 部署范围。
+
+开发环境仍可使用 `http://localhost:8080`；复制 `.env.example` 做本地开发时，把
+`CRM_DOMAIN`、`CRM_PUBLIC_ORIGIN`、`ESPOCRM_SITE_URL` 和
+`ESPOCRM_WEBSOCKET_URL` 覆盖为 `localhost` 对应的 `http/ws` 地址。生产部署使用
+`docker compose --profile edge --env-file /path/to/server.env up -d`，具体 DNS、证书、备份、
+健康检查和回滚步骤见 `docs/CRM_WEB_DEPLOYMENT.md`。
 
 ## 备份与恢复
 
@@ -208,6 +218,6 @@ docker compose exec espocrm bin/command rebuild
 - Alibaba CRM 入库、浏览器采集和增量同步代码已具备，合成数据及隔离运行时验证通过；当前真实账号全历史回填、完整性对账和实际页面适配尚未验收。OAuth Bridge 健康检查通过不等于消息历史可读。真实平台发送代码未经生产验收。Made-in-China、独立站和邮件仍是接口骨架。
 - 既有 Alibaba 浏览器执行端尚未在用户指定的“福三和主机”找到可复用安装，也未确认当前登录入口；Windows 桌面客户端读取方案尚未实现。
 - 食品外贸模块目前是 CRM 内的结构化业务记录与工作流，尚未连接 ERP、工厂排产、物流承运商或真实收付款系统；Feature Flag 只控制可见性，不替代权限。
-- Android 1.0.0 有 Mock 演示及部分真实 API 基础；WebSocket、完整离线同步、正式签名发布和生产端到端验收尚未完成。
+- Android 1.0.0 仅作为历史 Mock 演示保留；当前用户入口统一为 CRM Web。
 - DOCX/XLSX 使用轻量文本提取；复杂表格和扫描 PDF 后续应接专业解析/OCR 服务。
 - 当前共享目录为本地演示挂载，部署到广州 Windows 时需替换为实际共享盘路径并配置只读权限。
