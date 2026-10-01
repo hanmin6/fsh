@@ -53,7 +53,7 @@ spec-check:
 
 verify-offline:
 	docker compose config --quiet
-	python3 -m unittest tests.test_contracts tests.test_phase1 tests.test_api_contract tests.test_agent_credentials tests.test_knowledge_scanner_contract tests.test_backup_contract
+	python3 -m unittest tests.test_contracts tests.test_phase1 tests.test_api_contract tests.test_agent_credentials tests.test_knowledge_scanner_contract tests.test_backup_contract tests.test_muse_crm_contract
 	@if command -v php >/dev/null 2>&1; then \
 		php tests/text_gateway_contract.php && php tests/media_gateway_contract.php && php tests/media_service_contract.php; \
 	else \

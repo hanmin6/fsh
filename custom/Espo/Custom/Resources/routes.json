@@ -265,5 +265,23 @@
         "route": "/Fusanhe/creative/asset/:id/content",
         "method": "get",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCreativeAssetContent"
+    },
+    {
+        "route": "/Fusanhe/muse/prospects",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetMuseProspects",
+        "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/muse/prospect",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMuseProspect",
+        "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/muse/activity",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMuseActivity",
+        "noAuth": true
     }
 ]

@@ -22,12 +22,77 @@
     "ratingConfirmedBy": {
       "type": "link",
       "readOnly": true
+    },
+    "fusanheSourceSystem": {
+      "type": "varchar",
+      "maxLength": 50,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheSourceId": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheSourceUrl": {
+      "type": "url",
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheCampaignKey": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheContactPolicy": {
+      "type": "enum",
+      "options": [
+        "unknown",
+        "allowed",
+        "optedOut",
+        "restricted"
+      ],
+      "default": "unknown",
+      "displayAsLabel": true,
+      "audited": true
+    },
+    "fusanheDoNotContact": {
+      "type": "bool",
+      "default": false,
+      "audited": true
+    },
+    "fusanheLastContactAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheLastAgentKey": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true,
+      "layoutListDisabled": true
     }
   },
   "links": {
     "ratingConfirmedBy": {
       "type": "belongsTo",
       "entity": "User"
+    }
+  },
+  "indexes": {
+    "fusanheSource": {
+      "columns": [
+        "fusanheSourceSystem",
+        "fusanheSourceId"
+      ],
+      "unique": true
+    },
+    "fusanheContactPolicy": {
+      "columns": [
+        "fusanheContactPolicy"
+      ]
     }
   }
 }
