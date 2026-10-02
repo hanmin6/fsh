@@ -5,6 +5,11 @@
 
 ## 1. DNS 与防火墙
 
+**2026-10-02 生产环境已采用加拿大 Nginx + 堡垒机 SSH 转发，DNS 无需改到公司出口。**
+生产拓扑、验收和回滚见 [CRM_PRODUCTION_EDGE.md](CRM_PRODUCTION_EDGE.md)。
+下文直接暴露 Caddy 的方式是备用部署方案，不是当前生产入口；当前更新只执行
+`docker compose --env-file /home/fusanhe/fusanhe-crm/server.env up -d`，不要启用 `edge` profile。
+
 在域名服务商处只为 CRM 配置一条记录：
 
 ```text
