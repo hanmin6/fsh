@@ -82,4 +82,27 @@ MCP server 可以是本地 stdio 进程，也可以是远程 HTTP MCP server。M
 或密钥存储中。Muse 的模型输出、浏览器页面和完整运行日志不自动写入 CRM，
 只有明确提交的客户字段和 activity body 会被保存。
 
-本阶段不实现 MCP JSON-RPC server、平台发送器、自动群发、回复生成或定时调度。
+## 已提供的 stdio MCP 连接器（2026-10-02）
+
+`integrations/muse_crm_mcp.py` 使用 Python 3 标准库，无额外依赖，暴露上表三个
+MCP tool。使用客户端的 MCP 设置添加 stdio server：
+
+```json
+{
+  "mcpServers": {
+    "fusanhe-crm": {
+      "command": "python3",
+      "args": ["/path/to/fsh/integrations/muse_crm_mcp.py", "--config", "/private/path/muse-crm.json"]
+    }
+  }
+}
+```
+
+私有 JSON 配置包含 `CRM_API_URL=https://gzfusanhesp.com/api/v1`、
+`FUSANHE_AGENT_KEY`、`FUSANHE_AGENT_TOKEN` 三个字段，必须使用实际发行的 Agent token。
+Unix 权限 600；Windows 用当前用户 ACL。配置文件和 token 不提交 Git。
+Windows 客户端的 command 可以使用 Python 可执行文件绝对路径。
+
+连接器拒绝远程明文 HTTP、URL 内嵌凭据和重定向，不自动重试写请求。
+MCP tool 的记录操作不触发平台发送。Muse 客户端仍需安装并加载此 MCP 设置；
+服务端检查成功不等于客户端已连接，也不消耗或迁移 Muse 客户端的免费模型额度。
