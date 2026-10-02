@@ -33,14 +33,7 @@ define("custom:views/fusanhe/login", ["views/login"], function (Dep) {
       login.find('label[for="field-userName"], label[for="username"], label[for="userName"]').text("账号");
       login.find('label[for="field-password"], label[for="password"]').text("密码");
       login.find('[data-action="toggleShowPassword"]')
-        .attr({title: "显示或隐藏密码", "aria-label": "显示或隐藏密码", tabindex: "0"})
-        .off("keydown.fshLogin")
-        .on("keydown.fshLogin", function (event) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            this.click();
-          }
-        });
+        .attr({title: "显示或隐藏密码", "aria-label": "显示或隐藏密码", tabindex: "0"});
       this.$el.find("#btn-login").text("登录");
     }
   };
