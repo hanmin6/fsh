@@ -218,6 +218,7 @@ def test_authenticated_crm_request_does_not_follow_cross_origin_redirect() -> No
             self.send_header(
                 "Location", f"http://127.0.0.1:{target.server_port}/capture"
             )
+            self.send_header("Content-Length", "0")
             self.end_headers()
 
         def log_message(self, format: str, *args: Any) -> None:

@@ -114,67 +114,190 @@ h4 {
   font-variant-numeric: tabular-nums;
 }
 .fsh-login {
-  background: var(--brand-forest);
+  background: #f6f5f1;
   min-height: calc(100vh - 45px);
+  color: #292c29;
+}
+.fsh-login .content {
+  position: static !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100%;
+  max-width: none !important;
+  transform: none !important;
 }
 .fsh-login .container-centering {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  width: 100%;
+  height: auto !important;
   min-height: calc(100vh - 70px);
-  padding: 32px 12px;
+  padding: 32px 24px;
+  box-sizing: border-box;
+}
+.fsh-login .container-centering > .helper {
+  display: none;
+}
+.fsh-login-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  width: min(880px, 100%);
+  background: #fff;
+  border: 1px solid #dfdfd8;
+  border-radius: 10px;
+  overflow: hidden;
 }
 .fsh-login #login {
-  width: 420px;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  display: block;
+  width: 100%;
   max-width: 100%;
   margin: 0;
   border: 0;
-  border-radius: 0 8px 8px 0;
-  min-height: 490px;
-  padding: 24px;
-  flex-shrink: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 0;
+  padding: 36px;
+  background: #fff;
+  text-align: left;
+  box-sizing: border-box;
 }
 .fsh-login #login .panel-heading {
-  background: white;
+  background: #fff;
   border: 0;
-  padding: 0 0 20px;
+  padding: 0 0 24px;
+  text-align: left;
 }
 .fsh-login #login .panel-body {
   padding: 0;
 }
+.fsh-login #login .logo-container {
+  text-align: left;
+}
 .fsh-login #login .logo {
-  height: 62px;
+  height: 58px;
   width: auto;
   max-width: 140px;
   object-fit: contain;
 }
 .fsh-login-heading h1 {
   font-size: 20px;
-  margin: 20px 0 6px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 20px 0 4px;
+  color: #292c29;
 }
 .fsh-login-heading p {
   font-size: 12px;
-  color: var(--text-secondary);
+  line-height: 1.6;
+  color: #65675f;
+  margin: 0;
 }
 .fsh-login-heading h2 {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
   margin: 24px 0 0;
-  border-top: 1px solid var(--border-default);
+  border-top: 1px solid #e6e6e0;
   padding-top: 20px;
+  color: #454840;
 }
 .fsh-login-photo {
-  width: 410px;
-  height: 490px;
+  min-width: 0;
+  align-self: stretch;
   background: url("login-factory.webp") center/cover;
-  border-radius: 8px 0 0 8px;
+}
+.fsh-login #login input.form-control {
+  min-height: 44px;
+  font-size: 16px;
+  border-color: #bfc1b8;
+  border-radius: 6px;
+  caret-color: #a82d34;
+}
+.fsh-login #login input::placeholder {
+  color: #65675f;
+  opacity: 1;
+}
+.fsh-login #login input[name="password"] {
+  padding-right: 48px;
+}
+.fsh-login #login [data-action="toggleShowPassword"] {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  top: 0;
+  right: 0;
+}
+.fsh-login #btn-login {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  background: #a82d34;
+  border-color: #a82d34;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.fsh-login #btn-login:hover {
+  background: #8f242b;
+  border-color: #8f242b;
+}
+.fsh-login #btn-login:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+.fsh-login #login :is(input, button, a):focus-visible {
+  outline: 2px solid #a82d34;
+  outline-offset: 3px;
+}
+.fsh-login ::selection {
+  background: #efd5d5;
+  color: #292c29;
 }
 body:has(.fsh-login) {
-  background: var(--brand-forest);
+  background: #f6f5f1;
+  overflow-y: auto;
 }
 body:has(.fsh-login) footer,
 body:has(.fsh-login) footer a {
-  color: #e8e8df;
+  color: #65675f;
+}
+@media (max-width: 899px) {
+  .fsh-login-layout {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 460px;
+  }
+  .fsh-login-photo {
+    display: none;
+  }
+  .fsh-login #login {
+    padding: 32px;
+  }
+}
+@media (max-width: 480px) {
+  .fsh-login .container-centering {
+    padding: 24px 16px;
+  }
+  .fsh-login #login {
+    padding: 28px 24px;
+  }
+  .fsh-login-heading h1 {
+    font-size: 18px;
+  }
+}
+@media (max-height: 640px) {
+  .fsh-login .container-centering {
+    align-items: flex-start;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
 }
 .fsh-shell {
   background: var(--surface-main);
@@ -453,13 +576,6 @@ body:has(.fsh-login) footer a {
   }
 }
 @media (max-width: 899px) {
-  .fsh-login-photo {
-    display: none;
-  }
-  .fsh-login #login {
-    border-radius: 8px;
-    min-height: 460px;
-  }
   .fsh-workbench {
     display: block;
     min-height: 0;
@@ -490,20 +606,6 @@ body:has(.fsh-login) footer a {
   .fsh-shell {
     padding: 12px;
   }
-}
-.fsh-login .content {
-  padding: 0 !important;
-  margin: 0 !important;
-  width: 100%;
-  max-width: none;
-}
-.fsh-login .container-centering {
-  top: auto;
-  transform: none;
-}
-.fsh-login #login {
-  top: auto;
-  transform: none;
 }
 .fsh-customer-context {
   background: var(--surface-main);

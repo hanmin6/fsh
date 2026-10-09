@@ -181,6 +181,7 @@ class RoutesContract(unittest.TestCase):
         exempt_agent_actions = {
             "PostAgentRegister", "PostAgentHeartbeat", "PostAgentClaim", "PostTaskSending", "PostTaskResult", "PostAlibabaSync",
             "PostMadeInChinaSync",
+            "PostMuseProspect", "PostMuseActivity",
         }
         service_guarded = {
             "PostConversationControl", "PostHandoff", "PostIdentityCreateCustomer", "PostIdentityLink",

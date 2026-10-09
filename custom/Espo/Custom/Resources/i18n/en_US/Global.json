@@ -19,7 +19,9 @@
     "FusanheSalesOrder": "Sales Orders",
     "FusanheOrderLine": "Order Lines",
     "FusanheOrderShipment": "Shipments",
-    "FusanheShipmentItem": "Shipment Items"
+    "FusanheShipmentItem": "Shipment Items",
+    "OutreachEvidence": "Outreach Evidence",
+    "ProspectResearch": "Prospect Research"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "ExternalChannel",
@@ -32,7 +34,9 @@
     "AutomationAudit": "AutomationAudit",
     "ExternalIdentity": "External identity",
     "FusanheProduct": "Products",
-    "FusanheProductSpec": "Product Spec Versions"
+    "FusanheProductSpec": "Product Spec Versions",
+    "OutreachEvidence": "Outreach Evidence",
+    "ProspectResearch": "Prospect Research"
   },
   "labels": {},
   "dashlets": {

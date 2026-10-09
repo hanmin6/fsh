@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "福三和 CRM 项目线路图",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "ssh://git@ssh.github.com:443/hanmin6/fsh.git",
+      "link_mode": "local-only",
+      "revision": "8438895d3dbb73386855017ba5312c0b94c8f8f2"
+    }
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [60, 40],
+    "cols": 4,
+    "gapX": 70,
+    "gapY": 40,
+    "cellW": 220,
+    "cellH": 80
+  },
+  "components": [
+    { "id": "operator", "type": "external", "label": "业务人员 / 管理员", "sublabel": "浏览器用户", "tag": "入口", "size": [220, 80], "row": 0, "col": 0 },
+    { "id": "crm-web", "type": "frontend", "label": "CRM Web 工作台", "sublabel": "五页工作台 · 状态栏", "tag": "frontend", "sources": [{ "path": "client/custom/src/views/fusanhe/workspace.js", "label": "workspace" }], "size": [220, 80], "row": 0, "col": 1 },
+    { "id": "muse-cli", "type": "external", "label": "Muse Code CLI", "sublabel": "主动获客 / 资料整理", "tag": "external", "size": [220, 80], "row": 0, "col": 2 },
+    { "id": "platforms", "type": "external", "label": "外部平台", "sublabel": "Alibaba · Made-in-China", "tag": "channels", "size": [220, 80], "row": 0, "col": 3 },
+    { "id": "crm-api", "type": "backend", "label": "EspoCRM API", "sublabel": "HTTP API · 权限边界", "tag": "api", "sources": [{ "path": "custom/Espo/Custom/Resources/routes.json", "label": "routes" }], "size": [220, 80], "row": 1, "col": 1 },
+    { "id": "mcp-wrapper", "type": "security", "label": "CRM MCP Wrapper", "sublabel": "规划中的 MCP 包装", "tag": "planned", "size": [220, 80], "row": 1, "col": 2 },
+    { "id": "fusanhe-services", "type": "backend", "label": "Fusanhe 业务服务层", "sublabel": "潜客 · 会话 · 同步", "tag": "service", "sources": [{ "path": "custom/Espo/Custom/Tools/Fusanhe/MuseCrmService.php", "label": "Muse CRM" }, { "path": "custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php", "label": "workflow" }], "size": [220, 80], "row": 2, "col": 1 },
+    { "id": "crm-db", "type": "database", "label": "CRM 数据库", "sublabel": "Lead / Identity / Message / Task", "tag": "system of record", "sources": [{ "path": "custom/Espo/Custom/Resources/metadata/entityDefs/Lead.json", "label": "Lead metadata" }], "size": [220, 80], "row": 3, "col": 1 },
+    { "id": "ai-text", "type": "cloud", "label": "文本 AI 中转网关", "sublabel": "Sol · Grok · Gemini", "tag": "text", "sources": [{ "path": "custom/Espo/Custom/Tools/Fusanhe/TextGateway.php", "label": "text gateway" }], "size": [220, 80], "row": 2, "col": 2 },
+    { "id": "ai-video", "type": "cloud", "label": "视频生成中转网关", "sublabel": "MiniMax H3 Max", "tag": "media", "sources": [{ "path": "custom/Espo/Custom/Tools/Fusanhe/MediaGateway.php", "label": "media gateway" }], "size": [220, 80], "row": 2, "col": 0 },
+    { "id": "agent-auth", "type": "security", "label": "Agent 鉴权与审计", "sublabel": "Agent Key / Token", "tag": "security", "sources": [{ "path": "custom/Espo/Custom/Tools/Fusanhe/AutomationAuth.php", "label": "agent auth" }], "size": [220, 80], "row": 1, "col": 0 }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "CRM 受控边界", "wraps": ["crm-api", "mcp-wrapper", "fusanhe-services", "crm-db", "agent-auth"], "pad": 28 }
+  ],
+  "connections": [
+    { "id": "operator-web", "from": "operator", "to": "crm-web", "label": "工作台", "variant": "emphasis", "route": "auto" },
+    { "id": "web-api", "from": "crm-web", "to": "crm-api", "label": "CRM API", "labelDy": 24, "route": "auto" },
+    { "id": "muse-mcp", "from": "muse-cli", "to": "mcp-wrapper", "label": "MCP（规划）", "labelDy": 24, "variant": "dashed", "route": "auto" },
+    { "id": "mcp-api", "from": "mcp-wrapper", "to": "crm-api", "label": "受限 API", "variant": "security", "route": "auto" },
+    { "id": "api-services", "from": "crm-api", "to": "fusanhe-services", "label": "业务服务", "labelDy": 24, "route": "auto" },
+    { "id": "services-db", "from": "fusanhe-services", "to": "crm-db", "label": "数据事实源", "labelDx": -70, "labelDy": 24, "variant": "emphasis", "route": "auto" },
+    { "id": "agent-guard", "from": "agent-auth", "to": "crm-api", "label": "Agent 鉴权", "variant": "security", "route": "auto" },
+    { "id": "services-text", "from": "fusanhe-services", "to": "ai-text", "label": "文本 AI", "route": "auto" },
+    { "id": "services-video", "from": "fusanhe-services", "to": "ai-video", "label": "视频 AI", "route": "auto" },
+    { "id": "services-platforms", "from": "fusanhe-services", "to": "platforms", "label": "平台同步", "fromSide": "bottom", "toSide": "bottom", "route": "orthogonal-v", "via": [[460, 390], [1220, 390], [1220, 160], [1040, 160]] }
+  ]
+}

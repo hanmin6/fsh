@@ -1,0 +1,189 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "assignedUser": {
+      "type": "link",
+      "view": "views/fields/assigned-user",
+      "readOnly": true
+    },
+    "status": {
+      "type": "enum",
+      "options": [
+        "pending",
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "displayAsLabel": true,
+      "readOnly": true
+    },
+    "targetType": {
+      "type": "enum",
+      "options": [
+        "Lead",
+        "Account",
+        "Contact"
+      ],
+      "required": true,
+      "readOnly": true
+    },
+    "targetId": {
+      "type": "varchar",
+      "maxLength": 24,
+      "required": true,
+      "readOnly": true
+    },
+    "inputSnapshot": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "view": "custom:views/fields/structured"
+    },
+    "report": {
+      "type": "text",
+      "readOnly": true
+    },
+    "data": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "view": "custom:views/fields/structured"
+    },
+    "sources": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "view": "custom:views/fields/structured"
+    },
+    "queries": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "view": "custom:views/fields/structured"
+    },
+    "model": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "promptVersion": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "startedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "completedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "nextAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "errorCode": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true
+    },
+    "lead": {
+      "type": "link",
+      "readOnly": true
+    },
+    "account": {
+      "type": "link",
+      "readOnly": true
+    },
+    "contact": {
+      "type": "link",
+      "readOnly": true
+    },
+    "evidence": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "lead": {
+      "type": "belongsTo",
+      "entity": "Lead",
+      "foreign": "prospectResearch"
+    },
+    "account": {
+      "type": "belongsTo",
+      "entity": "Account",
+      "foreign": "prospectResearch"
+    },
+    "contact": {
+      "type": "belongsTo",
+      "entity": "Contact",
+      "foreign": "prospectResearch"
+    },
+    "evidence": {
+      "type": "belongsTo",
+      "entity": "OutreachEvidence",
+      "foreign": "research"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name",
+      "report"
+    ]
+  },
+  "indexes": {
+    "target": {
+      "columns": [
+        "targetType",
+        "targetId",
+        "createdAt"
+      ]
+    },
+    "statusNext": {
+      "columns": [
+        "status",
+        "nextAt"
+      ]
+    },
+    "evidenceUnique": {
+      "columns": [
+        "evidenceId"
+      ],
+      "unique": true
+    }
+  }
+}

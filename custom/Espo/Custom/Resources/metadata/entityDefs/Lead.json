@@ -7,7 +7,8 @@
         "S",
         "A",
         "B",
-        "C"
+        "C",
+        "D"
       ],
       "audited": true
     },
@@ -22,12 +23,160 @@
     "ratingConfirmedBy": {
       "type": "link",
       "readOnly": true
+    },
+    "fusanheSourceSystem": {
+      "type": "varchar",
+      "maxLength": 50,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheSourceId": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheSourceUrl": {
+      "type": "url",
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheCampaignKey": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheContactPolicy": {
+      "type": "enum",
+      "options": [
+        "unknown",
+        "allowed",
+        "optedOut",
+        "restricted"
+      ],
+      "default": "unknown",
+      "displayAsLabel": true,
+      "audited": true
+    },
+    "fusanheDoNotContact": {
+      "type": "bool",
+      "default": false,
+      "audited": true
+    },
+    "fusanheLastContactAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "fusanheLastAgentKey": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "ratingSource": {
+      "type": "enum",
+      "options": [
+        "",
+        "auto",
+        "manual"
+      ],
+      "readOnly": true
+    },
+    "aiRating": {
+      "type": "enum",
+      "options": [
+        "",
+        "S",
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "readOnly": true
+    },
+    "aiRatingStatus": {
+      "type": "enum",
+      "options": [
+        "pending",
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "readOnly": true
+    },
+    "aiRatingReason": {
+      "type": "text",
+      "readOnly": true
+    },
+    "aiRatingAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "aiRatingModel": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "aiRatingData": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "aiRatingVersion": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true
+    },
+    "aiRatingError": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "aiRatingAttempts": {
+      "type": "int",
+      "default": 0,
+      "readOnly": true
+    },
+    "aiRatingNextAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "aiCompanyName": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
     }
   },
   "links": {
     "ratingConfirmedBy": {
       "type": "belongsTo",
       "entity": "User"
+    },
+    "outreachEvidence": {
+      "type": "hasMany",
+      "entity": "OutreachEvidence",
+      "foreign": "lead"
+    },
+    "prospectResearch": {
+      "type": "hasMany",
+      "entity": "ProspectResearch",
+      "foreign": "lead"
+    }
+  },
+  "indexes": {
+    "fusanheSource": {
+      "columns": [
+        "fusanheSourceSystem",
+        "fusanheSourceId"
+      ],
+      "unique": true
+    },
+    "fusanheContactPolicy": {
+      "columns": [
+        "fusanheContactPolicy"
+      ]
     }
   }
 }

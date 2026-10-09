@@ -1,6 +1,13 @@
 # 福三和 CRM 项目状态
 
-最新发布：2026-09-30，Web 正式版本为 [`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，`main` 是唯一正式前端基线。统一五页 UI 已整合 HIG 能力，新增独立文本与视频通道；静态图片生成关闭。独立验收与 GitHub CI 通过，本次只发布 GitHub，尚未部署服务器。当前状态见 [1.1.0 发布交接](RELEASE_CRM_WEB_1.1.0.md)、[验收记录](../specs/006-dual-ai-gateways/verification.md)及 [分支索引](BRANCH_GUIDE.md)。
+更新日期：2026-10-09。当前运行环境统一为 22005 Linux；22001 原 Windows 上的 Dify、渠道抓取、CRM bridge 与旧客服助手已迁移或退役清理。部署位置、SSH 与 noVNC、备份恢复及验收边界见 [迁移与运维记录](MIGRATION_22001_TO_22005_2026-10-09.md)。
+
+当前 CRM HTTPS 为 `https://gzfusanhesp.com/`。已部署客户联网评级、产品视频素材流程，以及消息中心关联客户评级、右侧客户背调、评级排序、英文自动中文翻译。Dify 为 3 个知识库、41 份文档、9 份工作流；Alibaba 登录 ready、MIC 会话 healthy，采集进程与 CRM 容器健康。全局停发保持开启，历史完整性对账和长期增量观察仍按证据验收。
+
+本次 GitHub 同步将当前开发分支 `codex/muse-crm-mcp` 的已部署代码与迁移资料一起保存；`main` 的历史发布基线仍需通过合并记录追溯，不能把历史快照中的“尚未部署”当成当前状态。
+
+
+历史发布记录：2026-09-30，Web 正式版本为 [`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，`main` 是唯一正式前端基线。统一五页 UI 已整合 HIG 能力，新增独立文本与视频通道；静态图片生成关闭。独立验收与 GitHub CI 通过，本次只发布 GitHub，尚未部署服务器。当前状态见 [1.1.0 发布交接](RELEASE_CRM_WEB_1.1.0.md)、[验收记录](../specs/006-dual-ai-gateways/verification.md)及 [分支索引](BRANCH_GUIDE.md)。
 
 以下保留历史快照，旧版本号、分支表和完成度用于追溯。
 
@@ -112,3 +119,9 @@
 本机演示库仍为 **0 条真实历史导入，0 条客户分析，0 条今日建议**；平台可见总量及未导入失败数未知。用户指定“福三和——主机”已连通，桥接 OAuth 有效，尚待确认实际 Alibaba 登录入口并安装/复用历史采集端。没有真实回填或 20 客户抽验，不宣称全量导入完成。产品/原文业务语义仍待人工核验；当前分析仅使用匿名规则信号。
 
 详见 `docs/BOSS_DEMO.md`、`specs/003-boss-history-insights/verification.md`。全局停发保持开启，未向客户发送消息。
+
+### 2026-10-03 CRM 触达证据与 AI 背调（009）
+
+CRM 已新增 `OutreachEvidence` 与 `ProspectResearch`：支持受控 PNG/JPEG/WebP 截图的私有存储、客户快照、平台消息 ID、发送状态、幂等回放、ACL 读取和 AI 背调结果。客户详情工作台新增“主动触达”页签，可查看截图、发送内容、来源和背调状态，并手动发起联网研究。
+
+本阶段不接 Muse、不浏览社交平台、不创建 `OutboundTask`、不发送外部消息。Muse 上传适配、社交平台执行器和每日外发配额留待后续特性。

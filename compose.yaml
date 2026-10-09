@@ -60,6 +60,7 @@ services:
       FUSANHE_AGENT_CREDENTIAL_TTL_DAYS: ${FUSANHE_AGENT_CREDENTIAL_TTL_DAYS:-90}
       FUSANHE_AUTOMATION_LEGACY_UNTIL: ${FUSANHE_AUTOMATION_LEGACY_UNTIL:-}
       FUSANHE_OUTBOUND_PAUSED: ${FUSANHE_OUTBOUND_PAUSED:-true}
+      FUSANHE_PUBLIC_WORKSPACE_ENABLED: ${FUSANHE_PUBLIC_WORKSPACE_ENABLED:-false}
       FUSANHE_FEATURE_PRODUCTS: ${FUSANHE_FEATURE_PRODUCTS:-}
       FUSANHE_FEATURE_CERTIFICATES: ${FUSANHE_FEATURE_CERTIFICATES:-}
       FUSANHE_FEATURE_SAMPLES: ${FUSANHE_FEATURE_SAMPLES:-}
@@ -74,7 +75,7 @@ services:
       - ./knowledge:/var/www/html/knowledge:ro
       - ./materials:/var/www/html/materials:ro
     ports:
-      - "${ESPOCRM_PORT:-8080}:80"
+      - "${ESPOCRM_BIND_ADDRESS:-127.0.0.1}:${ESPOCRM_PORT:-8080}:80"
     restart: unless-stopped
     depends_on:
       db:
@@ -114,7 +115,7 @@ services:
     volumes_from:
       - espocrm
     ports:
-      - "${ESPOCRM_WEBSOCKET_PORT:-8081}:8080"
+      - "${ESPOCRM_WEBSOCKET_BIND_ADDRESS:-127.0.0.1}:${ESPOCRM_WEBSOCKET_PORT:-8081}:8080"
     restart: unless-stopped
     depends_on:
       espocrm:
@@ -127,6 +128,28 @@ services:
       timeout: 20s
       retries: 3
 
+  caddy:
+    image: caddy:2.10-alpine
+    profiles: ["edge"]
+    environment:
+      CRM_DOMAIN: ${CRM_DOMAIN:-gzfusanhesp.com}
+    ports:
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
+      - "${CADDY_HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      espocrm:
+        condition: service_healthy
+      websocket:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   db-data:
   espocrm-data:
+  caddy-data:
+  caddy-config:

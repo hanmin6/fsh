@@ -267,6 +267,11 @@
       "type": "hasMany",
       "entity": "OutboundTask",
       "foreign": "conversation"
+    },
+    "outreachEvidence": {
+      "type": "hasMany",
+      "entity": "OutreachEvidence",
+      "foreign": "conversation"
     }
   },
   "collection": {

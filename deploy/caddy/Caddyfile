@@ -1,0 +1,8 @@
+{$CRM_DOMAIN} {
+    encode zstd gzip
+
+    @crmWebSocket path /ws*
+    reverse_proxy @crmWebSocket websocket:8080
+
+    reverse_proxy espocrm:80
+}

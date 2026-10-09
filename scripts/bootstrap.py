@@ -7,7 +7,7 @@ headers={'Authorization':'Basic '+base64.b64encode(f'{user}:{password}'.encode()
 def request(path,method='GET',body=None):
  req=urllib.request.Request(base+path,None if body is None else json.dumps(body).encode(),headers,method=method)
  with urllib.request.urlopen(req) as r:return json.load(r) if r.length != 0 else {}
-settings=request('/Settings');tabs=[t for t in settings.get('tabList',[]) if t not in ('MediaAsset','CreativePlan','MediaJob')]
+settings=request('/Settings');tabs=[t for t in settings.get('tabList',[]) if t not in ('MediaAsset','CreativePlan','MediaJob','OutreachEvidence','ProspectResearch')]
 for item in ('ExternalConversation','KnowledgeDocument','OutboundTask'):
  if item not in tabs:tabs.append(item)
 # Industry modules stay hidden unless their feature flag is enabled.
@@ -26,7 +26,7 @@ request('/Settings','PUT',{'tabList':tabs})
 entities=('Account','Contact','Lead','Opportunity','Task','ExternalConversation','ExternalIdentity','ExternalMessage','AIReplyDraft','OutboundTask','KnowledgeDocument',
           'FusanheProduct','FusanheProductSpec','FusanheCertificate','FusanheSample','FusanheInquiry','FusanheQuote','FusanheQuoteItem',
           'FusanheSalesOrder','FusanheOrderLine','FusanheOrderShipment','FusanheShipmentItem',
-          'MediaAsset','CreativePlan','MediaJob')
+          'MediaAsset','CreativePlan','MediaJob','OutreachEvidence','ProspectResearch')
 # A partial rollout may not have every industry scope yet.
 flag_of={'FusanheProduct':'FUSANHE_FEATURE_PRODUCTS','FusanheProductSpec':'FUSANHE_FEATURE_PRODUCTS',
  'FusanheCertificate':'FUSANHE_FEATURE_CERTIFICATES','FusanheSample':'FUSANHE_FEATURE_SAMPLES',

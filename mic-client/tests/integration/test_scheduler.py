@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any, cast
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from mic_gateway.adapters.base import SessionHealth
 from mic_gateway.adapters.fake import FakeSiteAdapter
 from mic_gateway.runtime.scheduler import GatewayScheduler
+from mic_gateway.browser.runtime import BrowserSessionState
 
 
 class SyncStub:
@@ -83,3 +85,54 @@ async def test_start_and_stop_use_independent_interruptible_loops() -> None:
     assert sync.orders > 0
     assert sync.conversations > 0
     assert worker.runs > 0
+
+
+@pytest.mark.asyncio
+async def test_paused_outbound_does_not_stop_inbound_reads(monkeypatch: Any) -> None:
+    monkeypatch.setenv("FUSANHE_OUTBOUND_PAUSED", "true")
+    sync, worker = SyncStub(), WorkerStub()
+    scheduler = GatewayScheduler(
+        adapter=FakeSiteAdapter(), sync_engine=cast(Any, sync),
+        outbox_worker=cast(Any, worker), status_service=cast(Any, StatusStub()),
+    )
+    await scheduler.tick()
+    assert sync.conversations == 1 and sync.orders == 1
+    assert worker.runs == 0
+
+
+@pytest.mark.asyncio
+async def test_manual_sync_waits_for_login_and_deduplicates() -> None:
+    adapter = FakeSiteAdapter()
+    adapter.session_health = SessionHealth.authentication_required()
+    sync = SyncStub()
+    scheduler = GatewayScheduler(
+        adapter=adapter, sync_engine=cast(Any, sync),
+        outbox_worker=cast(Any, WorkerStub()), status_service=cast(Any, StatusStub()),
+    )
+    assert scheduler.queue_manual_sync("conversations") is True
+    assert scheduler.queue_manual_sync("conversations") is False
+    await scheduler.tick()
+    assert sync.conversations == 0
+    assert scheduler.queue_manual_sync("conversations") is False
+    adapter.session_health = SessionHealth.available()
+    await scheduler.tick()
+    assert sync.conversations == 1
+    assert scheduler.queue_manual_sync("conversations") is True
+
+
+@pytest.mark.asyncio
+async def test_stopped_browser_is_recovered_before_source_reads() -> None:
+    runtime = MagicMock()
+    runtime.session_state = BrowserSessionState.STOPPED
+    runtime.stop = AsyncMock()
+    runtime.start = AsyncMock()
+    sync = SyncStub()
+    scheduler = GatewayScheduler(
+        adapter=FakeSiteAdapter(), sync_engine=cast(Any, sync),
+        outbox_worker=cast(Any, WorkerStub()), status_service=cast(Any, StatusStub()),
+        browser_runtime=runtime,
+    )
+    await scheduler.tick()
+    runtime.stop.assert_awaited_once()
+    runtime.start.assert_awaited_once()
+    assert sync.conversations == 1

@@ -25,6 +25,9 @@ class Workspace implements Login
         if ($data->getUsername() !== '**workspace' || $data->getAuthToken()) {
             return $this->nativeLogin->login($data, $request);
         }
+        if (!filter_var(getenv('FUSANHE_PUBLIC_WORKSPACE_ENABLED') ?: 'false', FILTER_VALIDATE_BOOLEAN)) {
+            return Result::fail(FailReason::DENIED);
+        }
         if ($this->config->get('authenticationMethod') !== 'FusanheWorkspace' ||
             $data->getPassword() !== 'public-workspace') {
             return Result::fail(FailReason::DENIED);

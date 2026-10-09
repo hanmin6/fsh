@@ -56,6 +56,11 @@
         {
           "name": "extractedText"
         }
+      ],
+      [
+        {
+          "name": "files"
+        }
       ]
     ]
   }

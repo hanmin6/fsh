@@ -11,6 +11,8 @@ knowledge/*
 materials/*
 !materials/.gitkeep
 runtime/
+!mic-client/src/mic_gateway/runtime/
+!mic-client/src/mic_gateway/runtime/*.py
 .env.test
 .gstack/
 __pycache__/
@@ -48,3 +50,13 @@ tests/*.local.yaml
 
 # Private relay credentials, discovery data and preserved local assets.
 .local/
+
+# Python package/build metadata and local development environments.
+*.egg-info/
+.venv/
+
+# Local worker test state and SQLite checkpoints.
+.outbound-test-tmp/
+.run-worker-test-tmp/
+*.sqlite3
+*.sqlite3-*

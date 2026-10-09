@@ -3,6 +3,8 @@
 来源页面：https://www.gzfusanhesp.com/en ，获取日期：2026-09-18。
 
 - `logo-full.png`：https://www.gzfusanhesp.com/brand/fusanhe-logo.png 。官网原始红色皇冠 Logo，保持原图、颜色与比例；登录和导航使用，不重绘、不裁切。
+- `favicon-crown-64.png` / `favicon-crown.ico`：从上述原图提取皇冠，用于浏览器标签页；保持皇冠颜色与比例，透明方形画布，ICO 包含 16–128px 尺寸。原始 Logo 保持不变。
+- `branding.css`：隐藏 CRM 登录页和工作台底部的 EspoCRM 署名；通过自定义客户端元数据加载，不修改上游核心文件。
 - `login-factory.webp`：https://www.gzfusanhesp.com/media/factory-fusanhe-factory-960.webp 。官网标注的广州工厂实拍，原始 960×540 WebP，用于桌面登录辅助背景；未转换，窄屏隐藏。
 - `brand.css`：官网计算样式提取：foreground #20251f、primary #c83a28、background #f7f5ef、border #dcd8ce。金色采用官网视觉中的低饱和方向 #c7a36a；状态色为办公可读性调整。
 
