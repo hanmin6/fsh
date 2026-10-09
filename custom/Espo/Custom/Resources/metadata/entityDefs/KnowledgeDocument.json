@@ -87,6 +87,10 @@
         "extractedText": {
             "type": "text",
             "layoutListDisabled": true
+        },
+        "files": {
+            "type": "attachmentMultiple",
+            "view": "views/fields/attachments-multiple"
         }
     },
     "links": {

@@ -1,5 +1,35 @@
 [
     {
+        "route": "/Fusanhe/card-status",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCardStatus"
+    },
+    {
+        "route": "/Fusanhe/outreach/evidence",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostOutreachEvidence"
+    },
+    {
+        "route": "/Fusanhe/outreach/evidence",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetOutreachEvidenceList"
+    },
+    {
+        "route": "/Fusanhe/outreach/evidence/:id",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetOutreachEvidence"
+    },
+    {
+        "route": "/Fusanhe/outreach/evidence/:id/screenshot",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetOutreachScreenshot"
+    },
+    {
+        "route": "/Fusanhe/outreach/evidence/:id/research",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostOutreachResearch"
+    },
+    {
         "route": "/Fusanhe/mock/intake",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMockIntake"
@@ -283,5 +313,21 @@
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMuseActivity",
         "noAuth": true
+    },
+    {
+        "route": "/Fusanhe/creative/product/:id",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCreativeProduct"
+    },
+    {
+        "route": "/Fusanhe/creative/source-file/:token",
+        "method": "get",
+        "noAuth": true,
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCreativeSourceFile"
+    },
+    {
+        "route": "/Fusanhe/conversation/:id/translate",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostTranslateMessages"
     }
 ]

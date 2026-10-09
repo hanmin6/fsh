@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Home,MessagesSquare,Users,Image,BookOpen,Settings,Menu,ChevronLeft,ChevronRight,Search,ArrowUpRight,X,Check} from 'lucide-react';
-import {liveSource,type HostBridge,type DataSource} from './bridge';
+import {cachedSource,type HostBridge,type DataSource} from './bridge';
 import {demoSource} from './demo';
 import {readRoute,type Route,type Page} from './domain';
 import {Dialog,Button,Notice,SearchBox,useList,Avatar} from './ui';
@@ -18,7 +18,7 @@ function App({host}:{host:HostBridge}){
  const [route,setRoute]=useState(readRoute),[demo,setDemo]=useState(new URLSearchParams(location.search).get('preview')==='1'),[menu,setMenu]=useState(false),[collapsed,setCollapsed]=useState(false),[settings,setSettings]=useState(false),[search,setSearch]=useState<string|null>(null),[toast,setToast]=useState('');
  const navigationRef=useRef<HTMLElement>(null),workspaceRef=useRef<HTMLDivElement>(null),menuButtonRef=useRef<HTMLButtonElement>(null);
  useEffect(()=>{if(!menu)return;const sidebar=navigationRef.current,workspace=workspaceRef.current;if(!sidebar||!workspace)return;workspace.inert=true;const buttons=()=>Array.from(sidebar.querySelectorAll<HTMLButtonElement>('button:not([disabled])')).filter(b=>b.getClientRects().length);buttons()[0]?.focus();const trap=(e:KeyboardEvent)=>{if(e.key!=='Tab')return;const list=buttons(),first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}};const resize=()=>{if(window.innerWidth>=900)setMenu(false)};sidebar.addEventListener('keydown',trap);window.addEventListener('resize',resize);return()=>{workspace.inert=false;sidebar.removeEventListener('keydown',trap);window.removeEventListener('resize',resize);menuButtonRef.current?.focus()}},[menu]);
- const source=useMemo(()=>demo?demoSource(host):liveSource(host),[host,demo]);
+ const source=useMemo(()=>demo?demoSource(host):cachedSource(host),[host,demo]);
  const navigate:Navigate=(page,params={})=>{const r={page,tab:'',id:'',entity:'Account',...params};const q=new URLSearchParams(location.search);q.set('workspace',page);for(const [key,val] of Object.entries({tab:r.tab,record:r.id,entity:r.entity}))val?q.set(key,val):q.delete(key);history.pushState(null,'',location.pathname+'?'+q+'#Home/workspace');setRoute(r);setMenu(false)};
  useEffect(()=>{const pop=()=>{setRoute(readRoute());setDemo(new URLSearchParams(location.search).get('preview')==='1')};window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop)},[]);
  useEffect(()=>{const saved=Number(sessionStorage.getItem('fsh-ui:scroll:'+route.page)||0);const timer=setTimeout(()=>{const main=document.getElementById('w-main');if(main)main.scrollTop=saved},160);return()=>clearTimeout(timer)},[route.page]);
@@ -38,7 +38,7 @@ function App({host}:{host:HostBridge}){
  <main onScroll={e=>{try{sessionStorage.setItem('fsh-ui:scroll:'+route.page,String(e.currentTarget.scrollTop))}catch{}}} id="w-main" tabIndex={-1} className={'w-main page-'+route.page} key={String(demo)}><div className="w-page-heading"><div><h1>{title}</h1><p>{({home:'把每一次沟通，变成有进展的客户关系。',messages:'按客户整理沟通，清楚记录每一条消息。',customers:'客户资料、价值判断与下一步行动。',ai:'从商品素材出发，管理内容创作、任务与作品。',knowledge:'商品规格、证书、知识文档与素材集中查阅。'})[route.page]}</p></div><span className="w-date">{new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long',timeZone:'Asia/Shanghai'}).format(new Date())}</span></div>
  {demo&&<div className="w-demo-label">示例预览：客户、评级、商品与生成任务均为演示，不会修改真实业务数据。</div>}
  {route.page==='home'?<HomePage {...props}/>:route.page==='messages'?<MessagesPage {...props}/>:route.page==='customers'?<CustomersPage {...props}/>:route.page==='knowledge'?<KnowledgePage {...props}/>:<AIPage {...props}/>}
- <footer className="w-footer">广州福三和食品有限公司 <span>Powered by <a href="https://www.espocrm.com" target="_blank" rel="noreferrer">EspoCRM</a></span></footer></main></div>
+ <footer className="w-footer">广州福三和食品有限公司</footer></main></div>
  {toast&&<div className="w-toast" role="status"><Check size={16}/>{toast}<button aria-label="关闭提示" onClick={()=>setToast('')}><X size={16}/></button></div>}
  {settings&&<Dialog title="工作台设置" onClose={()=>setSettings(false)}><div className="w-dialog-body"><h3>数据模式</h3><p>真实数据直接连接现有 CRM；示例预览用于体验评级、媒体创作和完整页面状态。</p><Button primary onClick={changeMode}>{demo?'使用真实数据':'查看示例预览'}</Button><hr/><h3>账号与权限</h3><p>当前以{source.user.name}访问。业务权限和发送策略由服务端控制。</p><GatewaySettings source={source}/><h3>平台抓取</h3><CaptureStrip source={source} compact/><h3>执行端</h3><Queue {...props} entity="AutomationAgent"/>{!demo&&<Button onClick={()=>host.native('Preferences')}>个人偏好<ArrowUpRight size={14}/></Button>}</div></Dialog>}
  {search!==null&&<Dialog title="搜索工作台" onClose={()=>setSearch(null)}><div className="w-dialog-body"><GlobalSearch source={source} value={search} onChange={setSearch} choose={(page,id,entity)=>{navigate(page,{id,entity,...(entity==='KnowledgeDocument'?{tab:'documents'}:{})});setSearch(null)}}/></div></Dialog>}

@@ -18,7 +18,8 @@
     "createdAt": "创建时间",
     "modifiedAt": "修改时间",
     "createdBy": "创建人",
-    "modifiedBy": "修改人"
+    "modifiedBy": "修改人",
+    "files": "产品图片"
   },
   "options": {
     "status": {

@@ -1,7 +1,31 @@
 # CRM 公网入口：2026-10-02
 
+> 2026-10-09：22005 现已同时承载 CRM、Dify 和渠道采集；22001 Windows 系统已退役。下述 CRM 公网链路保持不变，其他服务入口见 [迁移与运维记录](MIGRATION_22001_TO_22005_2026-10-09.md)。
+
 正式入口：https://gzfusanhesp.com 。HTTP 和 www 跳转到此地址。
 DNS 保留加拿大服务器地址，原来跳到独立站的规则已移除。
+
+## 搜索可见性（2026-10-04）
+
+员工控制台固定为 `gzfusanhesp.com`，对外官网固定为
+`fshfoodingredients.com`。CRM 根域、www、HTTP/HTTPS 的实际 Nginx
+虚拟主机已统一发送 `X-Robots-Tag: noindex, nofollow, nosnippet`，包括
+重定向、200、401 和 404 响应。HTTPS `/robots.txt` 在边缘返回允许抓取，
+让搜索引擎能读取公开登录页的 noindex；业务 API 继续要求登录。
+
+不要把 CRM robots 改回 `Disallow: /` 来代替退索引，这会阻碍搜索引擎读取
+noindex。维护配置时检查 `add_header` 继承，避免新 location 覆盖该响应头。
+不要把 CRM 的 noindex 加到官网虚拟主机或共用 WordPress 的全局设置。
+官网预览子域 `new.fshfoodingredients.com` 的不收录规则单独限定在该 host。
+
+这次改动保留原有 HTTPS、WebSocket、SSH 转发和鉴权；匿名用户/客户 API
+仍返回 401，WebSocket HTTP/1.1 握手为 101。配置备份在加拿大
+`/www/backup/seo-rollout-20261004-edge-phase1/`。回滚只恢复此次对应文件，
+使用下文实际 Nginx 二进制和主配置校验、重载，不能回滚 CRM 数据。
+
+不收录配置生效与搜索结果更新是两个状态。Google Search Console 的临时移除
+需要相应站点权限；截至这次部署未提交移除，不宣称旧搜索结果已消失。
+机制依据：[Google noindex 说明](https://developers.google.com/search/docs/crawling-indexing/block-indexing)。
 
 ## 实际链路
 

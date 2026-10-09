@@ -157,6 +157,11 @@
       "type": "belongsTo",
       "entity": "ExternalConversation",
       "foreign": "messages"
+    },
+    "outreachEvidence": {
+      "type": "hasMany",
+      "entity": "OutreachEvidence",
+      "foreign": "message"
     }
   },
   "collection": {

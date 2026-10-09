@@ -1,8 +1,39 @@
 {
   "fields": {
-    "rating": "人工评级",
+    "rating": "客户评级",
     "ratingReason": "评级依据",
     "ratingConfirmedAt": "确认时间",
-    "ratingConfirmedBy": "确认人"
+    "ratingConfirmedBy": "确认人",
+    "aiRating": "AI 评级",
+    "aiRatingStatus": "自动评级状态",
+    "aiRatingReason": "AI 评级依据",
+    "aiRatingAt": "评级时间",
+    "aiRatingModel": "评级模型",
+    "aiRatingData": "评级证据",
+    "ratingSource": "评级来源",
+    "aiCompanyName": "检索公司"
+  },
+  "options": {
+    "rating": {
+      "": "待评级",
+      "S": "超高",
+      "A": "高",
+      "B": "中",
+      "C": "低",
+      "D": "超低"
+    },
+    "aiRating": {
+      "": "待评级",
+      "S": "超高",
+      "A": "高",
+      "B": "中",
+      "C": "低",
+      "D": "超低"
+    },
+    "ratingSource": {
+      "": "待评级",
+      "auto": "AI 自动",
+      "manual": "人工调整"
+    }
   }
 }

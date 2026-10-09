@@ -1,8 +1,14 @@
 {
+  "favicon": "client/custom/res/fusanhe/favicon-crown-64.png",
+  "faviconAlternate": "client/custom/res/fusanhe/favicon-crown.ico",
   "linkList": [
     "__APPEND__",
     {
       "href": "client/custom/res/fusanhe/brand.css",
+      "rel": "stylesheet"
+    },
+    {
+      "href": "client/custom/res/fusanhe/branding.css",
       "rel": "stylesheet"
     }
   ]

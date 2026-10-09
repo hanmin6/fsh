@@ -26,7 +26,9 @@
     "FusanheSalesOrder": "销售订单",
     "FusanheOrderLine": "订单行",
     "FusanheOrderShipment": "出货记录",
-    "FusanheShipmentItem": "出货明细"
+    "FusanheShipmentItem": "出货明细",
+    "OutreachEvidence": "主动触达证据",
+    "ProspectResearch": "客户背调"
   },
   "scopeNamesPlural": {
     "ExternalChannel": "外部渠道",
@@ -46,7 +48,9 @@
     "Email": "邮件",
     "ExternalIdentity": "外部身份",
     "FusanheProduct": "产品库",
-    "FusanheProductSpec": "产品规格版本"
+    "FusanheProductSpec": "产品规格版本",
+    "OutreachEvidence": "主动触达证据",
+    "ProspectResearch": "客户背调"
   },
   "labels": {
     "Unified Inbox": "统一询盘",
@@ -62,6 +66,39 @@
     "FusanheOperations": "外贸运营概览"
   },
   "fields": {
-    "assignedUser": "负责人"
+    "assignedUser": "负责人",
+    "idempotencyKey": "幂等键",
+    "requestHash": "请求哈希",
+    "externalMessageId": "平台消息 ID",
+    "channelType": "平台",
+    "channelAccountId": "平台账号",
+    "profileUrl": "客户主页",
+    "messageBody": "发送内容",
+    "sendStatus": "发送状态",
+    "sentAt": "发送时间",
+    "customerSnapshot": "客户快照",
+    "screenshotFileKey": "截图文件",
+    "screenshotMime": "截图格式",
+    "screenshotSize": "截图大小",
+    "screenshotSha256": "截图校验值",
+    "screenshotWidth": "截图宽度",
+    "screenshotHeight": "截图高度",
+    "researchStatus": "背调状态",
+    "researchError": "背调错误",
+    "researchAt": "背调时间",
+    "researchModel": "背调模型",
+    "researchVersion": "背调版本",
+    "researchData": "背调结果",
+    "report": "背调摘要",
+    "data": "结构化结果",
+    "sources": "来源",
+    "queries": "搜索词",
+    "model": "模型",
+    "promptVersion": "提示词版本",
+    "startedAt": "开始时间",
+    "nextAt": "下次重试",
+    "errorCode": "错误代码",
+    "publicBio": "公开简介",
+    "publicTags": "公开标签"
   }
 }

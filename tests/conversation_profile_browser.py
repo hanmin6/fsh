@@ -1,0 +1,65 @@
+import os
+"""Regression for missing conversation grades and customer background in the inspector."""
+from pathlib import Path
+from playwright.sync_api import sync_playwright, expect
+
+ROOT = Path(__file__).resolve().parents[1]
+BASE = 'http://127.0.0.1:5176/tests/conversation-profile.html?workspace=messages&record=v1'
+OUT = ROOT / 'test-results/conversation-profile'
+OUT.mkdir(parents=True, exist_ok=True)
+expect.set_options(timeout=10000)
+with sync_playwright() as p:
+    browser = p.chromium.launch(executable_path=os.getenv('BROWSER_EXECUTABLE') or ('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' if Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome').exists() else None), headless=True)
+    page = browser.new_page(viewport={'width':1536,'height':960})
+    errors = []
+    page.on('pageerror',lambda error:errors.append(str(error)))
+    page.route('**/client/custom/res/fusanhe/logo-full.png',lambda route:route.fulfill(path=str(ROOT/'client/custom/res/fusanhe/logo-full.png')))
+    page.goto(BASE)
+    page.get_by_role('combobox',name='会话排序',exact=True).select_option('latest')
+    rows = page.locator('.w-conversation-list .w-conversation')
+    expect(rows.nth(0).locator('.w-badge').first).to_have_text('高')
+    expect(rows.nth(1).locator('.w-badge').first).to_have_text('超高')
+    expect(rows.nth(2).locator('.w-badge').first).to_have_text('低')
+    expect(rows.nth(3)).to_contain_text('未关联客户')
+    inspector = page.locator('.w-chat-inspector')
+    expect(inspector.get_by_role('heading',name='AI 背调',exact=True)).to_be_visible()
+    expect(inspector).to_contain_text('客户负责人')
+    expect(inspector).to_contain_text('历史采购需求与产品匹配')
+    expect(inspector.get_by_role('link',name='示例公司资料')).to_have_attribute('href','https://example.invalid/company')
+    expect(inspector).to_contain_text('确认采购数量与目的港')
+    page.screenshot(path=str(OUT/'desktop.png'),full_page=True)
+    rows.nth(1).click()
+    expect(inspector).to_contain_text('已人工确认采购计划')
+    expect(inspector).to_contain_text('审核人')
+    expect(inspector).to_contain_text('Contact Foods')
+    expect(inspector).not_to_contain_text('Fictional Foods')
+    rows.nth(2).click()
+    expect(inspector).to_contain_text('Lead Foods')
+    expect(inspector).to_contain_text('France')
+    rows.nth(3).click()
+    expect(inspector).to_contain_text('客户身份尚未关联')
+    expect(inspector).not_to_contain_text('Lead Foods')
+    page.goto(BASE+'&deny=Account')
+    page.get_by_role('combobox',name='会话排序',exact=True).select_option('latest')
+    expect(rows.nth(0)).to_contain_text('无评级权限')
+    expect(inspector).to_contain_text('没有读取权限')
+    page.goto(BASE+'&fail=Account')
+    page.get_by_role('combobox',name='会话排序',exact=True).select_option('latest')
+    expect(rows.nth(0)).to_contain_text('评级读取失败')
+    expect(inspector).to_contain_text('记录加载失败')
+    page.goto(BASE)
+    page.get_by_role('combobox',name='会话排序',exact=True).select_option('latest')
+    page.set_viewport_size({'width':390,'height':844})
+    page.get_by_role('button',name='客户资料',exact=True).click()
+    expect(inspector.get_by_role('heading',name='AI 背调',exact=True)).to_be_visible()
+    expect(inspector).to_contain_text('历史采购需求与产品匹配')
+    assert not page.evaluate('document.querySelector(".w-main").scrollWidth > document.querySelector(".w-main").clientWidth')
+    page.screenshot(path=str(OUT/'mobile.png'),full_page=True)
+    page.evaluate('window.fixtureCustomerChange()')
+    inspector.get_by_role('button',name='刷新客户背调').click()
+    expect(inspector.locator('.w-facts').first.locator('.w-badge').first).to_have_text('中')
+    expect(rows.nth(0).locator('.w-badge').first).to_have_text('中')
+    assert page.evaluate('window.fixtureWrites') == []
+    assert not errors, errors
+    browser.close()
+print('PASS: linked Account/Contact/Lead ratings, stale grade replacement, background evidence, switching, ACL, errors and mobile')

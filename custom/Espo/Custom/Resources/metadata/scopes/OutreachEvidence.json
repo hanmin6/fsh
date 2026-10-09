@@ -1,0 +1,13 @@
+{
+  "entity": true,
+  "layouts": false,
+  "tab": false,
+  "acl": true,
+  "customizable": false,
+  "importable": false,
+  "notifications": true,
+  "object": true,
+  "stream": false,
+  "exportable": false,
+  "globalSearch": false
+}

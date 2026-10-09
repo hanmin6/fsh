@@ -74,6 +74,10 @@
     "modifiedBy": {
       "type": "link",
       "readOnly": true
+    },
+    "files": {
+      "type": "attachmentMultiple",
+      "view": "views/fields/attachments-multiple"
     }
   },
   "links": {

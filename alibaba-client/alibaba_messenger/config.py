@@ -15,9 +15,11 @@ except ImportError:
 
 @dataclass
 class Settings:
-    BASE_DIR: str = field(default_factory=lambda: os.path.dirname(os.path.abspath(__file__)))
-    PROFILE_DIR: str | None = None
-    LOGS_DIR: str | None = None
+    BASE_DIR: str = field(default_factory=lambda: os.getenv(
+        "FUSANHE_ALIBABA_DATA_DIR", os.path.dirname(os.path.abspath(__file__))
+    ))
+    PROFILE_DIR: str | None = field(default_factory=lambda: os.getenv("ALIBABA_PROFILE_DIR"))
+    LOGS_DIR: str | None = field(default_factory=lambda: os.getenv("ALIBABA_LOGS_DIR"))
     SCREENSHOTS_DIR: str | None = None
     SENT_RECORDS_FILE: str | None = None
     

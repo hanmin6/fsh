@@ -7,7 +7,8 @@
         "S",
         "A",
         "B",
-        "C"
+        "C",
+        "D"
       ],
       "audited": true
     },
@@ -73,12 +74,95 @@
       "maxLength": 100,
       "readOnly": true,
       "layoutListDisabled": true
+    },
+    "ratingSource": {
+      "type": "enum",
+      "options": [
+        "",
+        "auto",
+        "manual"
+      ],
+      "readOnly": true
+    },
+    "aiRating": {
+      "type": "enum",
+      "options": [
+        "",
+        "S",
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "readOnly": true
+    },
+    "aiRatingStatus": {
+      "type": "enum",
+      "options": [
+        "pending",
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "readOnly": true
+    },
+    "aiRatingReason": {
+      "type": "text",
+      "readOnly": true
+    },
+    "aiRatingAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "aiRatingModel": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "aiRatingData": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "aiRatingVersion": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true
+    },
+    "aiRatingError": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "aiRatingAttempts": {
+      "type": "int",
+      "default": 0,
+      "readOnly": true
+    },
+    "aiRatingNextAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "aiCompanyName": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
     }
   },
   "links": {
     "ratingConfirmedBy": {
       "type": "belongsTo",
       "entity": "User"
+    },
+    "outreachEvidence": {
+      "type": "hasMany",
+      "entity": "OutreachEvidence",
+      "foreign": "lead"
+    },
+    "prospectResearch": {
+      "type": "hasMany",
+      "entity": "ProspectResearch",
+      "foreign": "lead"
     }
   },
   "indexes": {

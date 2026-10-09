@@ -1,0 +1,45 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="fixture"></div><script type="module">
+import {mount} from '../src/main.tsx';
+const query=new URLSearchParams(location.search);
+const analysis={company:{name:'Fictional Foods',matchStatus:'possible',website:'https://example.invalid',reason:'公司名称尚待核对'},confidence:'medium',nextAction:'确认采购数量与目的港',sources:[{title:'示例公司资料',url:'https://example.invalid/company'}],missingInformation:['采购数量'],evidence:[{id:'m1',conversationId:'v1',quote:'Please confirm packaging.'}]};
+const db={
+ Account:[{id:'a1',name:'Fictional Account',rating:'A',ratingSource:'auto',ratingReason:'采购需求匹配',assignedUserName:'客户负责人',billingAddressCountry:'India',aiRatingStatus:'completed',aiRatingReason:'历史采购需求与产品匹配',aiRatingAt:'2026-10-01 08:00:00',aiRatingData:analysis}],
+ Contact:[{id:'c1',name:'Fictional Contact',rating:'S',ratingSource:'manual',ratingReason:'已人工确认采购计划',ratingConfirmedByName:'审核人',ratingConfirmedAt:'2026-10-02 08:00:00',aiRatingStatus:'completed',aiRating:'B',aiRatingReason:'AI 建议保持跟进',aiRatingData:{...analysis,company:{name:'Contact Foods',matchStatus:'confirmed'}}}],
+ Lead:[{id:'l1',name:'Fictional Lead',rating:'C',ratingSource:'auto',addressCountry:'France',aiRatingStatus:'completed',aiRatingReason:'产品需求不匹配',aiRatingData:{...analysis,company:{name:'Lead Foods',matchStatus:'unverified'}}}],
+ ExternalConversation:[{id:'v1',name:'Account buyer',accountId:'a1',accountName:'Fictional Account',lastMessageAt:'2026-10-09 08:00:00',status:'replied',unreadCount:0},{id:'v2',name:'Contact buyer',contactId:'c1',contactName:'Fictional Contact',rating:'D',lastMessageAt:'2026-10-08 08:00:00',status:'replied',unreadCount:0},{id:'v3',name:'Lead buyer',leadId:'l1',leadName:'Fictional Lead',lastMessageAt:'2026-10-07 08:00:00',status:'replied',unreadCount:0},{id:'v4',name:'Unlinked buyer',lastMessageAt:'2026-10-06 08:00:00',status:'new',unreadCount:0}],
+ ExternalMessage:[{id:'m1',conversationId:'v1',direction:'inbound',body:'Please confirm packaging.',translatedBody:'请确认包装。',sentAt:'2026-10-09 08:00:00',timestampConfidence:'high',deliveryStatus:'received'}],ExternalChannel:[],AIReplyDraft:[],OutboundTask:[],Task:[],User:[]
+};
+if(query.has('sorting')){
+ db.Account=[];db.Contact=[];db.Lead=[];db.ExternalConversation=[];db.ExternalMessage=[];
+ db.ExternalChannel=[{id:'ali',name:'Alibaba fixture',type:'Alibaba'},{id:'mic',name:'MIC fixture',type:'MadeInChina'}];
+ const add=(id,name,rating,time,channel='ali',unread=1)=>{
+  if(rating!==null)db.Lead.push({id:'lead-'+id,name,rating});
+  db.ExternalConversation.push({id,name,leadId:rating!==null?'lead-'+id:undefined,leadName:name,channelId:channel,channelName:channel,lastMessageAt:time,status:unread?'pending':'replied',unreadCount:unread});
+ };
+ for(let i=0;i<120;i++)add('middle-'+String(i).padStart(3,'0'),'Sort Middle '+i,'B','2026-10-09 08:00:00',i%2?'mic':'ali',i%2?0:1);
+ add('top-old','Sort Top Older','S','2026-01-01 08:00:00','mic');
+ add('top-new','Sort Top Newer','S','2026-02-01 08:00:00');
+ add('high','Sort High','A','2026-03-01 08:00:00');
+ add('low','Sort Low','C','2026-04-01 08:00:00');
+ add('lowest','Sort Lowest','D','2026-05-01 08:00:00');
+ add('pending-rating','Sort Pending','','2026-10-09 09:00:00');
+ add('unlinked','Sort Unlinked',null,'2026-10-09 10:00:00');
+}
+window.fixtureWrites=[];
+window.fixtureCustomerChange=()=>{db.Account[0].rating='B';db.Account[0].modifiedAt='2026-10-09 09:00:00'};
+const host={user:{id:'profile-fixture-'+(query.get('deny')||'all')+(query.get('fail')||'')+query.has('sorting'),name:'Test'},can:(entity,action)=>action==='read'?entity!==query.get('deny'):false,native:()=>{},
+ get:async(path,params={})=>{
+  const [entity,id]=path.split('/');
+  if(entity===query.get('fail'))throw Error('Fixture unavailable');
+  if(path==='Fusanhe/status')return {outboundPaused:true};
+  if(path==='Fusanhe/text/status')return {models:[],defaultChoice:''};
+  if(id){const row=db[entity]?.find(r=>r.id===id);if(!row)throw Error('Not found');return structuredClone(row)}
+  let rows=db[entity]||[];
+  for(const where of params.where||[])rows=rows.filter(r=>where.type==='in'?where.value.includes(r[where.attribute]):where.type==='equals'?r[where.attribute]===where.value:where.type==='greaterThan'?r[where.attribute]>where.value:true);
+  if(params.textFilter)rows=rows.filter(r=>(r.name||'').toLowerCase().includes(params.textFilter.toLowerCase()));
+  if(params.orderBy)rows=[...rows].sort((a,b)=>String(a[params.orderBy]||'').localeCompare(String(b[params.orderBy]||''))*(params.order==='asc'?1:-1));
+  return {list:structuredClone(rows.slice(params.offset||0,(params.offset||0)+(params.maxSize||30))),total:rows.length};
+ },post:async(...args)=>{window.fixtureWrites.push(args);throw Error('Disabled')},patch:async(...args)=>{window.fixtureWrites.push(args);throw Error('Disabled')}
+};
+mount(document.getElementById('fixture'),host);
+</script></body></html>

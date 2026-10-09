@@ -1,5 +1,7 @@
 # 当前 CRM 接入记录 · 2026-10-02
 
+> 2026-10-09 当前状态：CRM、Dify、Alibaba/MIC 与 bridge 均位于 22005 Linux，22001 原 Windows 系统已退役。只读核验时 Alibaba 为 ready、MIC 为 healthy；当前运维以 [22005 迁移记录](MIGRATION_22001_TO_22005_2026-10-09.md) 为准，下文保留 10 月 2 日的接入事实。全局外发仍暂停。
+
 入口：https://gzfusanhesp.com 。当前生产路径仍采用加拿大 Nginx、堡垒机和公司服务器。
 
 ## 已配置并验证
@@ -22,13 +24,16 @@
 目录验证仅证实网络、API 鉴权和模型 ID，不等于本次已完成模型生成。
 本次未提交付费视频或文本请求，也未触发真实平台发送。
 
-## 等待现场信息
+## 2026-10-02 现场部署与当时待办（历史）
 
-用户指定渠道执行端位于堡垒机 `22001` 的福三和 Windows 主机，SSH 用户 `18323`。
-现场未发现 8000/8787 抓取监听、Python 抓取进程、渠道计划任务或此前记录中的
-`G:\FSH` / `G:\MadeInChinaGatewayData`。18080 是另一套应用，不能作为 CRM 同步目标。
-Windows 原平台客户端登录状态不能直接当作专用 Playwright profile 已登录。
-因此本次尚未启用渠道同步，也没有迁移历史聊天。待用户确认旧目录或新装后继续。
+用户随后授权在堡垒机 `22001` 的福三和 Windows 主机部署抓取程序。已将 GitHub 仓库
+中的 Alibaba 与 MIC 程序安装到 `C:\FusanheGateway`，补齐遗漏的 MIC 调度模块，
+创建三个登录自启任务，并通过正式域名验证两个专用 Agent 的独立凭据。
+MIC 监听 loopback 8787；18080 属于另一套应用。两个专用浏览器目前等待平台首次登录，
+CRM Agent 正确显示 `offline / login_required`，实际会话与消息仍为 0。
+Windows 原平台客户端登录状态不能直接代替专用浏览器登录；本次尚未完成真实渠道数据
+同步或历史聊天迁移。详细目录、任务、验证和恢复见
+[Windows 抓取端部署记录](WINDOWS_CHANNEL_DEPLOYMENT_2026-10-02.md)。
 
 Muse 的 CRM 服务端和 MCP 连接器已准备好，仍需在实际 Muse Code 客户端加载 stdio
 配置；本机未发现 muse/muse-code CLI。不要把服务端工具检查成功描述为 Muse 已获客。

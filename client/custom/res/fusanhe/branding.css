@@ -1,0 +1,9 @@
+/* Application branding, shared by the login page and authenticated workspace. */
+body[data-id="espocrm"] > footer {
+  display: none;
+}
+
+/* The React workspace renders its own attribution inside the application. */
+.w-app .w-footer > span {
+  display: none;
+}

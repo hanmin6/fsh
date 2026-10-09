@@ -55,7 +55,7 @@ verify-offline:
 	docker compose config --quiet
 	python3 -m unittest tests.test_contracts tests.test_phase1 tests.test_api_contract tests.test_agent_credentials tests.test_knowledge_scanner_contract tests.test_backup_contract tests.test_muse_crm_contract
 	@if command -v php >/dev/null 2>&1; then \
-		php tests/text_gateway_contract.php && php tests/media_gateway_contract.php && php tests/media_service_contract.php; \
+		php tests/text_gateway_contract.php && php tests/media_gateway_contract.php && php tests/media_service_contract.php && php tests/outreach_research_contract.php; \
 	else \
-		docker run --rm -v "$(CURDIR):/app" -w /app php:8.3-cli sh -c 'php tests/text_gateway_contract.php && php tests/media_gateway_contract.php && php tests/media_service_contract.php'; \
+		docker run --rm -v "$(CURDIR):/app" -w /app php:8.3-cli sh -c 'php tests/text_gateway_contract.php && php tests/media_gateway_contract.php && php tests/media_service_contract.php && php tests/outreach_research_contract.php'; \
 	fi

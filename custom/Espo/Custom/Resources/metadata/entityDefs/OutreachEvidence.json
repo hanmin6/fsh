@@ -1,0 +1,308 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "createdBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "modifiedBy": {
+      "type": "link",
+      "readOnly": true
+    },
+    "assignedUser": {
+      "type": "link",
+      "view": "views/fields/assigned-user",
+      "audited": true,
+      "readOnly": true
+    },
+    "teams": {
+      "type": "linkMultiple",
+      "view": "views/fields/teams",
+      "readOnly": true
+    },
+    "idempotencyKey": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 80,
+      "readOnly": true
+    },
+    "requestHash": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "externalMessageId": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true
+    },
+    "channelType": {
+      "type": "enum",
+      "required": true,
+      "options": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram",
+        "TikTok",
+        "X",
+        "Alibaba",
+        "MadeInChina",
+        "Email",
+        "WhatsApp",
+        "Other"
+      ],
+      "displayAsLabel": true,
+      "readOnly": true
+    },
+    "channelAccountId": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true
+    },
+    "profileUrl": {
+      "type": "url",
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "messageBody": {
+      "type": "text",
+      "required": true,
+      "readOnly": true
+    },
+    "sendStatus": {
+      "type": "enum",
+      "required": true,
+      "options": [
+        "sent",
+        "delivered",
+        "uncertain",
+        "failed",
+        "mockSent"
+      ],
+      "default": "uncertain",
+      "displayAsLabel": true,
+      "readOnly": true
+    },
+    "sentAt": {
+      "type": "datetime",
+      "required": true,
+      "readOnly": true
+    },
+    "customerSnapshot": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "view": "custom:views/fields/structured"
+    },
+    "screenshotFileKey": {
+      "type": "varchar",
+      "maxLength": 48,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "screenshotMime": {
+      "type": "varchar",
+      "maxLength": 50,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "screenshotSize": {
+      "type": "int",
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "screenshotSha256": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "screenshotWidth": {
+      "type": "int",
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "screenshotHeight": {
+      "type": "int",
+      "readOnly": true,
+      "layoutListDisabled": true
+    },
+    "researchStatus": {
+      "type": "enum",
+      "options": [
+        "pending",
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "displayAsLabel": true,
+      "readOnly": true
+    },
+    "researchError": {
+      "type": "varchar",
+      "maxLength": 191,
+      "readOnly": true
+    },
+    "researchAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "researchModel": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "researchVersion": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "researchData": {
+      "type": "jsonObject",
+      "readOnly": true,
+      "view": "custom:views/fields/structured"
+    },
+    "lead": {
+      "type": "link",
+      "readOnly": true
+    },
+    "account": {
+      "type": "link",
+      "readOnly": true
+    },
+    "contact": {
+      "type": "link",
+      "readOnly": true
+    },
+    "conversation": {
+      "type": "link",
+      "readOnly": true
+    },
+    "message": {
+      "type": "link",
+      "readOnly": true
+    },
+    "messageKey": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true
+    },
+    "researchAttempts": {
+      "type": "int",
+      "default": 0,
+      "readOnly": true
+    },
+    "researchNextAt": {
+      "type": "datetime",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "createdBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "modifiedBy": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "teams": {
+      "type": "hasMany",
+      "entity": "Team",
+      "relationName": "entityTeam",
+      "layoutRelationshipsDisabled": true
+    },
+    "lead": {
+      "type": "belongsTo",
+      "entity": "Lead",
+      "foreign": "outreachEvidence"
+    },
+    "account": {
+      "type": "belongsTo",
+      "entity": "Account",
+      "foreign": "outreachEvidence"
+    },
+    "contact": {
+      "type": "belongsTo",
+      "entity": "Contact",
+      "foreign": "outreachEvidence"
+    },
+    "conversation": {
+      "type": "belongsTo",
+      "entity": "ExternalConversation",
+      "foreign": "outreachEvidence"
+    },
+    "message": {
+      "type": "belongsTo",
+      "entity": "ExternalMessage",
+      "foreign": "outreachEvidence"
+    },
+    "research": {
+      "type": "hasMany",
+      "entity": "ProspectResearch",
+      "foreign": "evidence"
+    }
+  },
+  "collection": {
+    "orderBy": "sentAt",
+    "order": "desc",
+    "textFilterFields": [
+      "name",
+      "messageBody",
+      "profileUrl"
+    ]
+  },
+  "indexes": {
+    "idempotency": {
+      "columns": [
+        "idempotencyKey"
+      ],
+      "unique": true
+    },
+    "requestHash": {
+      "columns": [
+        "requestHash"
+      ]
+    },
+    "externalMessage": {
+      "columns": [
+        "channelType",
+        "externalMessageId"
+      ]
+    },
+    "sentAt": {
+      "columns": [
+        "sentAt"
+      ]
+    },
+    "researchStatus": {
+      "columns": [
+        "researchStatus"
+      ]
+    },
+    "messageKey": {
+      "columns": [
+        "messageKey"
+      ],
+      "unique": true
+    }
+  }
+}

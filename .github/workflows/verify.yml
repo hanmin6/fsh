@@ -13,7 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate Compose
-        run: docker compose config --quiet
+        run: |
+          docker compose config --quiet
+          docker compose -f deploy/gateway-22005/compose.yaml config --quiet
       - name: Validate Spec Kit and offline contracts
         env:
           SPECIFY_FEATURE_DIRECTORY: specs/006-dual-ai-gateways
@@ -43,6 +45,13 @@ jobs:
           docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml exec -T espocrm bin/command rebuild
           python3 scripts/bootstrap.py
           python3 -m unittest tests.test_dual_ai_acceptance -v
+          docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml cp tests espocrm:/var/www/html/tests
+          docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml exec -T espocrm sh -c '
+            set -e
+            for contract in customer_rating card_progress creative_product media_source media_storage_permissions outreach_research message_translation; do
+              php "tests/${contract}_contract.php" custom/Espo/Custom/Tools/Fusanhe
+            done
+          '
       - name: Remove isolated acceptance stack
         if: always()
         run: docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml down -v
@@ -79,6 +88,11 @@ jobs:
           done
           python tests/unified_ui_browser.py
           python tests/dual_ai_browser.py
+          python tests/conversation_profile_browser.py
+          python tests/conversation_sort_browser.py
+          python tests/message_translation_browser.py
+          python tests/product_creative_browser.py
+          python tests/product_creative_retry_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -86,7 +100,26 @@ jobs:
           path: |
             test-results/unified-ui
             test-results/dual-ai
+            test-results/conversation-profile
+            test-results/conversation-sort
+            test-results/message-translation
+            /tmp/product-creative-desktop.png
+            /tmp/product-creative-mobile.png
           if-no-files-found: ignore
+
+  channels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install collector test dependencies
+        run: pip install -e 'mic-client[dev]' requests python-dotenv
+      - name: Verify Linux collector composition and read-only login gates
+        run: |
+          (cd mic-client && python -m pytest tests/unit tests/contract tests/integration -m 'not live and not live_send')
+          PYTHONPATH=alibaba-client:mic-client/src python -m pytest tests/test_windows_gateway.py tests/test_outreach_evidence_contract.py alibaba-client/tests
 
   # Android 1.0.0 remains a historical snapshot. The maintained product
   # surface is the browser CRM; Android is intentionally outside active CI.

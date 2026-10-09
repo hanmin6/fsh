@@ -82,6 +82,7 @@ def create_app(
         status_service = StatusService(session_factory, settings=resolved_settings)
         scheduler = GatewayScheduler(
             adapter=adapter,
+            browser_runtime=browser_runtime,
             sync_engine=sync_engine,
             outbox_worker=outbox_worker,
             status_service=status_service,

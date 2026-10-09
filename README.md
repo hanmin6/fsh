@@ -1,14 +1,16 @@
 # 福三和外贸 CRM 与 AI 回复工作台
 
-基于 EspoCRM 10.0.8 的外贸业务软件，使用一套五页 Web 工作台： 首页、消息中心、客户与评级、AI 工作中心、知识库。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核、食品外贸业务记录和广州 Windows 平台执行端放在一个可审计的流程里。
+基于 EspoCRM 10.0.8 的外贸业务软件，使用一套五页 Web 工作台： 首页、消息中心、客户与评级、AI 工作中心、知识库。系统将外部询盘、客户匹配、知识资料、AI 回复草稿、人工审核、食品外贸业务记录和 22005 Linux 渠道采集端放在一个可审计的流程里。
 
 **查找各分支的内容和合并状态，请先读 [GitHub 分支地图与开发交接](docs/BRANCH_GUIDE.md)。** 该文档逐一说明远端分支的用途、关键文件、历史验证记录和未完成事项。
 
-**当前 Web 正式版本：[`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，主分支为 `main`。** 首页显示 Made-in-China 与阿里国际站独立抓取状态；审核、身份确认、接管、交接和历史洞察均在同一工作台完成。新增 APIMonth 文本模型选择与 TokenDance 视频工作流，静态图片生成暂不启用。员工 CRM 正式域名规划为 `https://gzfusanhesp.com`，部署配置见 [CRM Web 部署手册](docs/CRM_WEB_DEPLOYMENT.md)。
+**当前部署（2026-10-09）：CRM、Dify、Alibaba/MIC 抓取和 CRM bridge 均位于 22005 Linux；22001 原 Windows 系统已退役。** 入口为 `https://gzfusanhesp.com/`，部署路径、登录入口、备份与恢复见 [22005 迁移与运维记录](docs/MIGRATION_22001_TO_22005_2026-10-09.md)。消息中心已支持关联客户评级、右侧背调、评级排序和英文自动中文翻译。
+
+**已标记的 Web 发布基线：[`crm-web-v1.1.0`](https://github.com/hanmin6/fsh/tree/crm-web-v1.1.0)，主分支为 `main`。** 首页显示 Made-in-China 与阿里国际站独立抓取状态；审核、身份确认、接管、交接和历史洞察均在同一工作台完成。新增 APIMonth 文本模型选择与 TokenDance 视频工作流，静态图片生成暂不启用。员工 CRM 正式域名规划为 `https://gzfusanhesp.com`，部署配置见 [CRM Web 部署手册](docs/CRM_WEB_DEPLOYMENT.md)。
 
 **历史开发交接见 [2026-09-24 开发交接](docs/DEVELOPMENT_HANDOFF_2026-09-24.md)。** 它按日期列出已开发内容、验证边界、未完成任务和代码入口；[老板演示说明](docs/BOSS_DEMO.md)记录当前数据状态。旧交接文档是对应日期的历史快照。
 
-当前环境默认禁止自动外发。`main` 已包含受独立 Agent 凭据保护的 Alibaba 入库端点、浏览器采集与增量同步代码，以及 Web 工作台里的历史客户只读看板；指定账号的真实全历史回填、来源完整性对账和真实发送尚未验收。其他渠道使用占位连接器。食品外贸模块已完成实体、工作流、接口、布局和测试，默认通过 Feature Flag 隐藏。
+当前环境默认禁止自动外发。`main` 已包含受独立 Agent 凭据保护的 Alibaba 入库端点、浏览器采集与增量同步代码，以及 Web 工作台里的历史客户只读看板；指定账号的真实全历史回填、来源完整性对账和真实发送尚未验收。Alibaba/MIC 当前平台登录已核验，Website/Email 等渠道仍使用占位连接器。食品外贸模块已完成实体、工作流、接口、布局和测试；当前生产模块启用情况见 [接入记录](docs/CRM_INTEGRATIONS_2026-10-02.md)，新安装的默认可见性由 Feature Flag 控制。
 
 ## 架构
 
@@ -19,10 +21,11 @@ flowchart LR
   MIC[Made-in-China] -. 官方 API / 执行端 .-> CRM
   CRM --> DB[(MariaDB)]
   SHARE[广州共享盘] -->|只读挂载和索引| CRM
-  CRM -->|本地匿名询盘信号| AI[APIMonth 文本 API]
-  CRM -->|手写创意描述 / 明确授权的公网图片 URL| VIDEO[TokenDance 视频 API]
-  CRM -->|人工批准后的任务| AGENT[4070 Windows 执行端]
-  AGENT -->|发送结果 / 风控状态| CRM
+  CRM -->|评级 / 草稿 / 英文翻译| AI[APIMonth 文本 API]
+  CRM -->|产品创意方案 / 明确授权的首帧| VIDEO[TokenDance 视频 API]
+  COLLECT[22005 Linux Alibaba/MIC 采集端] -->|受 Agent 凭据保护的增量入库| CRM
+  CRM -. 人工批准后的任务 .-> AGENT[渠道发送 Worker 当前停用]
+  AGENT -. 发送结果 / 风控状态 .-> CRM
 ```
 
 - CRM 数据库位于本机 Docker volume，不放在 SMB 共享盘。
@@ -35,7 +38,8 @@ flowchart LR
 - 8 个 EspoCRM 实体：渠道、会话、消息、AI 草稿、发送任务、知识文档、执行端、审计日志。
 - CRM 与 AI 客服统一工作台、共享客户身份、人工身份确认、客服转销售、人工接管和上下文跳转；会话状态、销售阶段、发送任务状态分别维护。
 - 统一询盘列表的渠道、负责人、状态、国家和未读字段，以及按最后消息时间排序的数据基础。
-- 会话详情工作台：客户资料、消息时间线、AI 草稿编辑和人工批准区。
+- 会话详情工作台：客户资料、消息时间线、AI 草稿编辑和人工批准区。评级从关联客户读取，右侧展示 AI 背调；会话默认按评级从高到低排序，英文消息自动显示中文译文并保存复用。
+- 客户自动联网评级：五档价值等级、公司核实与来源证据，保留人工调整；后续新客户由原生定时任务处理。
 - 客户匹配顺序：平台用户 ID、邮箱、手机号、公司加国家、姓名加公司；无法可靠匹配时保留待确认身份，必须由人工显式关联或建档。
 - 消息、会话和发送任务的数据库唯一约束。
 - 独立文本通道：GPT-6.1 Sol 使用 Responses，Grok 4.7 与 Gemini 3.8 Flash 使用 Chat Completions；手动选模、校验实际返回模型，真实通道失败不会回退 Mock。旧 AI_* 通道仅在新文本通道未启用且无新密钥时兼容。
@@ -59,7 +63,9 @@ client/custom/src/                  EspoCRM 客户端工作台与 Dashlet
 knowledge/demo/                     可提交的演示知识资料
 materials/                          本地素材挂载点，不提交内容
 scripts/bootstrap.py                幂等安装导航和角色
-scripts/mock-agent.py               一次性模拟 Windows 执行端
+scripts/mock-agent.py               一次性模拟执行端
+deploy/gateway-22005/               当前 Linux 采集端公开部署文件
+docs/MIGRATION_22001_TO_22005_2026-10-09.md 当前部署与退役记录
 scripts/backup.sh                   数据库和运行数据备份
 scripts/restore.sh                  备份恢复（需明确传入备份目录）
 docs/permissions.md                 角色权限说明
@@ -214,10 +220,10 @@ docker compose exec espocrm bin/command rebuild
 
 ## 已知限制
 
-- 新真实文本通道只接收本地匿名固定词表信号，不发送原始客户消息或内部知识文档；当前侧重澄清草稿，完整翻译及事实丰富的业务回复仍需后续数据策略。创意规划基于手写描述，不分析上传图片；首帧视频需要明确授权的公网 HTTPS 图片 URL，本次真实验证为纯文本视频。
-- Alibaba CRM 入库、浏览器采集和增量同步代码已具备，合成数据及隔离运行时验证通过；当前真实账号全历史回填、完整性对账和实际页面适配尚未验收。OAuth Bridge 健康检查通过不等于消息历史可读。真实平台发送代码未经生产验收。Made-in-China、独立站和邮件仍是接口骨架。
-- 既有 Alibaba 浏览器执行端尚未在用户指定的“福三和主机”找到可复用安装，也未确认当前登录入口；Windows 桌面客户端读取方案尚未实现。
+- 草稿与历史洞察仍使用匿名固定词表信号；消息自动翻译按权限读取待译消息正文并调用文本模型，详见 [翻译说明](docs/MESSAGE_AUTO_TRANSLATION_2026-10-09.md)。产品创意规划使用产品上下文与选定方案，首帧来源须明确确认；静态图片生成与自动对外发送未启用。
+- Alibaba 与 Made-in-China 采集端及 CRM bridge 已在 22005 Linux 运行，平台登录状态已核验；真实账号全历史完整性、当前增量对账和持续观察仍需按业务证据验收。进程健康不代替消息历史完整性，真实平台发送未经生产验收。独立站和邮件仍是接口骨架。
+- 平台登录桌面通过 22005 的 noVNC 与 SSH 转发访问，Windows 22001 已退役；当前不使用 Windows 桌面客户端读取方案。
 - 食品外贸模块目前是 CRM 内的结构化业务记录与工作流，尚未连接 ERP、工厂排产、物流承运商或真实收付款系统；Feature Flag 只控制可见性，不替代权限。
 - Android 1.0.0 仅作为历史 Mock 演示保留；当前用户入口统一为 CRM Web。
 - DOCX/XLSX 使用轻量文本提取；复杂表格和扫描 PDF 后续应接专业解析/OCR 服务。
-- 当前共享目录为本地演示挂载，部署到广州 Windows 时需替换为实际共享盘路径并配置只读权限。
+- 共享目录需使用当前 Linux 部署配置的知识库与素材路径，并保持只读权限；演示挂载不能替代生产数据与备份。

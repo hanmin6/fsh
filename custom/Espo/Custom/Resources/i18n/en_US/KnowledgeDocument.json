@@ -89,7 +89,8 @@
     "translatedText": "Translation",
     "createdBy": "Created by",
     "modifiedBy": "Modified by",
-    "extractedText": "Document text"
+    "extractedText": "Document text",
+    "files": "Original Files"
   },
   "options": {
     "sourceType": {

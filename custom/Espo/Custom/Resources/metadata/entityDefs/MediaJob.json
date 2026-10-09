@@ -52,7 +52,8 @@
       "readOnly": true,
       "options": [
         "text_only",
-        "public_image"
+        "public_image",
+        "product_image"
       ]
     },
     "selectedPlan": {

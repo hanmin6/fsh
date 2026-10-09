@@ -5,5 +5,19 @@
     "scheduling": "* * * * *",
     "jobClassName": "Espo\\Custom\\Classes\\Jobs\\MediaReconcile",
     "isDefault": true
+  },
+  "FusanheCustomerRating": {
+    "name": "Customer research and five-level rating",
+    "isSystem": false,
+    "scheduling": "* * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\CustomerRating",
+    "isDefault": true
+  },
+  "FusanheOutreachResearch": {
+    "name": "Outreach research retry",
+    "isSystem": false,
+    "scheduling": "* * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\OutreachResearch",
+    "isDefault": true
   }
 }

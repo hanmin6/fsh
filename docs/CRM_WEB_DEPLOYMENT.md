@@ -3,6 +3,8 @@
 本手册只覆盖 CRM Web，正式入口是 `https://gzfusanhesp.com`。独立站
 `https://fshfoodingredients.com/zh` 不属于本次部署，不修改它的 DNS、代码或证书。
 
+> 2026-10-09：当前 CRM 与渠道采集运行在 22005 Linux，22001 原 Windows 系统已退役。Dify 与采集端的目录、SSH 入口和恢复方法见 [迁移与运维记录](MIGRATION_22001_TO_22005_2026-10-09.md)。本手册的 Caddy 部分仍为备用方案。
+
 ## 1. DNS 与防火墙
 
 **2026-10-02 生产环境已采用加拿大 Nginx + 堡垒机 SSH 转发，DNS 无需改到公司出口。**

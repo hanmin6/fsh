@@ -1,5 +1,11 @@
 # 福三和 CRM 接口开发交接文档
 
+> 2026-10-09 当前开发分支：`codex/muse-crm-mcp`；运行主机：22005 Linux。部署与运维以 [迁移记录](MIGRATION_22001_TO_22005_2026-10-09.md) 为准，下文早期分支与验证数字为历史交接。
+
+### 2026-10-09 消息中心自动翻译
+
+新增 `POST /Fusanhe/conversation/:id/translate`，接收 1–6 个 `messageIds` 与可选布尔 `retry`。检查会话、各消息和 body/translatedBody 的读取权限及会话归属；消息正文从服务端读取，复用现有文本模型翻译英文为中文，保存 `translatedBody`。此接口为读取消息的用户补齐派生译文，不赋予原文编辑权限，不创建回复草稿或发送任务。英文正文会提交到现有文本模型通道，数字、SKU、网址与邮箱须保留；实现与验证见 [自动翻译记录](MESSAGE_AUTO_TRANSLATION_2026-10-09.md)。
+
 更新时间：2026-09-24
 目标分支：`codex/fusanhe-crm-frontend`
 技术底座：EspoCRM `10.0.8-apache`、MariaDB `11.4`、PHP、Docker Compose
@@ -489,3 +495,7 @@ docker compose exec -T espocrm bin/command rebuild
 6. 是否保持全局停发。
 7. 仍缺哪些平台文档、测试账号、回调地址或网络条件。
 8. 还有哪些已知风险和下一步。
+
+## 2026-10-03 CRM 触达证据与 AI 背调
+
+新增 `/Fusanhe/outreach/evidence` CRM-only API：先提交 `idempotencyKey`、`targetType`/`targetId`、`channelType`、`messageBody`、`sendStatus`、带时区的 `sentAt`（例如 `2026-10-03T08:00:00Z`）、`customerSnapshot` 和受控 `screenshotDataUrl`；同一路径的 GET 按客户返回 ACL 过滤后的摘要列表，再通过 `GET /Fusanhe/outreach/evidence/:id/screenshot` 读取私有截图。`POST /Fusanhe/outreach/evidence/:id/research` 复用现有联网研究网关，保存结构化报告、来源、模型和版本；失败状态由 CRM 定时 Job 按次数和退避时间重试。所有动作受 `OutreachEvidence` ACL 保护；本阶段不会调用 Muse 或发送消息。

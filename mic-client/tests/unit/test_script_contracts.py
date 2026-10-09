@@ -1,7 +1,15 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.skipif(
+    shutil.which("powershell.exe") is None,
+    reason="Windows PowerShell is required for Windows installer contracts",
+)
 
 REPO_ROOT = Path(__file__).parents[2]
 
