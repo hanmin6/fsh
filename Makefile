@@ -47,7 +47,7 @@ spec-check:
 	@test -s specs/002-non-channel-production-readiness/spec.md
 	@test -s specs/002-non-channel-production-readiness/plan.md
 	@test -s specs/002-non-channel-production-readiness/tasks.md
-	@! rg -n '\[(PROJECT_NAME|PRINCIPLE_[0-9]+_(NAME|DESCRIPTION)|SECTION_[0-9]+_(NAME|CONTENT)|GOVERNANCE_RULES|CONSTITUTION_VERSION|RATIFICATION_DATE|LAST_AMENDED_DATE|FEATURE NAME|DATE)\]' .specify/memory/constitution.md specs/001-system-baseline
+	@python3 -c 'import re,pathlib; pattern=r"\[(PROJECT_NAME|PRINCIPLE_[0-9]+_(NAME|DESCRIPTION)|SECTION_[0-9]+_(NAME|CONTENT)|GOVERNANCE_RULES|CONSTITUTION_VERSION|RATIFICATION_DATE|LAST_AMENDED_DATE|FEATURE NAME|DATE)\]"; paths=[pathlib.Path(".specify/memory/constitution.md"),*pathlib.Path("specs/001-system-baseline").rglob("*")]; bad=[str(p) for p in paths if p.is_file() and re.search(pattern,p.read_text())]; raise SystemExit("Unfilled spec placeholders: "+", ".join(bad) if bad else 0)'
 	@python3 -c 'import re,pathlib; p=pathlib.Path("specs/001-system-baseline/tasks.md"); lines=[x for x in p.read_text().splitlines() if x.startswith("- [")]; bad=[x for x in lines if not re.match(r"^- \[[ x]\] T\d{3}( \[P\])?( \[US\d+\])? .+`[^`]+`",x)]; raise SystemExit("Invalid task format:\n"+"\n".join(bad) if bad else 0)'
 	@python3 -c 'import re,pathlib; p=pathlib.Path("specs/002-non-channel-production-readiness/tasks.md"); lines=[x for x in p.read_text().splitlines() if x.startswith("- [")]; bad=[x for x in lines if not re.match(r"^- \[[ x]\] T\d{3}( \[P\])?( \[US\d+\])? .+`[^`]+`",x)]; raise SystemExit("Invalid task format:\n"+"\n".join(bad) if bad else 0)'
 
