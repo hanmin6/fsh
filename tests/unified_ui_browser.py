@@ -30,7 +30,7 @@ with sync_playwright() as p:
     dialog.get_by_role('button',name='确认批准',exact=True).click()
     expect(inspector.get_by_text('示例已批准任务',exact=True)).to_be_visible()
     expect(inspector.get_by_role('textbox',name='回复草稿',exact=True)).to_have_attribute('readonly','')
-    inspector.get_by_role('button',name='人工接管',exact=True).click()
+    inspector.get_by_role('button',name='人工主动接管',exact=True).click()
     page.get_by_role('dialog').get_by_role('button',name='确认切换').click()
     expect(inspector.get_by_role('button',name='恢复 AI 辅助')).to_be_visible()
     inspector.get_by_role('button',name='创建交接任务').click()

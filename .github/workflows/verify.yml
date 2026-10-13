@@ -22,6 +22,11 @@ jobs:
         run: |
           make spec-check
           make verify-offline
+      - name: Verify acquisition, reception, sales, WeChat and website policies offline
+        run: |
+          for contract in acquisition_routing acquisition_run gateway_recovery_policy gateway_recovery_service morning_report reception_schedule sales_policy scheduled_reception wechat_accounts wechat_agent wechat_api_acl website_policy; do
+            php "tests/${contract}_contract.php" "$PWD"
+          done
       - name: Lint custom PHP
         run: find custom -name '*.php' -print0 | xargs -0 -n1 php -l
       - uses: actions/setup-python@v5
@@ -54,7 +59,10 @@ jobs:
           '
       - name: Remove isolated acceptance stack
         if: always()
-        run: docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml down -v
+        run: |
+          if [ -f .env.test ]; then
+            docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml down -v
+          fi
 
   frontend:
     runs-on: ubuntu-latest
@@ -71,7 +79,8 @@ jobs:
           npm test --prefix client/custom/ui
           node --test client/custom/tests/frontend.test.cjs
           npm run build --prefix client/custom/ui
-          git diff --exit-code -- client/custom/res/workspace
+          (cd client/custom/ui && npx vite build --config vite.sales.config.ts)
+          git diff --exit-code -- client/custom/res/workspace client/custom/res/sales
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
