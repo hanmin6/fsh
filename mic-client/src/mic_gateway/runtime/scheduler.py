@@ -45,6 +45,9 @@ class GatewayScheduler:
             "orders": order_interval,
             "outbox": outbox_interval,
         }
+        # A wedged browser operation must release the shared lock so probes
+        # and later read retries continue. A complete history sweep needs minutes.
+        self._operation_timeouts = {"health": 90, "conversations": 900, "orders": 120, "outbox": 90}
         if any(value <= 0 for value in self._intervals.values()):
             raise ValueError("Polling intervals must be positive")
 
@@ -57,6 +60,25 @@ class GatewayScheduler:
         self._wake[resource].set()
         return True
 
+    def diagnostics(self) -> dict[str, object]:
+        """Expose poller liveness without customer data, credentials or frames."""
+        workers = []
+        for task in asyncio.all_tasks():
+            awaitable = task.get_coro()
+            code = getattr(awaitable, 'cr_code', None)
+            if task not in self._tasks and (code is None or '/mic_gateway/' not in code.co_filename):
+                continue
+            steps = []
+            for _ in range(24):
+                code = getattr(awaitable, 'cr_code', None)
+                if code is not None:
+                    steps.append(code.co_name)
+                awaitable = getattr(awaitable, 'cr_await', None)
+                if awaitable is None:
+                    break
+            workers.append({'name': task.get_name(), 'done': task.done(), 'steps': steps})
+        return {'locked': self._lock.locked(), 'workers': workers}
+
     async def _probe(self) -> None:
         try:
             if self.browser_runtime is not None and (
@@ -65,6 +87,15 @@ class GatewayScheduler:
                 await self.browser_runtime.stop()
                 await self.browser_runtime.start()
             self._health = await self.adapter.check_session()
+            if self.browser_runtime is not None and os.environ.get("FUSANHE_RECOVERY_ENABLED") == "true":
+                from gateway_recovery_login import handle_recovery
+                result = await self.browser_runtime.run_serialized(
+                    lambda page: handle_recovery(page, "MadeInChina")
+                )
+                if result == "retry_sync_requested":
+                    self.queue_manual_sync("conversations")
+                if result is not None:
+                    self._health = await self.adapter.check_session()
         except Exception as error:
             self._health = SessionHealth.unavailable(safe_failure_code(error))
         self.status_service.set_session_health(self._health)
@@ -72,7 +103,7 @@ class GatewayScheduler:
     async def _run(self, name: str) -> None:
         async with self._lock:
             if name == "health":
-                await self._probe()
+                await asyncio.wait_for(self._probe(), timeout=self._operation_timeouts[name])
                 return
             if not self._health.healthy:
                 return
@@ -86,7 +117,7 @@ class GatewayScheduler:
                 "outbox": self.outbox_worker.run_once,
             }
             try:
-                await operations[name]()
+                await asyncio.wait_for(operations[name](), timeout=self._operation_timeouts[name])
             finally:
                 self._manual.discard(name)
 

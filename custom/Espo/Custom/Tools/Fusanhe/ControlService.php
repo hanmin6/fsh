@@ -35,8 +35,13 @@ final class ControlService
      * conversation is still in AI-assist mode. Applied consistently before
      * claiming, before marking sending and before recording a success.
      */
-    public function assertSendAllowed(Entity $conversation, string $stage): void
+    public function assertSendAllowed(Entity $conversation, string $stage, ?Entity $task = null): void
     {
+        if ($task && $task->get('triggerType') === 'scheduledReception') {
+            $service = new ScheduledReceptionService($this->em, $this->kernel, new ReceptionReply());
+            if (!$service->taskCanRun($task, $conversation)) throw new Conflict('Scheduled reception is no longer allowed.');
+            return;
+        }
         if (self::outboundPaused()) {
             throw new Conflict('Outbound is globally paused; task cannot ' . $stage . '.');
         }
@@ -58,10 +63,10 @@ final class ControlService
             throw new Forbidden('Not allowed to control this conversation.');
         }
         $previous = $conversation->get('controlMode');
-        if ($previous === $mode) {
+        if ($previous === $mode && $conversation->get('controlOrigin') === 'manual') {
             return ['conversationId' => $conversationId, 'controlMode' => $mode, 'changed' => false];
         }
-        $conversation->set('controlMode', $mode);
+        $conversation->set(['controlMode' => $mode, 'controlOrigin' => 'manual']);
         $this->kernel->save($conversation);
 
         $blocked = 0;

@@ -11,7 +11,10 @@
     "aiRatingModel": "评级模型",
     "aiRatingData": "评级证据",
     "ratingSource": "评级来源",
-    "aiCompanyName": "检索公司"
+    "aiCompanyName": "检索公司",
+    "fusanheFollowUpRoute": "Acquisition follow-up route",
+    "fusanheFollowUpReason": "Routing rationale",
+    "fusanheFollowUpRoutedAt": "Routing updated at"
   },
   "options": {
     "rating": {
@@ -34,6 +37,13 @@
       "": "待评级",
       "auto": "AI 自动",
       "manual": "人工调整"
+    },
+    "fusanheFollowUpRoute": {
+      "": "Unassigned",
+      "human": "Human follow-up",
+      "ai": "AI follow-up",
+      "pending_rating": "Pending rating",
+      "blocked": "Do not contact"
     }
   }
 }

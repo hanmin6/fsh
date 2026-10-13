@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from types import SimpleNamespace
 from typing import Any
 
@@ -140,6 +141,27 @@ async def test_adapter_preserves_business_fields_but_sanitizes_raw_snapshot() ->
     assert conversation.inquiry_subject == "Need product details"
     assert conversation.raw_snapshot["contactNo"] == "Contact 001"
     assert conversation.raw_snapshot["subject"] == "Message 001"
+
+
+@pytest.mark.asyncio
+async def test_complete_response_does_not_wait_for_another_unfinished_response():
+    cancelled = asyncio.Event()
+    class HangingResponse(FakeResponse):
+        async def json(self):
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cancelled.set()
+    class Page(AuthenticatedReadPage):
+        async def goto(self, url, **kwargs):
+            self._observer(HangingResponse())
+            self._observer(FakeResponse())
+    result = await asyncio.wait_for(
+        MadeInChinaAdapter(FakeRuntime(Page())).list_conversations(SourceCheckpoint(None, None)),
+        timeout=1,
+    )
+    assert len(result.items) == 1
+    assert cancelled.is_set()
 
 
 @pytest.mark.asyncio

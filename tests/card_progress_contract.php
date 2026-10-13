@@ -1,35 +1,24 @@
 <?php
-require ($argv[1] ?? dirname(__DIR__) . '/custom/Espo/Custom/Tools/Fusanhe') . '/CardProgress.php';
+$root=$argv[1] ?? dirname(__DIR__) . '/custom/Espo/Custom/Tools/Fusanhe';
+require $root.'/AcquisitionRouting.php';
+require $root.'/CardProgress.php';
 use Espo\Custom\Tools\Fusanhe\CardProgress;
-
-function check(bool $condition, string $name): void {
-    if (!$condition) throw new RuntimeException($name);
-    echo "PASS $name\n";
-}
-$now = new DateTimeImmutable('2026-10-02T10:00:00Z');
-$base = ['source' => 'Muse', 'direction' => 'outbound', 'deliveryStatus' => 'sent',
-    'sentAt' => '2026-10-02 01:00:00', 'customerKey' => 'Lead:customer-1'];
-$events = [$base, array_replace($base, ['deliveryStatus' => 'delivered'])];
-foreach (['queued', 'sending', 'failed', 'mockSent', 'received'] as $status) {
-    $events[] = array_replace($base, ['customerKey' => 'bad:' . $status, 'deliveryStatus' => $status]);
-}
-foreach ([['source'=>'Alibaba'], ['direction'=>'inbound'], ['sentAt'=>'invalid'],
-    ['customerKey'=>null], ['sentAt'=>'2026-10-02 12:00:00']] as $change) {
-    $events[] = array_replace($base, $change);
-}
-$result = CardProgress::summarize($events, $now);
-check($result['todayCompleted'] === 1 && $result['remaining'] === 14, 'deduplicates customers and excludes unconfirmed or future deliveries');
-[$start, $end] = CardProgress::bounds($now);
-check($start->format('c') === '2026-10-01T16:00:00+00:00' && $end->format('c') === '2026-10-02T16:00:00+00:00', 'Shanghai daily boundaries in UTC');
-$result = CardProgress::summarize([
-    array_replace($base, ['sentAt'=>'2026-10-01 15:59:59', 'customerKey'=>'previous']),
-    array_replace($base, ['sentAt'=>'2026-10-01 16:00:00', 'customerKey'=>'today']),
-], $now);
-check($result['todayCompleted'] === 1, 'includes midnight and excludes previous calendar day');
-check(CardProgress::summarize([$base], new DateTimeImmutable('2026-10-02T16:00:01Z'))['todayCompleted'] === 0, 'resets count after Shanghai midnight');
-$events = [];
-for ($i=0; $i<16; $i++) $events[] = array_replace($base, ['customerKey'=>'Lead:'.$i]);
-$result = CardProgress::summarize($events, $now);
-check($result['todayCompleted'] === 16 && $result['remaining'] === 0 && $result['dailyTarget'] === 15, 'reports real counts above target without negative remainder');
-$result = CardProgress::summarize([], $now);
-check($result['todayCompleted'] === 0 && $result['lastSentAt'] === null, 'empty records have zero progress and no invented success timestamp');
+function check(bool $ok,string $name):void {if(!$ok)throw new RuntimeException($name);echo "PASS $name\n";}
+$now=new DateTimeImmutable('2026-10-11T10:00:00Z');
+$base=['id'=>'one','fusanheSourceSystem'=>'Muse','fusanheSourceId'=>'xpoz:one','createdAt'=>'2026-10-10 01:00:00','rating'=>'B'];
+[$start,$end]=CardProgress::bounds($now);
+check($start->format('c')==='2026-10-09T16:00:00+00:00'&&$end->format('c')==='2026-10-10T16:00:00+00:00','yesterday uses Shanghai calendar boundaries');
+$r=CardProgress::summarize([$base,$base,array_replace($base,['id'=>'old','createdAt'=>'2026-10-09 15:59:59']),array_replace($base,['id'=>'today','createdAt'=>'2026-10-10 16:00:00']),array_replace($base,['id'=>'start','createdAt'=>'2026-10-09 16:00:00'])],$now);
+check($r['yesterdayAcquired']===2&&$r['totalAcquired']===4,'count creation once, inclusive yesterday start and exclusive end');
+check($r['statisticsDate']==='2026-10-10','statistics label is yesterday');
+$leads=[];foreach(['S','A','B','C','D',''] as $i=>$rating)$leads[]=array_replace($base,['id'=>'r'.$i,'rating'=>$rating]);
+$r=CardProgress::summarize($leads,$now);
+check($r['yesterdayValueCounts']===['high'=>2,'medium'=>1,'low'=>2,'unrated'=>1],'value breakdown uses current rating');
+check($r['followUpCounts']['human']===2&&$r['followUpCounts']['pending_rating']===1,'follow-up counts use routing policy');
+$r=CardProgress::summarize([array_replace($base,['fusanheSourceSystem'=>'Website']),array_replace($base,['createdAt'=>'invalid']),array_replace($base,['createdAt'=>'2026-10-12 01:00:00']),array_replace($base,['fusanheSourceId'=>''])],$now);
+check($r['totalAcquired']===0&&$r['lastAcquiredAt']===null,'exclude non-acquisition, future, invalid and unproven records');
+$leads=[];for($i=0;$i<31;$i++)$leads[]=array_replace($base,['id'=>'many'.$i]);
+$r=CardProgress::summarize($leads,$now);
+check($r['yesterdayAcquired']===31&&!isset($r['dailyTarget'])&&!isset($r['remaining']),'no quota or capped acquisition counts');
+$r=CardProgress::summarize([array_replace($base,['createdAt'=>'2026-10-09 09:13:25'])],$now);
+check($r['yesterdayAcquired']===0&&$r['totalAcquired']===1,'historical pilot never presented as yesterday acquisition');

@@ -386,6 +386,27 @@ async def test_open_conversation_escapes_source_id_in_url_and_avoids_css_interpo
 
 
 @pytest.mark.asyncio
+async def test_open_conversation_waits_for_target_rendered_marker():
+    adapter, page = _adapter([_html("<div>root</div>")], stub_identity=False,
+                             identity_markers=[("previous", True)])
+    original = page.wait_for_timeout
+    async def render_after_wait(ms):
+        await original(ms)
+        if ms == 200:
+            page.identity_markers = [("conversation-001", True)]
+    page.wait_for_timeout = render_after_wait
+    assert await adapter._open_conversation(page, "conversation-001")
+
+
+@pytest.mark.asyncio
+async def test_open_conversation_never_accepts_persistent_wrong_buyer_marker():
+    adapter, page = _adapter([_html("<div>root</div>")], stub_identity=False,
+                             identity_markers=[("different", True)])
+    assert await adapter._open_conversation(page, "conversation-001")
+    assert not await adapter._conversation_identity_confirmed(page, "conversation-001")
+
+
+@pytest.mark.asyncio
 async def test_list_messages_preserves_distinct_same_text_inbound_message() -> None:
     repeated = _bubble(
         "tm-message-recv", "Synthetic inquiry message", 10, source_id="later-message"

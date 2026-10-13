@@ -66,10 +66,12 @@ class CrmGateway:
             raise CrmTransientError(f"CRM request failed; requestId={request_id}") from exc
         return self._decode(response, request_id)
 
-    def heartbeat(self, status: str = "online", last_error: str | None = None, request_id: str = "heartbeat") -> dict:
+    def heartbeat(self, status: str = "online", last_error: str | None = None, request_id: str = "heartbeat", *, capture_success: dict | None = None) -> dict:
         payload = {"agentKey": self.agent_key, "status": status}
         if last_error is not None:
             payload["lastError"] = last_error
+        if capture_success is not None:
+            payload["captureSuccess"] = capture_success
         try:
             response = self.session.post(
                 f"{self.base_url}/Fusanhe/agent/heartbeat",
@@ -83,11 +85,11 @@ class CrmGateway:
             raise CrmTransientError(f"CRM request failed; requestId={request_id}") from exc
         return self._decode(response, request_id)
 
-    def claim(self, request_id: str = "claim") -> dict:
+    def claim(self, request_id: str = "claim", scheduled_only: bool = False) -> dict:
         try:
             response = self.session.post(
                 f"{self.base_url}/Fusanhe/agent/claim",
-                json={"agentKey": self.agent_key},
+                json={"agentKey": self.agent_key, **({"scheduledOnly": True} if scheduled_only else {})},
                 headers=self._headers(request_id),
                 timeout=(5, 15),
             )
@@ -136,4 +138,3 @@ class CrmGateway:
         except requests.RequestException as exc:
             raise CrmTransientError(f"CRM request failed; requestId={request_id}") from exc
         return self._decode(response, request_id)
-

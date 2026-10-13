@@ -210,6 +210,25 @@
       "type": "jsonObject",
       "readOnly": true,
       "layoutMassUpdateDisabled": true
+    },
+    "controlOrigin": {
+      "type": "enum",
+      "options": [
+        "",
+        "manual",
+        "valueRouting"
+      ],
+      "default": "",
+      "readOnly": true
+    },
+    "scheduledReceptionMessageId": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "scheduledReceptionAt": {
+      "type": "datetime",
+      "readOnly": true
     }
   },
   "links": {

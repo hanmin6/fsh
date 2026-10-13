@@ -15,6 +15,7 @@ use Espo\ORM\Repository\Option\SaveOptions;
 class StateMachineGuard implements BeforeSave
 {
     private const GUARDED_ATTRIBUTES = [
+        'triggerType',
         'status',
         'idempotencyKey',
         'claimedBy',

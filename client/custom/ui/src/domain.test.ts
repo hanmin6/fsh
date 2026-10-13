@@ -21,3 +21,5 @@ test('attachment metadata never turns untrusted URLs into download authority',()
  assert.deepEqual(attachmentInfo({files:[{fileName:'legacy.pdf'}]}),[{name:'legacy.pdf',mediaType:'',size:''}]);
  assert.deepEqual(attachmentInfo({items:'malformed'}),[]);
 });
+
+test('server-confirmed scheduled receipt is attributed to AI',()=>{assert.equal(origin({id:'receipt',direction:'outbound',automationKind:'scheduledReception',deliveryStatus:'sent'}),'AI 自动接待');assert.notEqual(origin({id:'unsent',direction:'outbound',automationKind:'scheduledReception',deliveryStatus:'failed'}),'AI 自动接待')});

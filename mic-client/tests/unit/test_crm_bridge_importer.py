@@ -322,6 +322,10 @@ def test_changed_source_after_ambiguous_response_marks_recoverable_conflict(tmp_
     pending_before = state.pending_batch("conversations:once")
     assert pending_before is not None
 
+    # A pre-upgrade journal has no retained original body and still needs an audit.
+    for spool in state.replay_directory.glob("*.json"):
+        spool.unlink()
+
     messages[0]["content"] = "after"
     with pytest.raises(ImporterError, match="pending_batch_conflict"):
         importer.once()
@@ -332,6 +336,23 @@ def test_changed_source_after_ambiguous_response_marks_recoverable_conflict(tmp_
     assert pending_after["conflict"] is True
     assert state.checkpoint("conversations:once") is None
     assert len(crm.payloads) == 1
+
+
+def test_changed_source_replays_retained_original_before_new_messages(tmp_path: Any) -> None:
+    messages = [_message("msg-1", 1, "inbound", "before")]
+    gateway = FakeGateway([_conversation()], {"gateway-conversation-1": messages})
+    crm = FakeCrm(fail_first=True)
+    state = CrmBridgeState(tmp_path)
+    importer = MicCrmImporter(gateway, crm, state, account_handle="account")
+    with pytest.raises(RuntimeError, match="interrupted"):
+        importer.once()
+    messages.append(_message("msg-2", 2, "inbound", "new message"))
+    importer.once()
+    assert crm.payloads[0] == crm.payloads[1]
+    assert len(crm.payloads[1]["messages"]) == 1
+    assert len(crm.payloads[2]["messages"]) == 2
+    assert state.pending_batch("conversations:once") is None
+    assert list(state.replay_directory.glob("*.json")) == []
 
 
 def test_unrepresentable_conversation_id_skips_only_that_conversation(tmp_path: Any) -> None:

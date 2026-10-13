@@ -12,7 +12,7 @@ export function assessCapture(type:string,channels:Row[],agents:Row[],now=Date.n
  const errors=workers.filter(a=>a.status!=='online'||!Number.isFinite(timestamp(a.lastHeartbeatAt))||now-timestamp(a.lastHeartbeatAt)>5*60000);
  const error=rows.find(c=>['offline','degraded'].includes(c.connectionStatus));
  let reason='',state:Capture['state']='checking';
- if(error||errors.length){state='error';const code=errors[0]?.status;reason=code==='loginExpired'?'登录已失效，新消息暂未更新。':code==='captcha'?'需要处理验证码，新消息暂未更新。':code==='pageChanged'?'平台页面发生变化，抓取暂时中断。':code==='riskControl'?'平台要求检查账号状态，抓取暂时中断。':'抓取服务中断或心跳超时，新消息暂未更新。';}
+ if(error||errors.length){state='error';const code=errors[0]?.lastError||errors[0]?.status;reason=['loginExpired','login_required','authentication_required'].includes(code)?'登录已失效，新消息暂未更新。':['captcha','verification_required'].includes(code)?'需要处理验证码，新消息暂未更新。':code==='incomplete_history'?'历史消息尚未完整抓取，新消息暂未更新。':code==='pageChanged'?'平台页面发生变化，抓取暂时中断。':code==='riskControl'?'平台要求检查账号状态，抓取暂时中断。':'抓取服务中断或心跳超时，新消息暂未更新。';}
  else if(rows.length&&lastSuccessAt&&now-timestamp(lastSuccessAt)<=30*60000&&workers.length&&workers.every(a=>a.status==='online'&&now-timestamp(a.lastHeartbeatAt)<=5*60000)){state='healthy';}
  else if(lastSuccessAt&&now-timestamp(lastSuccessAt)>30*60000){state='error';reason='长时间没有收到成功抓取记录，请检查抓取系统。';}
  else reason=rows.length?'等待抓取系统报告健康状态。':'尚未获取平台抓取记录。';

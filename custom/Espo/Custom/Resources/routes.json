@@ -1,5 +1,42 @@
 [
     {
+        "route": "/Fusanhe/website/sync",
+        "method": "post",
+        "noAuth": true,
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostWebsiteSync"
+    },
+    {
+        "route": "/Fusanhe/agent/recovery",
+        "method": "post",
+        "noAuth": true,
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostGatewayRecovery"
+    },
+    {
+        "route": "/Fusanhe/wechat/accounts",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetWeChatAccounts"
+    },
+    {
+        "route": "/Fusanhe/wechat/accounts",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostWeChatAccount"
+    },
+    {
+        "route": "/Fusanhe/wechat/accounts/:id",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostWeChatAccount"
+    },
+    {
+        "route": "/Fusanhe/reception/settings",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetReceptionSettings"
+    },
+    {
+        "route": "/Fusanhe/reception/settings",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostReceptionSettings"
+    },
+    {
         "route": "/Fusanhe/card-status",
         "method": "get",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetCardStatus"
@@ -329,5 +366,30 @@
         "route": "/Fusanhe/conversation/:id/translate",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostTranslateMessages"
+    },
+    {
+        "route": "/Fusanhe/wechat/morning-report",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetMorningReport"
+    },
+    {
+        "route": "/Fusanhe/wechat/morning-report",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostMorningReport"
+    },
+    {
+        "route": "/Fusanhe/wechat/agent",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostWeChatAgent"
+    },
+    {
+        "route": "/Fusanhe/sales",
+        "method": "get",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\GetSales"
+    },
+    {
+        "route": "/Fusanhe/sales",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostSales"
     }
 ]

@@ -25,17 +25,17 @@ export async function loadAllConversations(source:DataSource,options:ListOptions
  return {list:[...rows.values()],total:rows.size};
 }
 
-export function useMessageConversations(source:DataSource,options:ListOptions,order:ConversationOrder){
+export function useMessageConversations(source:DataSource,options:ListOptions,order:ConversationOrder,enabled=true){
  const key=JSON.stringify({...options,offset:order==='rating'?0:options.offset});
  const [data,setData]=useState<Result>({list:[],total:0}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[revision,setRevision]=useState(0);
  useEffect(()=>{
-  let active=true;setLoading(true);setError('');const parsed=JSON.parse(key);
+  let active=true;if(!enabled){setLoading(false);setError('');setData({list:[],total:0});return}setLoading(true);setError('');const parsed=JSON.parse(key);
   const cacheKey=order==='latest'?source.cacheKey?.('list','ExternalConversation',parsed):undefined;
   const unsubscribe=cacheKey&&source.subscribe?source.subscribe(cacheKey,()=>{if(active)setRevision(v=>v+1)}):undefined;
   const request=order==='rating'?loadAllConversations(source,parsed):source.list('ExternalConversation',parsed);
   request.then(value=>{if(active)setData(value)}).catch(()=>{if(active){setData({list:[],total:0});setError('会话加载失败，请重试。')}}).finally(()=>{if(active)setLoading(false)});
   return()=>{active=false;unsubscribe?.()};
- },[source,key,order,revision]);
+ },[source,key,order,revision,enabled]);
  const idsKey=JSON.stringify(data.list.map(row=>row.id));
  useEffect(()=>{
   if(order!=='rating'||!source.cacheKey||!source.subscribe)return;

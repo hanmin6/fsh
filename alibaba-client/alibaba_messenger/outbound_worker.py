@@ -23,12 +23,14 @@ class OutboundWorker:
         settings: Any,
         sleeper: Any = asyncio.sleep,
         dry_run: bool = False,
+        scheduled_only: bool = False,
     ):
         self.bot = bot
         self.gateway = gateway
         self.settings = settings
         self.sleeper = sleeper
         self.dry_run = dry_run
+        self.scheduled_only = scheduled_only
         self.last_heartbeat_at: float = 0.0
 
     async def send_heartbeat(self) -> bool:
@@ -60,12 +62,16 @@ class OutboundWorker:
         buyer_name = str(task.get("buyerName") or "")
         body = str(task.get("body") or "")
         mode = str(task.get("executionMode") or "real")
+        scheduled = task.get("triggerType") == "scheduledReception"
+        if self.scheduled_only and not scheduled:
+            return False
 
         logger.info(f"[OutboundWorker] Processing task {task_id} (mode={mode}, inquiry={inquiry_id}, buyer={buyer_name})")
 
         # 1. Mark task as sending in CRM
         try:
-            self.gateway.mark_sending(task_id)
+            if not scheduled or mode == "mock" or self.dry_run:
+                self.gateway.mark_sending(task_id)
         except Exception as exc:
             logger.error(f"[OutboundWorker] Failed to mark task {task_id} as sending: {exc}")
             return False
@@ -85,10 +91,13 @@ class OutboundWorker:
         # 3. Real send via AlibabaMessengerBot
         effective_target = buyer_name or inquiry_id or "unknown"
         try:
+            kwargs = {}
+            if scheduled:
+                async def before_send():
+                    await asyncio.to_thread(self.gateway.mark_sending, task_id)
+                kwargs["before_send"] = before_send
             res = await self.bot.send_message(
-                buyer_name=effective_target,
-                message=body,
-                inquiry_id=inquiry_id,
+                buyer_name=effective_target, message=body, inquiry_id=inquiry_id, **kwargs,
             )
             success = bool(res.get("success", False))
             if success:
@@ -130,7 +139,7 @@ class OutboundWorker:
     async def poll_and_execute_once(self) -> bool:
         """Poll CRM for one pending outbound task and process it."""
         try:
-            claim_res = self.gateway.claim()
+            claim_res = self.gateway.claim(scheduled_only=True) if self.scheduled_only else self.gateway.claim()
         except (CrmTransientError, CrmAuthError, CrmPermanentError) as exc:
             logger.warning(f"[OutboundWorker] Failed to claim task from CRM: {exc}")
             return False

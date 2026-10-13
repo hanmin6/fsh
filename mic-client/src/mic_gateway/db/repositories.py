@@ -253,13 +253,15 @@ class ConversationRepository:
         )
         new_snapshot = sanitize_snapshot(source.raw_snapshot)
         if existing and isinstance(existing.raw_snapshot, dict):
-            for k in ("buyer_name", "country"):
+            for k in ("buyer_name", "country", "buyer_id"):
                 if existing.raw_snapshot.get(k) and not new_snapshot.get(k):
                     new_snapshot[k] = existing.raw_snapshot[k]
         values = {
             "id": uuid4(),
             "source_id": source.source_id,
-            "buyer_reference": source.buyer_reference,
+            # Inquiry lists may report the seller contact ID. A buyer ID read
+            # from this conversation's detail page remains authoritative.
+            "buyer_reference": new_snapshot.get("buyer_id") or source.buyer_reference,
             "inquiry_subject": source.inquiry_subject,
             "unread": source.unread,
             "last_message_at": source.last_message_at,

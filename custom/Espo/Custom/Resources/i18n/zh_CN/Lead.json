@@ -11,7 +11,10 @@
     "aiRatingModel": "评级模型",
     "aiRatingData": "评级证据",
     "ratingSource": "评级来源",
-    "aiCompanyName": "检索公司"
+    "aiCompanyName": "检索公司",
+    "fusanheFollowUpRoute": "获客跟进分工",
+    "fusanheFollowUpReason": "分工依据",
+    "fusanheFollowUpRoutedAt": "分工更新时间"
   },
   "options": {
     "rating": {
@@ -34,6 +37,13 @@
       "": "待评级",
       "auto": "AI 自动",
       "manual": "人工调整"
+    },
+    "fusanheFollowUpRoute": {
+      "": "尚未分工",
+      "human": "人工洽谈",
+      "ai": "AI 跟进",
+      "pending_rating": "待评级",
+      "blocked": "禁止联系"
     }
   }
 }

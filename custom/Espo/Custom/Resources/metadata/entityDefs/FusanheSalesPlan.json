@@ -1,0 +1,166 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "targetKey": {
+      "type": "varchar",
+      "maxLength": 60,
+      "readOnly": true
+    },
+    "targetType": {
+      "type": "varchar",
+      "maxLength": 30,
+      "readOnly": true
+    },
+    "targetId": {
+      "type": "varchar",
+      "maxLength": 24,
+      "readOnly": true
+    },
+    "status": {
+      "type": "enum",
+      "options": [
+        "wait_data",
+        "planning",
+        "preview",
+        "scheduled",
+        "sending",
+        "submitted",
+        "uncertain",
+        "human",
+        "stopped",
+        "failed"
+      ],
+      "default": "wait_data",
+      "readOnly": true
+    },
+    "reason": {
+      "type": "text",
+      "readOnly": true
+    },
+    "context": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "plan": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "generation": {
+      "type": "int",
+      "default": 0,
+      "readOnly": true
+    },
+    "unansweredCount": {
+      "type": "int",
+      "default": 0,
+      "readOnly": true
+    },
+    "contextHash": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true
+    },
+    "activationEpoch": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true
+    },
+    "recipient": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "rfcMessageId": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true
+    },
+    "errorCode": {
+      "type": "varchar",
+      "maxLength": 100,
+      "readOnly": true
+    },
+    "nativeEmailId": {
+      "type": "varchar",
+      "maxLength": 24,
+      "readOnly": true
+    },
+    "lastMessageId": {
+      "type": "varchar",
+      "maxLength": 24,
+      "readOnly": true
+    },
+    "ownMessageId": {
+      "type": "varchar",
+      "maxLength": 24,
+      "readOnly": true
+    },
+    "handoffTaskId": {
+      "type": "varchar",
+      "maxLength": 24,
+      "readOnly": true
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "dueAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "nextEvaluationAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "attemptStartedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "lastSubmittedAt": {
+      "type": "datetime",
+      "readOnly": true
+    },
+    "assignedUser": {
+      "type": "link",
+      "readOnly": true
+    }
+  },
+  "links": {
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "indexes": {
+    "targetKey": {
+      "columns": [
+        "targetKey"
+      ],
+      "unique": true
+    },
+    "statusDue": {
+      "columns": [
+        "status",
+        "dueAt"
+      ]
+    },
+    "recipient": {
+      "columns": [
+        "recipient"
+      ]
+    },
+    "messageId": {
+      "columns": [
+        "rfcMessageId"
+      ]
+    }
+  }
+}

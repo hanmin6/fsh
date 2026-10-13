@@ -209,3 +209,49 @@ def test_run_worker_main_once_dry_run(monkeypatch):
         mock_gw_instance.heartbeat.assert_called_once_with(status="online", last_error=None)
         mock_gw_instance.claim.assert_called_once()
 
+
+@pytest.mark.asyncio
+async def test_scheduled_worker_checks_permission_at_dispatch_after_navigation():
+    gateway = MagicMock()
+    steps = []
+    gateway.mark_sending.side_effect = lambda _: steps.append('permission')
+    class Bot:
+        async def send_message(self, **kwargs):
+            assert steps == []
+            steps.append('navigation')
+            await kwargs['before_send']()
+            steps.append('click')
+            return {'success': True, 'data': {'sent_at': 'receipt'}}
+    worker = OutboundWorker(Bot(), gateway, DummySettings(), scheduled_only=True)
+    task = {'id': 'scheduled', 'inquiryId': 'target', 'body': 'approved', 'triggerType': 'scheduledReception', 'executionMode': 'real'}
+    assert await worker.process_one_task(task)
+    assert steps == ['navigation', 'permission', 'click']
+    gateway.report_result.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_takeover_at_dispatch_prevents_click_and_reports_failure():
+    gateway = MagicMock()
+    gateway.mark_sending.side_effect = RuntimeError('taken over')
+    clicks = []
+    class Bot:
+        async def send_message(self, **kwargs):
+            await kwargs['before_send']()
+            clicks.append('sent')
+    worker = OutboundWorker(Bot(), gateway, DummySettings(), scheduled_only=True)
+    assert not await worker.process_one_task({'id': 'scheduled', 'triggerType': 'scheduledReception'})
+    assert clicks == []
+    assert gateway.report_result.call_args.kwargs['success'] is False
+
+
+@pytest.mark.asyncio
+async def test_scheduled_consumer_never_sends_legacy_tasks():
+    gateway = MagicMock()
+    bot = DummyBot()
+    worker = OutboundWorker(bot, gateway, DummySettings(), scheduled_only=True)
+    assert not await worker.process_one_task({'id': 'legacy', 'triggerType': 'manual'})
+    gateway.mark_sending.assert_not_called()
+    bot.send_message.assert_not_called()
+    gateway.claim.return_value = {'paused': False, 'task': None}
+    assert not await worker.poll_and_execute_once()
+    gateway.claim.assert_called_once_with(scheduled_only=True)

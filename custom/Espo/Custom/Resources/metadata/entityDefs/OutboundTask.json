@@ -108,6 +108,15 @@
       "type": "text",
       "readOnly": true,
       "layoutListDisabled": true
+    },
+    "triggerType": {
+      "type": "enum",
+      "options": [
+        "manual",
+        "scheduledReception"
+      ],
+      "default": "manual",
+      "readOnly": true
     }
   },
   "links": {
