@@ -114,10 +114,14 @@ class CrmClient:
         status: str = "online",
         last_error: str | None = None,
         request_id: str = "mic-heartbeat",
+        *,
+        capture_success: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {"agentKey": self.agent_key, "status": status}
         if last_error is not None:
             payload["lastError"] = last_error
+        if capture_success is not None:
+            payload["captureSuccess"] = capture_success
         return self._request(
             "POST", "/Fusanhe/agent/heartbeat", request_id=request_id, payload=payload
         )

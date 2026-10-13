@@ -31,6 +31,7 @@ class SyncSummary:
     completed: int = 0
     failed: int = 0
     skipped: int = 0
+    source_checked: bool = False
 
 
 class AlibabaSyncService:
@@ -122,15 +123,25 @@ class AlibabaSyncService:
                 res = await self.bot.get_recent_conversations(limit=100, auto_refresh=True)
             except TypeError:
                 res = await self.bot.get_recent_conversations(limit=100)
-            if isinstance(res, dict) and res.get("success"):
+            if isinstance(res, dict) and res.get("success") is True:
                 conversations = res.get("data", {}).get("conversations", [])
             elif isinstance(res, list):
                 conversations = res
+            else:
+                raise RuntimeError("source_list_failed")
         elif hasattr(self.bot, "iter_conversations_pages"):
             async for page_items in self.bot.iter_conversations_pages(max_pages=max_pages):
                 conversations.extend(page_items)
         elif hasattr(self.bot, "get_all_conversations"):
             conversations = await self.bot.get_all_conversations(max_pages=max_pages)
+
+        if not isinstance(conversations, list):
+            raise RuntimeError("source_list_invalid")
+        # A parsed, identifiable source list proves the poll reached platform data.
+        # An empty parser result alone cannot distinguish an empty account from a changed page.
+        summary.source_checked = bool(conversations) and all(
+            isinstance(item, dict) and bool(item.get("inquiry_id")) for item in conversations
+        )
 
         seen_inquiries = set()
         for conversation in conversations:

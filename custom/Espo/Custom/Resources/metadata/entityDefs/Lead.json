@@ -147,6 +147,51 @@
       "type": "varchar",
       "maxLength": 255,
       "readOnly": true
+    },
+    "fusanheFollowUpRoute": {
+      "type": "enum",
+      "options": [
+        "",
+        "human",
+        "ai",
+        "pending_rating",
+        "blocked"
+      ],
+      "readOnly": true,
+      "displayAsLabel": true,
+      "audited": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "fusanheFollowUpReason": {
+      "type": "varchar",
+      "maxLength": 255,
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "fusanheFollowUpRoutedAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "fusanheWechatCreateKey": {
+      "type": "varchar",
+      "maxLength": 64,
+      "readOnly": true,
+      "layoutListDisabled": true,
+      "layoutMassUpdateDisabled": true
+    },
+    "fusanheSalesEnrolled": {
+      "type": "bool",
+      "default": false,
+      "readOnly": true
+    },
+    "fusanheSalesProfile": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "fusanheSalesResearch": {
+      "type": "jsonObject",
+      "readOnly": true
     }
   },
   "links": {
@@ -177,6 +222,17 @@
       "columns": [
         "fusanheContactPolicy"
       ]
+    },
+    "fusanheFollowUpRoute": {
+      "columns": [
+        "fusanheFollowUpRoute"
+      ]
+    },
+    "fusanheWechatCreateKey": {
+      "columns": [
+        "fusanheWechatCreateKey"
+      ],
+      "unique": true
     }
   }
 }

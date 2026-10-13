@@ -150,4 +150,8 @@ async def get_status(request: Request, _: CrmPrincipal) -> dict[str, object]:
     service: StatusService | None = getattr(request.app.state, "status_service", None)
     if service is None:
         raise ApiError(503, "status_unavailable", "Runtime status is unavailable.")
-    return await service.snapshot()
+    snapshot = await service.snapshot()
+    scheduler = getattr(request.app.state, "scheduler", None)
+    if scheduler is not None and hasattr(scheduler, "diagnostics"):
+        snapshot["poller"] = scheduler.diagnostics()
+    return snapshot

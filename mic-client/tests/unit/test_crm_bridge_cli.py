@@ -254,8 +254,10 @@ def test_daemon_retries_transient_failure_without_losing_checkpoint(tmp_path: Pa
     )
 
     assert code == 0
-    assert len(crm.request_ids) == 2
-    assert crm.request_ids[0] == crm.request_ids[1]
+    # The retry confirms the retained body before starting a fresh source sweep.
+    # An unchanged source is submitted again with the same idempotency key.
+    assert len(crm.request_ids) == 3
+    assert len(set(crm.request_ids)) == 1
     assert state.checkpoint("conversations:once") == "__mic_import_complete__"
     assert state.pending_batch("conversations:once") is None
     assert delays == [1.0]

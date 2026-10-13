@@ -1122,6 +1122,10 @@ class MadeInChinaAdapter:
         finally:
             page.remove_listener("response", observe)
             if tasks:
+                # The first complete response is sufficient. Other matching
+                # responses can remain pending and must not retain the browser lock.
+                for task in tasks:
+                    task.cancel()
                 await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _dom_fallback(
@@ -1226,6 +1230,13 @@ class MadeInChinaAdapter:
             )
         except PlaywrightTimeoutError:
             return False
+        # React mounts the detail root before it replaces the previous buyer's
+        # reply marker. Wait for the target marker, never accept the URL alone.
+        for _ in range(max(1, selectors.PAGE_TIMEOUT_MS // 200)):
+            if await self._conversation_identity_confirmed(page, source_id):
+                return True
+            await page.wait_for_timeout(200)
+        # Root exists; callers retain their explicit identity failure handling.
         return True
 
     async def _conversation_identity_confirmed(self, page: Any, source_id: str) -> bool:

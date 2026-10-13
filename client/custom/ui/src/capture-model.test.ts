@@ -10,3 +10,5 @@ test('missing heartbeat cannot confirm a healthy worker',()=>assert.equal(assess
 test('invalid capture timestamp is not a successful observation',()=>assert.equal(assessCapture('Alibaba',[{...channels[0],lastSyncAt:'invalid'}],[agent],now).state,'checking'));
 
 test('heartbeat alone cannot hide stale successful captures',()=>assert.equal(assessCapture('Alibaba',[{...channels[0],lastSyncAt:'2026-09-29 01:00:00'}],[agent],now).state,'error'));
+test('offline collector login error explains the required action',()=>{const s=assessCapture('Alibaba',channels,[{...agent,status:'offline',lastError:'login_required'}],now);assert.equal(s.state,'error');assert.match(s.reason,/登录已失效/)});
+test('incomplete history is distinct from login expiration',()=>assert.match(assessCapture('Alibaba',channels,[{...agent,status:'offline',lastError:'incomplete_history'}],now).reason,/历史消息/));

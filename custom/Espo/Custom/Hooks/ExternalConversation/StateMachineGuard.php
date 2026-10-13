@@ -22,6 +22,9 @@ class StateMachineGuard implements BeforeSave
         if ($options->get('fusanheService')) {
             return;
         }
+        foreach (['controlOrigin', 'scheduledReceptionMessageId', 'scheduledReceptionAt'] as $field) {
+            if ($entity->has($field) && $entity->isAttributeChanged($field) && (!$entity->isNew() || $entity->get($field))) throw new Forbidden('Reception state is managed by service actions only.');
+        }
         if ($entity->isNew()) {
             if (in_array($entity->get('status'), self::SERVICE_ONLY_STATUSES, true)) {
                 throw new Forbidden('Send states are written by the send pipeline only.');

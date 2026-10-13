@@ -43,6 +43,26 @@ class StatusStub:
 
 
 @pytest.mark.asyncio
+async def test_stalled_read_times_out_and_releases_lock_for_health_probe():
+    cancelled = asyncio.Event()
+    class HungSync(SyncStub):
+        async def sync_conversations_and_messages(self):
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cancelled.set()
+    scheduler = GatewayScheduler(adapter=FakeSiteAdapter(), sync_engine=HungSync(),
+                                 outbox_worker=WorkerStub(), status_service=StatusStub())
+    scheduler._operation_timeouts['conversations'] = 0.01
+    await scheduler._run('health')
+    with pytest.raises(TimeoutError):
+        await scheduler._run('conversations')
+    assert cancelled.is_set()
+    assert not scheduler._lock.locked()
+    await asyncio.wait_for(scheduler._run('health'), timeout=1)
+
+
+@pytest.mark.asyncio
 async def test_verification_challenge_pauses_all_work() -> None:
     adapter = FakeSiteAdapter()
     adapter.session_health = SessionHealth.verification_required()

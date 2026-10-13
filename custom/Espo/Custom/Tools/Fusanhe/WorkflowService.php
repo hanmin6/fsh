@@ -454,8 +454,28 @@ final class WorkflowService
             throw new NotFound('Agent not registered.');
         }
         $status = (string) ($input->status ?? 'online');
+        $capture = $input->captureSuccess ?? null;
+        $channel = null;
+        if ($capture !== null) {
+            $type = $capture instanceof stdClass ? (string) ($capture->channelType ?? '') : '';
+            $handle = $capture instanceof stdClass ? trim((string) ($capture->accountHandle ?? '')) : '';
+            if ($status !== 'online' || !empty($input->lastError) || $agent->get('mode') !== 'real'
+                || !in_array($type, ['Alibaba', 'MadeInChina'], true)
+                || !in_array($type, (array) $agent->get('capabilities'), true) || $handle === '') {
+                throw new BadRequest('Capture success requires an online real collector and matching channel capability.');
+            }
+            $channel = $this->repo('ExternalChannel')->where(['type' => $type, 'accountHandle' => $handle, 'enabled' => true])->findOne();
+            if (!$channel) {
+                throw new NotFound('Capture channel not found.');
+            }
+        }
         $agent->set(['status' => $status, 'lastHeartbeatAt' => $this->kernel->now(), 'lastError' => $input->lastError ?? null]);
         $this->kernel->save($agent);
+        if ($channel) {
+            // A successful poll may contain no changes; message timestamps stay unchanged.
+            $channel->set(['lastSyncAt' => $this->kernel->now(), 'connectionStatus' => 'healthy']);
+            $this->kernel->save($channel);
+        }
         $this->kernel->audit('agent.heartbeat', 'agent', $key, 'AutomationAgent', $agent->getId(), $status === 'online' ? 'success' : 'failure', ['status' => $status]);
         return ['ok' => true];
     }
@@ -473,7 +493,9 @@ final class WorkflowService
         if ($agent->get('status') !== 'online') {
             throw new Conflict('Agent is not online.');
         }
-        if (ControlService::outboundPaused()) {
+        // The scheduled reception switch authorizes only provenance-checked intake tasks.
+        $scheduledOnly = !empty($input->scheduledOnly) || ControlService::outboundPaused();
+        if (ControlService::outboundPaused() && !ReceptionSchedule::state(ReceptionSettings::read())['active']) {
             return ['task' => null, 'paused' => true];
         }
         // Mock agents can only execute mock tasks; real agents only real ones.
@@ -485,7 +507,7 @@ final class WorkflowService
         try {
             $now = $this->kernel->now();
             foreach ($this->repo('OutboundTask')->where(['status' => 'claimed', 'claimExpiresAt<' => $now])->find() as $expired) {
-                $expired->set(['status' => 'pending', 'claimedBy' => null, 'claimedAt' => null, 'claimExpiresAt' => null]);
+                $expired->set(['status' => $expired->get('triggerType') === 'scheduledReception' ? 'failed' : 'pending', 'claimedBy' => null, 'claimedAt' => null, 'claimExpiresAt' => null]);
                 $this->kernel->save($expired);
             }
 
@@ -504,9 +526,12 @@ final class WorkflowService
                     }
                 }
                 $conversation = $this->em->getEntityById('ExternalConversation', (string) $candidate->get('conversationId'));
-                // Human takeover blocks automatic task execution.
-                if ($conversation && $conversation->get('controlMode') === 'human') {
-                    continue;
+                if (!$conversation) continue;
+                if ($candidate->get('triggerType') === 'scheduledReception') {
+                    $reception = new ScheduledReceptionService($this->em, $this->kernel, new ReceptionReply());
+                    if (!$reception->taskCanRun($candidate, $conversation)) continue;
+                } else {
+                    if ($scheduledOnly || !(new AcquisitionRoutingService($this->em))->taskCanRun($conversation)) continue;
                 }
                 $active = $this->repo('OutboundTask')->where([
                     'conversationId' => $candidate->get('conversationId'),
@@ -548,7 +573,7 @@ final class WorkflowService
             throw new Conflict('Task must be claimed first.');
         }
         $conversation = $this->requireEntity('ExternalConversation', (string) $task->get('conversationId'));
-        $this->controlService->assertSendAllowed($conversation, 'start sending');
+        $this->controlService->assertSendAllowed($conversation, 'start sending', $task);
         $task->set('status', 'sending');
         $this->kernel->save($task);
         // The task status is the single source of truth for the send state;
@@ -605,6 +630,8 @@ final class WorkflowService
                     'sentAt' => $this->kernel->now(),
                     'body' => $body,
                     'deliveryStatus' => $deliveryStatus,
+                    'automationKind' => $task->get('triggerType') === 'scheduledReception' ? 'scheduledReception' : '',
+                    'timestampConfidence' => 'high',
                     'contentHash' => $hash,
                 ]);
             }
@@ -629,7 +656,7 @@ final class WorkflowService
             $retries = ((int) $task->get('retryCount')) + 1;
             $task->set([
                 'retryCount' => $retries,
-                'status' => $retries < 3 ? 'pending' : 'failed',
+                'status' => $task->get('triggerType') === 'scheduledReception' ? 'failed' : ($retries < 3 ? 'pending' : 'failed'),
                 'errorMessage' => (string) ($input->errorMessage ?? 'Unknown send error'),
                 'claimedBy' => null,
                 'claimExpiresAt' => null,
@@ -867,7 +894,7 @@ final class WorkflowService
             'channelType' => $channel ? (string) ($channel->get('type') ?: 'Alibaba') : 'Alibaba',
             'executionMode' => $task->get('executionMode') ?: 'mock',
             'body' => $body,
-            'triggerType' => (string) ($draft->get('triggerType') ?: 'manual'),
+            'triggerType' => (string) ($task->get('triggerType') ?: $draft->get('triggerType') ?: 'manual'),
             'claimExpiresAt' => $task->get('claimExpiresAt'),
         ];
     }

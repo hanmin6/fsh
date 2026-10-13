@@ -1,4 +1,5 @@
 import asyncio
+import pytest
 
 from alibaba_messenger.sync_models import SyncMessage
 from alibaba_messenger.sync_service import AlibabaSyncService
@@ -115,6 +116,33 @@ def test_incremental_sync_skips_unchanged_and_syncs_changed():
     assert state.completed == ["2"]
     assert "2" in state.tracked
     assert state.tracked["2"][0] == "Bob"
+    assert summary.source_checked is True
+
+
+def test_source_failure_is_not_a_successful_empty_poll():
+    class FailedBot:
+        async def get_recent_conversations(self, **kwargs):
+            return {"success": False, "data": {"conversations": []}}
+    state = FakeState()
+    state.start_job = lambda *args: "failed-job"
+    with pytest.raises(RuntimeError, match="source_list_failed"):
+        asyncio.run(AlibabaSyncService(FailedBot(), FakeGateway(), state, Settings()).run_incremental_once())
+
+
+def test_unchanged_source_still_proves_success_but_empty_parser_does_not():
+    class Bot:
+        rows = [{"inquiry_id": "1"}]
+        async def get_recent_conversations(self, **kwargs):
+            return {"success": True, "data": {"conversations": self.rows}}
+    state = FakeState()
+    state.start_job = lambda *args: "poll-job"
+    state.is_conversation_changed = lambda *args: False
+    bot = Bot()
+    service = AlibabaSyncService(bot, FakeGateway(), state, Settings())
+    result = asyncio.run(service.run_incremental_once())
+    assert (result.completed, result.skipped, result.source_checked) == (0, 1, True)
+    bot.rows = []
+    assert asyncio.run(service.run_incremental_once()).source_checked is False
 
 
 def test_daemon_runs_and_respects_stop_event():
@@ -232,4 +260,3 @@ def test_daemon_invokes_keep_alive_and_recovers_from_error():
 
     asyncio.run(_test())
     assert bot.keep_alive_called >= 1
-

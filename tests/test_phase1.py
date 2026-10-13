@@ -6,6 +6,7 @@ verification lives in tests/test_phase1_runtime.py (isolated environment).
 """
 import json
 import pathlib
+import re
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -92,14 +93,19 @@ class ServiceContract(unittest.TestCase):
         self.assertIn("assertSendAllowed", control)
         self.assertIn("FUSANHE_OUTBOUND_PAUSED", control)
         workflow = read("custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php")
-        self.assertIn("$this->controlService->assertSendAllowed($conversation, 'start sending')", workflow,
+        self.assertIn("$this->controlService->assertSendAllowed($conversation, 'start sending', $task)", workflow,
                       "markSending is the send gate")
         self.assertNotIn("assertSendAllowed($conversation, 'record a send result')", workflow,
                          "recording the outcome of an already-dispatched task is bookkeeping; gating it wedges the task")
         self.assertIn("ControlService::outboundPaused()", workflow,
                       "claim refuses to hand out tasks while paused")
-        self.assertIn("get('controlMode') === 'human'", workflow,
-                      "claim skips conversations under human takeover")
+        routing = read("custom/Espo/Custom/Tools/Fusanhe/AcquisitionRoutingService.php")
+        self.assertIn("->taskCanRun($conversation)", workflow,
+                      "claim checks the current acquisition route")
+        self.assertIn("get('controlMode') === 'human'", routing,
+                      "acquisition claim skips conversations under human takeover")
+        self.assertIn("$reception->taskCanRun($candidate, $conversation)", workflow,
+                      "scheduled reception uses its separate authorization boundary")
 
     def test_approved_content_is_snapshotted(self):
         workflow = read("custom/Espo/Custom/Tools/Fusanhe/WorkflowService.php")
@@ -193,6 +199,11 @@ class RoutesContract(unittest.TestCase):
             name = route["actionClassName"].split("\\")[-1]
             source = read(f"custom/Espo/Custom/Tools/Fusanhe/Api/{name}.php")
             guarded = any(token in source for token in ("requireScope", "requireEntityScope", "checkScope"))
+            guarded = guarded or "$this->auth->assertAgent($request)" in source
+            guarded = guarded or bool(re.search(
+                r"if\s*\(\s*!\$this->user->isAdmin\(\)\s*\)\s*throw\s+new\s+(?:\\?Espo\\Core\\Exceptions\\)?Forbidden\s*\(",
+                source,
+            ))
             guarded = guarded or name in exempt_agent_actions or name in service_guarded
             self.assertTrue(guarded, f"{route['route']} must have an ACL/auth boundary")
 

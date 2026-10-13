@@ -219,6 +219,15 @@ class MicCrmImporter:
     def _run(self, *, mode: str) -> ImportResult:
         for pending_resource in ("conversations", "conversations:once"):
             pending = self.state.pending_batch(pending_resource)
+            read_payload = getattr(self.state, "pending_payload", None)
+            payload = read_payload(pending_resource) if pending is not None and callable(read_payload) else None
+            if pending is not None and payload is not None:
+                # Retry the original complete request before observing a newer
+                # source snapshot. Never replace an unacknowledged request body.
+                request_id = str(pending["request_id"])
+                verified = self.crm.sync_batch(payload, request_id)
+                self.state.confirm_batch(pending_resource, request_id, verified)
+                pending = None
             if pending is not None and pending.get("conflict") is True:
                 raise PendingBatchConflictError(
                     pending_resource,

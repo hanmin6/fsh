@@ -428,6 +428,8 @@ final class MuseCrmService
 
     private function leadProjection(Entity $lead): array
     {
+        $routing = [];
+        foreach (AcquisitionRouting::FIELDS as $field) $routing[$field] = $lead->get($field);
         return [
             'prospectId' => $lead->getId(),
             'name' => (string) $lead->get('name'),
@@ -441,6 +443,9 @@ final class MuseCrmService
             'campaignKey' => (string) ($lead->get('fusanheCampaignKey') ?: ''),
             'contactPolicy' => (string) ($lead->get('fusanheContactPolicy') ?: 'unknown'),
             'doNotContact' => (bool) $lead->get('fusanheDoNotContact'),
+            'rating' => AcquisitionRouting::effectiveRating($routing),
+            'followUpRoute' => AcquisitionRouting::route($routing),
+            'followUpReason' => AcquisitionRouting::reason($routing),
         ];
     }
 

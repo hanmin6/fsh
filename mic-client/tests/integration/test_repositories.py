@@ -88,6 +88,22 @@ def make_conversation(source_id: str = "conversation-1") -> SourceConversation:
 
 
 @pytest.mark.asyncio
+async def test_list_refresh_preserves_buyer_identity_read_from_details(sessions):
+    repository = ConversationRepository(sessions)
+    source = make_conversation()
+    await repository.upsert(source)
+    async with sessions() as session, session.begin():
+        await repository.mark_history_complete_in_session(
+            session, source.source_id, buyer_id="real-buyer", buyer_name="Buyer"
+        )
+    refreshed = await repository.upsert(replace(source, buyer_reference="seller-contact"))
+    assert refreshed.buyer_reference == "real-buyer"
+    assert refreshed.raw_snapshot["buyer_id"] == "real-buyer"
+    assert refreshed.raw_snapshot["buyer_name"] == "Buyer"
+    assert refreshed.history_complete is True
+
+
+@pytest.mark.asyncio
 async def test_order_upsert_updates_without_duplication(
     sessions: async_sessionmaker[AsyncSession],
 ) -> None:

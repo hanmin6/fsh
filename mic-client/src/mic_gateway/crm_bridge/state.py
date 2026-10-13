@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,9 @@ class CrmBridgeState:
         self.directory = Path(app_data_dir).expanduser().resolve() / "crm-bridge"
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path = self.directory / "checkpoints.sqlite3"
+        self.replay_directory = self.directory / "pending-replay"
+        self.replay_directory.mkdir(mode=0o700, exist_ok=True)
+        self.replay_directory.chmod(0o700)
         with self._connect() as connection:
             connection.executescript(
                 """
@@ -166,6 +170,42 @@ class CrmBridgeState:
                 "VALUES (?, ?, ?, ?, ?)",
                 (resource, *pending),
             )
+        # The journal contains hashes only. A temporary, owner-only spool keeps
+        # the exact unacknowledged request for idempotent replay after a timeout.
+        self._store_payload(request_id, payload)
+
+    def _payload_path(self, request_id: str) -> Path:
+        return self.replay_directory / (hashlib.sha256(request_id.encode()).hexdigest() + ".json")
+
+    def _store_payload(self, request_id: str, payload: dict[str, Any]) -> None:
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        if len(raw) > 2_000_000:
+            raise ValueError("pending replay payload is too large")
+        path = self._payload_path(request_id)
+        temporary = path.with_suffix(".tmp")
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary.replace(path)
+        path.chmod(0o600)
+
+    def pending_payload(self, resource: str) -> dict[str, Any] | None:
+        pending = self.pending_batch(resource)
+        if not pending:
+            return None
+        path = self._payload_path(str(pending["request_id"]))
+        try:
+            if path.stat().st_size > 2_000_000:
+                return None
+            raw = path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != pending["payload_sha256"]:
+                return None
+            payload = json.loads(raw)
+            return payload if isinstance(payload, dict) else None
+        except (OSError, ValueError):
+            return None
 
     def pending_batch(self, resource: str) -> dict[str, str | None | bool] | None:
         with self._connect() as connection:
@@ -225,6 +265,7 @@ class CrmBridgeState:
                 ),
             )
             connection.execute("DELETE FROM pending_batches WHERE resource = ?", (resource,))
+        self._payload_path(request_id).unlink(missing_ok=True)
 
     def manual_resolutions(self, limit: int = 20) -> list[dict[str, str]]:
         if not 1 <= limit <= 100:
@@ -266,6 +307,7 @@ class CrmBridgeState:
                 (row[0], resource),
             )
             connection.execute("DELETE FROM pending_batches WHERE resource = ?", (resource,))
+        self._payload_path(request_id).unlink(missing_ok=True)
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=10)

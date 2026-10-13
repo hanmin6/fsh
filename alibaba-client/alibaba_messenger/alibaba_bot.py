@@ -27,6 +27,7 @@ class AlibabaMessengerBot:
         self.page: Optional[Page] = None
         self.is_logged_in = False
         self.is_busy = False
+        self.recovery_login_handler = None
         self._inquiry_countries: Dict[str, str] = {}
         self._last_refresh_time: float = time.time()
         self._last_keep_alive: float = time.time()
@@ -151,6 +152,8 @@ class AlibabaMessengerBot:
             start_time = time.time()
             while time.time() - start_time < max_wait_seconds:
                 await asyncio.sleep(3)
+                if self.recovery_login_handler is not None:
+                    await self.recovery_login_handler(self.page)
                 try:
                     current_url = self.page.url
                     has_pwd = bool(await self.page.query_selector("input[type='password']"))
@@ -412,7 +415,8 @@ class AlibabaMessengerBot:
         buyer_name: str,
         message: str,
         inquiry_id: Optional[str] = None,
-        force_send: bool = False
+        force_send: bool = False,
+        before_send=None,
     ) -> Dict[str, Any]:
         """向指定买家或商机单号发送消息，具备双层防重与拟人化延时"""
         start_time = time.time()
@@ -455,6 +459,8 @@ class AlibabaMessengerBot:
 
             real_buyer_name = table_row_btn.get("buyer_name") or buyer_name
             matched_id = table_row_btn.get("inquiry_id") or inquiry_id
+            if before_send and (not inquiry_id or str(matched_id) != str(inquiry_id)):
+                raise RuntimeError("Scheduled reply target was not confirmed")
             idx = table_row_btn.get("index", 0)
 
             # 打开商机详情页（点击当前行的“查看详情”）
@@ -567,7 +573,14 @@ class AlibabaMessengerBot:
             if not send_btn:
                 send_btn = await target_page.query_selector("button:has-text('发送'):not(.send-mock)")
 
-            if send_btn and await send_btn.is_visible():
+            if before_send:
+                if not send_btn or not await send_btn.is_visible():
+                    raise RuntimeError("Scheduled reply send control was not confirmed")
+                # Recheck CRM ownership and China-local hours immediately before dispatch.
+                await send_btn.scroll_into_view_if_needed()
+                await before_send()
+                await send_btn.click()
+            elif send_btn and await send_btn.is_visible():
                 try:
                     await send_btn.scroll_into_view_if_needed()
                     await asyncio.sleep(0.3)
@@ -578,6 +591,11 @@ class AlibabaMessengerBot:
                 await target_page.keyboard.press("Enter")
 
             await asyncio.sleep(3.5)
+            if before_send:
+                bubbles = await target_page.locator(".message-bubble.mine .text, .bubble-right .content, [class*=supplier-content]").all_text_contents()
+                normalized = " ".join(message.split())
+                if not any(" ".join(text.split()) == normalized for text in bubbles):
+                    raise RuntimeError("Scheduled reply delivery unconfirmed; do not retry automatically")
 
             # 发送后截取页面存照留证
             screenshot_path = ""

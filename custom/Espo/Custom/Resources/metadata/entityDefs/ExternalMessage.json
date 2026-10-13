@@ -132,6 +132,16 @@
       "type": "varchar",
       "required": true,
       "maxLength": 64
+    },
+    "automationKind": {
+      "type": "enum",
+      "options": [
+        "",
+        "scheduledReception",
+        "aiSales"
+      ],
+      "default": "",
+      "readOnly": true
     }
   },
   "links": {

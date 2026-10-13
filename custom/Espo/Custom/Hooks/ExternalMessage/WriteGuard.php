@@ -19,6 +19,7 @@ class WriteGuard implements BeforeSave
         if ($options->get('fusanheService')) {
             return;
         }
+        if ($entity->isAttributeChanged('automationKind') && (!$entity->isNew() || $entity->get('automationKind'))) throw new Forbidden('Automation attribution is written by the send pipeline only.');
         if ($entity->isNew()) {
             if ($entity->get('direction') === 'outbound') {
                 throw new Forbidden('Outbound messages are written by the send pipeline only.');

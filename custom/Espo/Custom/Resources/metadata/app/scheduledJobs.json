@@ -19,5 +19,40 @@
     "scheduling": "* * * * *",
     "jobClassName": "Espo\\Custom\\Classes\\Jobs\\OutreachResearch",
     "isDefault": true
+  },
+  "FusanheScheduledReception": {
+    "name": "非工作时间 AI 客服接待",
+    "isSystem": false,
+    "scheduling": "* * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\ScheduledReception",
+    "isDefault": true
+  },
+  "FusanheMorningReport": {
+    "name": "福三和微信晨报（北京时间 09:00）",
+    "isSystem": false,
+    "scheduling": "* * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\MorningReport",
+    "isDefault": true
+  },
+  "FusanheWeChatAgent": {
+    "name": "微信 CRM 客户助手",
+    "isSystem": false,
+    "scheduling": "* * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\WeChatAgent",
+    "isDefault": true
+  },
+  "FusanheSales": {
+    "name": "AI 获客销售规划与 Zoho 邮件执行",
+    "isSystem": false,
+    "scheduling": "* * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\Sales",
+    "isDefault": true
+  },
+  "FusanheSalesEnrich": {
+    "name": "AI 客资公开资料查证",
+    "isSystem": false,
+    "scheduling": "*/5 * * * *",
+    "jobClassName": "Espo\\Custom\\Classes\\Jobs\\SalesEnrich",
+    "isDefault": true
   }
 }

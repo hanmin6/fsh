@@ -1,4 +1,4 @@
-"""Run the read-only Windows channel collectors using a private configuration file."""
+"""Run channel collectors and scoped scheduled reception using private configuration."""
 from __future__ import annotations
 
 import argparse
@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -16,8 +17,8 @@ def configure(config_path: Path) -> dict:
     config = json.loads(config_path.read_text(encoding="utf-8-sig"))
     source = Path(config["sourceRoot"])
     data = Path(config["dataRoot"])
-    sys.path[:0] = [str(source / "alibaba-client"), str(source / "mic-client" / "src")]
-    # This entrypoint never starts either platform's outbound CRM worker.
+    sys.path[:0] = [str(source / "alibaba-client"), str(source / "mic-client" / "src"), str(Path(__file__).parent)]
+    # Legacy/cold outreach stays paused. Only CRM-authorized scheduled intake is consumed.
     os.environ.update({
         "FUSANHE_OUTBOUND_PAUSED": "true",
         "FUSANHE_ALIBABA_DATA_DIR": str(data / "alibaba"),
@@ -33,9 +34,13 @@ def configure(config_path: Path) -> dict:
         "MIC_GATEWAY_URL": "http://127.0.0.1:8787",
         "MIC_CRM_URL": config["crmUrl"],
         "MIC_CRM_ALLOW_REMOTE_HTTPS": "true",
+        # A full browser sweep reads 12 histories and takes several minutes.
+        "MIC_CONVERSATION_STALE_SECONDS": "1800",
         "MIC_CRM_AGENT_KEY": config["mic"]["agentKey"],
         "MIC_CRM_AGENT_TOKEN": config["mic"]["agentToken"],
         "MIC_ACCOUNT_HANDLE": config["mic"]["accountHandle"],
+        "FUSANHE_RECOVERY_ENABLED": "true" if config.get("recoveryEnabled") else "false",
+        "FUSANHE_RECOVERY_DIR": str(data / "recovery"),
     })
     if config["mic"].get("readApiKey"):
         os.environ["MIC_CRM_READ_API_KEY"] = config["mic"]["readApiKey"]
@@ -72,16 +77,33 @@ async def alibaba() -> None:
     from alibaba_messenger.crm_gateway import CrmGateway
     from alibaba_messenger.sync_service import AlibabaSyncService
     from alibaba_messenger.sync_state import SyncStateStore
+    from alibaba_messenger.outbound_worker import OutboundWorker
 
     crm = CrmGateway(settings.CRM_API_URL, settings.AGENT_KEY, settings.AGENT_TOKEN)
     while True:
         bot = AlibabaMessengerBot()
+        if os.environ.get("FUSANHE_RECOVERY_ENABLED") == "true":
+            from gateway_recovery_login import handle_recovery
+            async def login_recovery(page):
+                return await handle_recovery(page, "Alibaba")
+            bot.recovery_login_handler = login_recovery
         state = SyncStateStore(settings.SYNC_DB_PATH)
         try:
             await asyncio.to_thread(crm.heartbeat, "offline", "login_required")
+            # Startup may wait on a login page. Do not retain the previous
+            # process's "ready" file while recovery decides how to log in.
+            status_path = Path(settings.BASE_DIR) / "browser-status.json"
+            status_path.parent.mkdir(parents=True, exist_ok=True)
+            status_path.write_text(json.dumps({"state": "login_required", "page": None}), encoding="utf-8")
             await bot.start(headless=False)
             service = AlibabaSyncService(bot, crm, state, settings)
+            outbound = OutboundWorker(bot, crm, settings, scheduled_only=True)
             while True:
+                if os.environ.get("FUSANHE_RECOVERY_ENABLED") == "true":
+                    from gateway_recovery_login import handle_recovery
+                    recovery = await handle_recovery(bot.page, "Alibaba")
+                    if recovery == "retry_sync_requested":
+                        await bot.page.goto(settings.ALIBABA_MSG_URL, wait_until="domcontentloaded", timeout=30000)
                 readiness = await alibaba_readiness(bot.page)
                 (Path(settings.BASE_DIR) / "browser-status.json").write_text(
                     json.dumps({"state": readiness,
@@ -99,13 +121,18 @@ async def alibaba() -> None:
                 try:
                     summary = await service.run_incremental_once()
                     readiness = await alibaba_readiness(bot.page)
-                    healthy = summary.failed == 0 and readiness == "ready"
+                    healthy = summary.failed == 0 and summary.source_checked and readiness == "ready"
                     await asyncio.to_thread(
                         crm.heartbeat, "online" if healthy else "offline",
-                        None if healthy else (readiness if readiness != "ready" else "sync_failed"),
+                        None if healthy else (readiness if readiness != "ready" else "source_sync_unconfirmed"),
+                        capture_success={"channelType": "Alibaba", "accountHandle": settings.ACCOUNT_HANDLE} if healthy else None,
                     )
+                    if healthy:
+                        # Serialize inbound and scheduled replies on the same browser.
+                        await outbound.poll_and_execute_once()
                     print(json.dumps({"channel": "Alibaba", "updated": summary.completed,
-                                      "failed": summary.failed}), flush=True)
+                                      "failed": summary.failed, "unchanged": summary.skipped,
+                                      "sourceChecked": summary.source_checked}), flush=True)
                 except Exception as error:
                     print("Alibaba sync failed: " + type(error).__name__, flush=True)
                     await asyncio.to_thread(crm.heartbeat, "offline", "sync_failed")
@@ -151,10 +178,24 @@ def mic_status(config: dict) -> dict:
         return json.load(response)
 
 
+def mic_source_ready(snapshot: dict, now: datetime | None = None) -> bool:
+    sync = snapshot.get("sync", {}).get("conversations", {})
+    if not isinstance(sync.get("last_success_at"), str):
+        return False
+    try:
+        last_success = datetime.fromisoformat(sync["last_success_at"].replace("Z", "+00:00"))
+        age = ((now or datetime.now(timezone.utc)) - last_success).total_seconds()
+    except (KeyError, TypeError, ValueError):
+        return False
+    message_failures = any(v.get("failure_count") for k, v in snapshot.get("sync", {}).items() if k.startswith("messages:"))
+    return 0 <= age <= 1800 and not sync.get("failure_count") and not message_failures
+
+
 def bridge(config: dict) -> None:
     from mic_gateway.crm_bridge.config import CrmBridgeConfig
     from mic_gateway.crm_bridge.crm_client import CrmClient
     from mic_gateway.crm_bridge.importer import MicCrmImporter
+    from mic_gateway.crm_bridge.importer import PendingBatchConflictError
     from mic_gateway.crm_bridge.state import CrmBridgeState
 
     settings = CrmBridgeConfig.from_env()
@@ -172,17 +213,20 @@ def bridge(config: dict) -> None:
                 } else "browser_unavailable")
                 print("MIC awaiting authenticated browser.", flush=True)
             else:
-                sync = snapshot.get("sync", {}).get("conversations", {})
-                if not sync.get("last_success_at") or sync.get("failure_count"):
+                if not mic_source_ready(snapshot):
                     crm.heartbeat("offline", "source_sync_pending_or_failed")
                     print("MIC awaiting a successful source sweep.", flush=True)
                     time.sleep(60)
                     continue
                 result = importer.once()
                 codes = result.action_required_codes
-                crm.heartbeat("offline" if codes else "online", "incomplete_history" if codes else None)
+                crm.heartbeat("offline" if codes else "online", "incomplete_history" if codes else None,
+                              capture_success={"channelType": "MadeInChina", "accountHandle": settings.account_handle} if not codes else None)
                 print(json.dumps({"channel": "MadeInChina", "conversations": result.conversations,
                                   "messages": result.messages, "actionCodes": codes}), flush=True)
+        except PendingBatchConflictError:
+            print("MIC bridge pending_batch_conflict", flush=True)
+            crm.heartbeat("offline", "pending_batch_conflict")
         except Exception as error:
             print("MIC bridge retry: " + type(error).__name__, flush=True)
             try:

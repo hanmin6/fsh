@@ -1,5 +1,56 @@
 # CRM 公网入口：2026-10-02
 
+## 当前正式入口：2026-10-10
+
+用户已选择在现有 Hostinger 域名下启用 **https://crm.fsh.digital/**。
+DNS A 记录指向美国 `31.170.165.252`，HTTPS 和 CRM 转发均已验证。
+后台和数据库仍位于公司 22005；原账号认证返回 200，匿名 API 返回
+401，WebSocket 返回 101。CRM 持久化 siteUrl、webSocketUrl 和
+server.env 已同步更新，相关容器均 healthy。
+
+美国配置为 `/www/server/panel/vhost/nginx/crm.fsh.digital.conf`；
+证书为 `/etc/letsencrypt/live/crm.fsh.digital/`，有效期至 2027-01-07，
+沿用已启用的 Certbot 自动续期及 Nginx 重载 hook。
+新入口继续保留员工 CRM 的 noindex 响应头。
+
+旧域名 gzfusanhesp.com 的管理账号仍未找到，但新入口已可独立使用。
+下文有关旧域名 DNS 待切换的内容为此前检查记录，不代表新入口仍待部署。
+详情见 `crm-us-migration-20261010/crm.fsh.digital部署完成.md`。
+
+## 2026-10-10：美国入口恢复，DNS 待切换
+
+美国新服务器为 `31.170.165.252`。已经从 22001 的 Edge 中复用
+Hostinger 登录，添加专用运维公钥并验证 SSH 成功。该服务器的 CRM
+Nginx 配置及原证书已恢复，证书有效期至 2026-11-22。
+
+已恢复的新链路：美国 Nginx → 美国 loopback 18085/18086 → 堡垒机
+8.138.165.27 → 公司 22005 → 8080/8081。堡垒机新增
+`fusanhe-crm-edge-us.service`，已启用开机启动，沿用现有受限隧道密钥。
+美国 SSH 主机公钥单独固定在
+`/etc/fusanhe-crm-tunnel/us-20261010.known_hosts`。
+仅将 18085/18086 监听在 loopback，未开放为公网端口。
+
+通过 `curl --resolve` 直连新 IP 并保留正常 TLS 校验：CRM HTTPS 200，
+HTTP/www 301 到正式入口，匿名用户 API 401，WebSocket 101；CRM 的
+noindex 响应头保留，官网返回 200 且未附加 CRM noindex。
+
+**公共 DNS 尚未切换，不能据此认定正式域名已经恢复。**
+根域及 www 当前仍解析为旧 IP `187.52.122.192`；NS 为
+`ns1.myhostadmin.net`、`ns2.myhostadmin.net`。域名管理账号尚未确认，
+22001 的 Edge 中西部数码也未登录。旧 `fusanhe-crm-edge.service`
+暂时保留；完成 DNS 切换和缓存期验收后再下线。
+
+已复核当前 Hostinger 的域名列表与 VPS DNS 管理器，仅有
+`fshfoodingredients.com`、`fsh.digital`；搜索 CRM 域名没有匹配结果。
+公开 RDAP 显示注册商为 Cloud Yuqu LLC（IANA 3824），注册日期
+2026-05-08。注册人信息隐藏，尚不能确定实际注册/代理商账号。
+
+回滚材料：美国 `/root/crm-us-migration-20261010/` 保存授权文件、
+CRM vhost 和证书；堡垒机同名目录保存旧服务及 known_hosts。
+旧服务器公网访问本次超时，不能假设它是可用的回滚入口。
+
+以下内容为原加拿大入口的历史记录。
+
 > 2026-10-09：22005 现已同时承载 CRM、Dify 和渠道采集；22001 Windows 系统已退役。下述 CRM 公网链路保持不变，其他服务入口见 [迁移与运维记录](MIGRATION_22001_TO_22005_2026-10-09.md)。
 
 正式入口：https://gzfusanhesp.com 。HTTP 和 www 跳转到此地址。

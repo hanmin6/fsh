@@ -96,6 +96,35 @@
       "type": "varchar",
       "maxLength": 255,
       "readOnly": true
+    },
+    "fusanheSalesEnrolled": {
+      "type": "bool",
+      "default": false,
+      "readOnly": true
+    },
+    "fusanheSalesProfile": {
+      "type": "jsonObject",
+      "readOnly": true
+    },
+    "fusanheContactPolicy": {
+      "type": "enum",
+      "options": [
+        "unknown",
+        "allowed",
+        "optedOut",
+        "restricted"
+      ],
+      "default": "unknown",
+      "audited": true
+    },
+    "fusanheDoNotContact": {
+      "type": "bool",
+      "default": false,
+      "audited": true
+    },
+    "fusanheSalesResearch": {
+      "type": "jsonObject",
+      "readOnly": true
     }
   },
   "links": {

@@ -65,6 +65,18 @@ final class MadeInChinaSyncService
             }
 
             $buyerId = trim($conversationInput->buyerExternalId);
+            $identity = $this->existingConversationIdentity($conversation);
+            // Detail pages sometimes omit the buyer ID. The collector then uses
+            // this inquiry's source ID as a fallback, not a new buyer identity.
+            // Keep a previously verified binding only for this exact conversation
+            // and account; a different explicit buyer ID still conflicts below.
+            if ($identity !== null && $buyerId === $sourceId
+                && (string) $identity->get('channelType') === 'MadeInChina'
+                && (string) $identity->get('channelAccountId') === $accountHandle
+                && trim((string) $identity->get('externalUserId')) !== ''
+                && (string) $conversation->get('externalUserId') === (string) $identity->get('externalUserId')) {
+                $buyerId = (string) $identity->get('externalUserId');
+            }
             $this->refreshConversationSourceMetadata($conversation, $conversationInput, $buyerId);
             $buyerName = trim((string) $conversationInput->buyerName);
             $placeholder = (bool) $conversationInput->buyerNameIsPlaceholder;
@@ -78,7 +90,6 @@ final class MadeInChinaSyncService
                 'country' => trim((string) ($conversationInput->country ?? '')),
                 'buyerNameIsPlaceholder' => $placeholder,
             ];
-            $identity = $this->existingConversationIdentity($conversation);
             if ($identity === null) {
                 try {
                     [$identity,] = $this->identityService->resolveIdentity(

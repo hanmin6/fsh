@@ -101,6 +101,29 @@ class MadeInChinaSyncRuntime(unittest.TestCase):
         self.assertEqual(second["leadId"], first["leadId"])
         self.assertEqual(after["name"], "Fictional Trading Group")
 
+    def test_missing_buyer_id_fallback_keeps_existing_binding_and_real_change_conflicts(self):
+        source_id = f"fallback-{self.stamp[:12]}-source"
+        buyer_id = f"buyer-{self.stamp[:12]}-known"
+        original = self.request("fallback-original", source_id, buyer_id)
+        _, first = self.sync(original)
+        fallback = self.request("fallback-replay", source_id, source_id)
+        _, second = self.sync(fallback)
+        self.assertTrue(second["accepted"])
+        self.assertEqual(second["conversationId"], first["conversationId"])
+        self.assertEqual(second["identityId"], first["identityId"])
+        self.assertEqual(second["leadId"], first["leadId"])
+        self.assertEqual(second["createdMessages"], 0)
+        _, conversation = admin_api(f"/ExternalConversation/{first['conversationId']}")
+        _, identity = admin_api(f"/ExternalIdentity/{first['identityId']}")
+        self.assertEqual(conversation["externalUserId"], buyer_id)
+        self.assertEqual(identity["externalUserId"], buyer_id)
+        changed = self.request("fallback-changed", source_id, f"buyer-{self.stamp[:12]}-different")
+        status, _ = self.sync(changed, expect_error=True)
+        self.assertEqual(status, 409)
+        _, after = admin_api(f"/ExternalConversation/{first['conversationId']}")
+        self.assertEqual(after["identityId"], first["identityId"])
+        self.assertEqual(after["externalUserId"], buyer_id)
+
     def test_repeat_import_refreshes_source_metadata_without_duplicate_records(self):
         buyer_id = f"buyer-{self.stamp[:12]}-refresh"
         source_id = f"refresh-{self.stamp[:12]}-source"

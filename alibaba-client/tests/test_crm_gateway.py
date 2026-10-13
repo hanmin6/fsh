@@ -73,6 +73,17 @@ def test_heartbeat_sends_agent_status_and_headers():
     assert kwargs["headers"]["X-Automation-Token"] == "agent-token"
 
 
+def test_successful_capture_is_explicit_and_optional():
+    session = MagicMock()
+    session.post.return_value = response(200, {"ok": True})
+    gateway = CrmGateway("http://127.0.0.1:8080/api/v1", "agent", "agent-token", session=session)
+    gateway.heartbeat()
+    assert "captureSuccess" not in session.post.call_args.kwargs["json"]
+    capture = {"channelType": "Alibaba", "accountHandle": "main"}
+    gateway.heartbeat(capture_success=capture)
+    assert session.post.call_args.kwargs["json"]["captureSuccess"] == capture
+
+
 def test_claim_sends_agent_key_and_returns_payload():
     session = MagicMock()
     session.post.return_value = response(200, {"paused": False, "task": {"id": "task-1", "body": "hello"}})
@@ -115,4 +126,3 @@ def test_report_result_handles_success_and_failure():
     _, kwargs = session.post.call_args
     assert kwargs["json"]["success"] is False
     assert kwargs["json"]["errorMessage"] == "timeout occurred"
-
