@@ -391,5 +391,10 @@
         "route": "/Fusanhe/sales",
         "method": "post",
         "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostSales"
+    },
+    {
+        "route": "/Fusanhe/reply-assistant",
+        "method": "post",
+        "actionClassName": "Espo\\Custom\\Tools\\Fusanhe\\Api\\PostReplyAssistant"
     }
 ]
