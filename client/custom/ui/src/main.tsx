@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Home,MessagesSquare,MessageCircle,Users,UserPlus,Image,BookOpen,Settings,Menu,ChevronLeft,ChevronRight,Search,ArrowUpRight,X,Check} from 'lucide-react';
+import {Home,MessageSquareReply,MessagesSquare,MessageCircle,Users,UserPlus,Image,BookOpen,Settings,Menu,ChevronLeft,ChevronRight,Search,ArrowUpRight,X,Check} from 'lucide-react';
 import {cachedSource,type HostBridge,type DataSource} from './bridge';
 import {demoSource} from './demo';
 import {readRoute,type Route,type Page} from './domain';
@@ -8,6 +8,7 @@ import {Dialog,Button,Notice,SearchBox,useList,Avatar} from './ui';
 import {HomePage,CustomersPage,MessagesPage} from './work';
 import {AcquisitionPage} from './acquisition';
 import {KnowledgePage,AIPage} from './library';
+import {ReplyAssistantPage} from './reply-assistant';
 import './style.css';
 import './workspace.css';
 import {CaptureStrip} from './capture';
@@ -16,7 +17,7 @@ import {GatewaySettings} from './gateway-settings';
 import {ReceptionSettings} from './reception-settings';
 import {WeChatPage} from './wechat';
 export type Navigate=(page:Page,params?:Partial<Route>)=>void;
-const entries=[{id:'home',name:'首页',icon:Home},{id:'messages',name:'消息中心',icon:MessagesSquare},{id:'customers',name:'客户与评级',icon:Users},{id:'acquisition',name:'AI获得客资',icon:UserPlus},{id:'wechat',name:'微信接入',icon:MessageCircle},{id:'ai',name:'AI 工作中心',icon:Image},{id:'knowledge',name:'知识库',icon:BookOpen}] as const;
+const entries=[{id:'home',name:'首页',icon:Home},{id:'messages',name:'消息中心',icon:MessagesSquare},{id:'reply',name:'AI 帮我回复',icon:MessageSquareReply},{id:'customers',name:'客户与评级',icon:Users},{id:'acquisition',name:'AI获得客资',icon:UserPlus},{id:'wechat',name:'微信接入',icon:MessageCircle},{id:'ai',name:'AI 工作中心',icon:Image},{id:'knowledge',name:'知识库',icon:BookOpen}] as const;
 function App({host}:{host:HostBridge}){
  const [route,setRoute]=useState(readRoute),[demo,setDemo]=useState(new URLSearchParams(location.search).get('preview')==='1'),[menu,setMenu]=useState(false),[collapsed,setCollapsed]=useState(false),[settings,setSettings]=useState(false),[reception,setReception]=useState(false),[search,setSearch]=useState<string|null>(null),[toast,setToast]=useState('');
  const navigationRef=useRef<HTMLElement>(null),workspaceRef=useRef<HTMLDivElement>(null),menuButtonRef=useRef<HTMLButtonElement>(null);
@@ -38,9 +39,9 @@ function App({host}:{host:HostBridge}){
  <nav aria-label="主导航">{entries.map(e=><button title={e.name} key={e.id} className={route.page===e.id?'active':''} aria-current={route.page===e.id?'page':undefined} onClick={()=>navigate(e.id)}><e.icon size={19} strokeWidth={1.65}/><span>{e.name}</span></button>)}</nav>
  <div className="w-sidebar-bottom"><button onClick={()=>{setMenu(false);setSettings(true)}} title="设置"><Settings size={18}/><span>设置与预览</span></button><div className="w-account"><Avatar name={source.user.name} small/><div><strong>{source.user.name}</strong><small>{demo?'示例数据 · 不写入后台':'业务工作空间'}</small></div></div><button className="w-collapse" onClick={()=>setCollapsed(!collapsed)} aria-label={collapsed?'展开侧栏':'收起侧栏'}>{collapsed?<ChevronRight size={16}/>:<ChevronLeft size={16}/>}<span>收起侧栏</span></button></div></aside>
  <div ref={workspaceRef} className="w-workspace"><header className="w-topbar"><div><button ref={menuButtonRef} aria-expanded={menu} aria-controls="w-navigation" className="w-mobile-menu" onClick={()=>setMenu(true)} aria-label="展开导航"><Menu size={20}/></button><span className="w-breadcrumb">工作台 <ChevronRight size={12}/> <strong>{title}</strong></span></div><div className="w-top-actions"><Button onClick={()=>setReception(true)}><Settings size={15}/>自动回复设置</Button><button aria-label="搜索工作台" className="w-global-search" onClick={()=>setSearch('')}><Search size={15}/><span>搜索客户、消息与资料</span><kbd>⌘ K</kbd></button><button className={'w-mode '+(demo?'demo':'')} onClick={changeMode}>{demo?'示例预览 · 切换真实数据':'真实数据 · 查看示例'}</button><span className="w-top-account" title={source.user.name}><Avatar name={source.user.name} small/></span></div></header>
- <main onScroll={e=>{try{sessionStorage.setItem('fsh-ui:scroll:'+route.page,String(e.currentTarget.scrollTop))}catch{}}} id="w-main" tabIndex={-1} className={'w-main page-'+route.page} key={String(demo)}><div className="w-page-heading"><div><h1>{title}</h1><p>{({home:'把每一次沟通，变成有进展的客户关系。',messages:'按客户整理沟通，清楚记录每一条消息。',customers:'客户资料、价值判断与下一步行动。',acquisition:'查看 AI 获得的客户线索、来源、价值评级与跟进分流。',wechat:'管理微信接收账号、扫码绑定与提醒连接。',ai:'从商品素材出发，管理内容创作、任务与作品。',knowledge:'商品规格、证书、知识文档与素材集中查阅。'})[route.page]}</p></div><span className="w-date">{new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long',timeZone:'Asia/Shanghai'}).format(new Date())}</span></div>
+ <main onScroll={e=>{try{sessionStorage.setItem('fsh-ui:scroll:'+route.page,String(e.currentTarget.scrollTop))}catch{}}} id="w-main" tabIndex={-1} className={'w-main page-'+route.page} key={String(demo)}><div className="w-page-heading"><div><h1>{title}</h1><p>{({home:'把每一次沟通，变成有进展的客户关系。',messages:'按客户整理沟通，清楚记录每一条消息。',reply:'从客户的话里找到回复方向，把你的想法变成合适的表达。',customers:'客户资料、价值判断与下一步行动。',acquisition:'查看 AI 获得的客户线索、来源、价值评级与跟进分流。',wechat:'管理微信接收账号、扫码绑定与提醒连接。',ai:'从商品素材出发，管理内容创作、任务与作品。',knowledge:'商品规格、证书、知识文档与素材集中查阅。'})[route.page]}</p></div><span className="w-date">{new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long',timeZone:'Asia/Shanghai'}).format(new Date())}</span></div>
  {demo&&<div className="w-demo-label">示例预览：客户、评级、商品与生成任务均为演示，不会修改真实业务数据。</div>}
- {route.page==='home'?<HomePage {...props}/>:route.page==='messages'?<MessagesPage {...props}/>:route.page==='customers'?<CustomersPage {...props}/>:route.page==='acquisition'?<AcquisitionPage {...props}/>:route.page==='knowledge'?<KnowledgePage {...props}/>:route.page==='wechat'?<WeChatPage source={source}/>:<AIPage {...props}/>}
+ {route.page==='home'?<HomePage {...props}/>:route.page==='messages'?<MessagesPage {...props}/>:route.page==='reply'?<ReplyAssistantPage key={route.id||'standalone'} {...props}/>:route.page==='customers'?<CustomersPage {...props}/>:route.page==='acquisition'?<AcquisitionPage {...props}/>:route.page==='knowledge'?<KnowledgePage {...props}/>:route.page==='wechat'?<WeChatPage source={source}/>:<AIPage {...props}/>}
  <footer className="w-footer">广州福三和食品有限公司</footer></main></div>
  {toast&&<div className="w-toast" role="status"><Check size={16}/>{toast}<button aria-label="关闭提示" onClick={()=>setToast('')}><X size={16}/></button></div>}
  {reception&&<Dialog title="自动回复设置" onClose={()=>setReception(false)}><div className="w-dialog-body"><ReceptionSettings source={source}/></div></Dialog>}

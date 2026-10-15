@@ -22,6 +22,8 @@ jobs:
         run: |
           make spec-check
           make verify-offline
+          php tests/php/reply_assistant.php
+          python3 -m unittest tests.test_reply_assistant -v
       - name: Verify acquisition, reception, sales, WeChat and website policies offline
         run: |
           for contract in acquisition_routing acquisition_run gateway_recovery_policy gateway_recovery_service morning_report reception_schedule sales_policy scheduled_reception wechat_accounts wechat_agent wechat_api_acl website_policy; do
@@ -50,6 +52,7 @@ jobs:
           docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml exec -T espocrm bin/command rebuild
           python3 scripts/bootstrap.py
           python3 -m unittest tests.test_dual_ai_acceptance -v
+          RUN_REPLY_RUNTIME=1 REPLY_TEST_API_URL="$ESPOCRM_API_URL" REPLY_TEST_ADMIN_PASSWORD="$ESPOCRM_ADMIN_PASSWORD" python3 -m unittest tests.test_reply_assistant_runtime -v
           docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml cp tests espocrm:/var/www/html/tests
           docker compose -p fusanhe-ui-v1-test --env-file .env.test -f tests/unified-ui-compose.yaml exec -T espocrm sh -c '
             set -e
@@ -88,6 +91,7 @@ jobs:
         run: |
           pip install playwright
           playwright install --with-deps chromium
+          (cd client/custom/ui && npx playwright install --with-deps chromium)
       - name: Verify synthetic workflows and responsive layouts
         run: |
           (cd client/custom/ui && npx vite --host 127.0.0.1 --port 5176 --strictPort > /tmp/vite.log 2>&1 &)
@@ -95,6 +99,7 @@ jobs:
             if curl --silent --fail http://127.0.0.1:5176/preview.html > /dev/null; then break; fi
             sleep 1
           done
+          npm run test:browser --prefix client/custom/ui
           python tests/unified_ui_browser.py
           python tests/dual_ai_browser.py
           python tests/conversation_profile_browser.py
@@ -107,6 +112,7 @@ jobs:
         with:
           name: unified-ui-synthetic-screenshots
           path: |
+            runtime/reply-assistant/*.png
             test-results/unified-ui
             test-results/dual-ai
             test-results/conversation-profile

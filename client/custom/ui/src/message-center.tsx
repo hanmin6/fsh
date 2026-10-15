@@ -35,11 +35,11 @@ export function MessageQueue({directory,conversations,countsError,refresh,entity
  if(category!=='all'&&(!channels.length||(entity==='AIReplyDraft'&&!(where[0].value as string[]).length)))return <section className="w-panel"><div className="w-toolbar">{selector}</div><Empty title="此渠道暂无对应记录" detail="渠道接入并产生审核或发送任务后，会显示在这里。"/></section>;
  return <Queue key={entity+category} {...props} entity={entity} extraWhere={where} toolbarExtra={selector}/>;
 }
-export function MessageNavigation({route,navigate,counts,countsError}:{counts:Record<MessageCategory,number>|null;countsError:boolean}&Pick<Props,'route'|'navigate'>){
+export function MessageNavigation({source,route,navigate,counts,countsError}:{counts:Record<MessageCategory,number>|null;countsError:boolean}&Pick<Props,'source'|'route'|'navigate'>){
  const category=readMessageCategory(route.tab),queue=['review','tasks'].includes(route.tab);
  return <div className="w-message-navigation">
   <div className="w-tabs" role="group" aria-label="消息分类">{messageCategories.map(c=><button key={c.id} aria-pressed={!queue&&category===c.id} className={!queue&&category===c.id?'active':''} onClick={()=>navigate('messages',{tab:c.id})}>{c.label}<span className="w-message-count" title={countsError?'未读数读取失败':counts?`${counts[c.id]} 条未读消息`:'正在读取未读数'}>未读 {countsError?'—':counts?counts[c.id]:'…'}</span></button>)}</div>
-  <div className="w-message-operations" role="group" aria-label="消息处理">{[{id:'review',label:'待审核'},{id:'tasks',label:'发送任务'}].map(x=><button key={x.id} aria-pressed={route.tab===x.id} className={'w-button'+(route.tab===x.id?' active':'')} onClick={()=>navigate('messages',{tab:x.id})}>{x.label}</button>)}</div>
+  <div className="w-message-operations" role="group" aria-label="消息处理">{category==='email'&&!queue&&!source.demo&&<Button disabled={!source.can('Email','read')} onClick={()=>source.native('Email')}>打开邮箱 · 写信</Button>}{[{id:'review',label:'待审核'},{id:'tasks',label:'发送任务'}].map(x=><button key={x.id} aria-pressed={route.tab===x.id} className={'w-button'+(route.tab===x.id?' active':'')} onClick={()=>navigate('messages',{tab:x.id})}>{x.label}</button>)}</div>
  </div>;
 }
 export function ChannelEmpty({category,directory,refresh}:{category:MessageCategory;directory:ChannelDirectory;refresh:()=>void}){

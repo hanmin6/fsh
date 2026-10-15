@@ -1,0 +1,6 @@
+# Reply assistant API v1
+POST `/Fusanhe/reply-assistant` (Espo session auth, AIReplyDraft create ACL).
+Request operation `analyze`: images (data:image/png|jpeg|webp;base64,... array), text (optional corrected text). At least one required. Corrected text takes precedence; if images changed UI clears old text/analysis.
+Request operation `generate`: text required, direction {title,description} optional, customInstruction optional (at least one of these), language auto/en/zh/es/fr/de/ar/pt/ru, currentDraft optional, refinement empty/shorter/natural/formal. No images or original private files in generation call.
+Success `{ok:true, result:{...}}`. Analyze result: recognizedText, summaryZh, language, exactly 3 directions (server ids), warnings. Empty recognizedText requires empty directions and a visible warning. Generate result: draftText, translationZh, missingInformation, conflictNote.
+Failure follows the existing FusanheApiMiddleware envelope: `{error:{code,requestId}}`, also X-Request-Id header. HTTP 400 code invalid_request; 403 code forbidden; 503 (AI not configured) and 502 (upstream unavailable/invalid structure) code internal_error. UI maps status to safe Chinese recovery guidance. Middleware intentionally strips action response bodies; never expose upstream response/key. No API writes, no outbound tasks. No mock in production.
