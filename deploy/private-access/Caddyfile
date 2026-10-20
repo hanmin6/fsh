@@ -1,0 +1,21 @@
+{
+	admin off
+	auto_https off
+}
+
+http://:80 {
+	bind {$CRM_LAN_IP:192.168.0.13}
+	@outsidePrivateAccess not remote_ip {$CRM_LAN_CIDR:192.168.0.0/23} {$CRM_ROUTING_PEER_IP:172.30.93.2} 127.0.0.1
+	header X-Robots-Tag "noindex, nofollow"
+
+	@crmWebSocket path /ws /ws/*
+	route {
+		respond @outsidePrivateAccess 403
+		handle @crmWebSocket {
+			reverse_proxy 127.0.0.1:8081
+		}
+		handle {
+			reverse_proxy 127.0.0.1:8080
+		}
+	}
+}

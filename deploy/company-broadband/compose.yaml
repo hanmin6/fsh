@@ -1,0 +1,19 @@
+name: fusanhe-crm-company-entry
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    profiles: [direct]
+    network_mode: host
+    environment:
+      CRM_DOMAIN: ${CRM_DOMAIN:-fshcrm.xyz}
+      CRM_BIND_ADDRESS: ${CRM_BIND_ADDRESS:-192.168.0.13}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - company-entry-data:/data
+      - company-entry-config:/config
+    restart: unless-stopped
+
+volumes:
+  company-entry-data:
+  company-entry-config:

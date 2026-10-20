@@ -83,24 +83,40 @@ final class MorningReportService
         $settings = $this->store->settings(); $dates = $this->store->dates();
         return ['settings' => $settings, 'dates' => $dates, 'report' => $dates ? $this->store->read($dates[0]) : null];
     }
+    private function publicDelivery(array $delivery): array
+    {
+        unset($delivery['clientId'], $delivery['contextHash']);
+        if (isset($delivery['attempts'])) {
+            $delivery['attempts'] = array_map(fn(array $attempt) => $this->publicDelivery($attempt), $delivery['attempts']);
+        }
+        return $delivery;
+    }
     public function tick(?DateTimeImmutable $now = null, ?WeChatAccounts $accounts = null): array
     {
         $now ??= new DateTimeImmutable('now', new DateTimeZone('UTC'));
         $local = $now->setTimezone(new DateTimeZone('Asia/Shanghai')); $date = $local->format('Y-m-d');
-        // Minute scheduler, bounded catch-up. Never push a late report in the afternoon.
-        if ($local->format('H:i') < '09:00' || $local->format('H:i') >= '09:15') return ['due' => false];
+        // Generate at 09:00–09:15; a known rejection can recover before noon
+        // only after the account supplies a new user-message context.
+        if ($local->format('H:i') < '09:00' || $local->format('H:i') >= '12:00') return ['due' => false];
         return $this->store->exclusive(function () use ($now, $date, $accounts) {
             $settings = $this->store->settings();
             if (!$settings['enabled'] || !$settings['firstDate'] || $date < $settings['firstDate']) return ['due' => false];
             $accounts ??= new WeChatAccounts(new WeChatApi());
             $report = $this->store->read($date);
             if (!$report) {
+                if ($now->setTimezone(new DateTimeZone('Asia/Shanghai'))->format('H:i') >= '09:15') return ['due' => false];
                 // Failure to query any data aborts generation; missing data never becomes zero.
                 $report = $this->generate($date, $now);
                 foreach ($accounts->listing()['accounts'] as $a) if ($a['status'] === 'bound' && $a['enabled']) $report['deliveries'][$a['id']] = ['name' => $a['name'], 'status' => 'pending'];
                 $this->store->save($report);
             }
             foreach ($report['deliveries'] as $id => $delivery) {
+                if (($delivery['status'] ?? '') === 'failed' && in_array($delivery['error'] ?? '', ['report_rejected','report_context_expired','report_context_unavailable'], true)) {
+                    try { $result = $accounts->sendReport($id, 'morning-' . $date, $report['text'], true); }
+                    catch (\Throwable $e) { continue; }
+                    $report['deliveries'][$id] = ['name' => $delivery['name']] + $this->publicDelivery($result);
+                    $this->store->save($report); continue;
+                }
                 if ($delivery['status'] !== 'pending') {
                     if ($delivery['status'] === 'preparing') {
                         $report['deliveries'][$id]['status'] = 'uncertain'; $report['deliveries'][$id]['error'] = 'report_uncertain'; $this->store->save($report);
@@ -108,12 +124,13 @@ final class MorningReportService
                     continue;
                 }
                 // Persist a claim before calling the account sender, protecting crash recovery.
+                if ($now->setTimezone(new DateTimeZone('Asia/Shanghai'))->format('H:i') >= '09:15') continue;
                 $report['deliveries'][$id]['status'] = 'preparing'; $this->store->save($report);
                 try { $result = $accounts->sendReport($id, 'morning-' . $date, $report['text']); }
                 catch (\Throwable $e) { $result = ['status' => $e instanceof \InvalidArgumentException ? 'skipped' : 'uncertain', 'error' => $e instanceof \InvalidArgumentException ? 'account_unavailable' : 'report_uncertain']; }
                 if ($result['status'] === 'preparing') $result['status'] = 'uncertain';
-                $report['deliveries'][$id] = ['name' => $delivery['name']] + $result;
-                unset($report['deliveries'][$id]['clientId']); $this->store->save($report);
+                $report['deliveries'][$id] = ['name' => $delivery['name']] + $this->publicDelivery($result);
+                $this->store->save($report);
             }
             return ['due' => true, 'date' => $date, 'deliveries' => array_count_values(array_column($report['deliveries'], 'status'))];
         }, false);
