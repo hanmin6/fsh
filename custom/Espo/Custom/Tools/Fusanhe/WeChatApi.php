@@ -42,6 +42,18 @@ class WeChatApi
         return $data;
     }
     public static function info(): array { return ['channel_version' => '2.4.10', 'bot_agent' => 'FusanheCRM/1.0.0']; }
+    /** Only known error categories and numeric codes leave the private API response. */
+    public static function rejection(array $response): array
+    {
+        $code = null;
+        foreach (['errcode','ret'] as $field) {
+            $value = $response[$field] ?? null;
+            if ((is_int($value) || is_string($value) && preg_match('/^-?\d{1,10}$/D', $value)) && (int) $value !== 0) { $code = (int) $value; break; }
+        }
+        $message = strtolower((string) ($response['errmsg'] ?? $response['message'] ?? ''));
+        $context = str_contains($message, 'context') && preg_match('/expir|invalid|timeout|not.*valid/', $message);
+        return ['error' => $code === -14 ? 'report_token_expired' : ($context ? 'report_context_expired' : 'report_rejected'), 'providerCode' => $code];
+    }
     /** Tencent 2.4.10 SendMessageResp has optional ret and a uint64 message_id. */
     public static function acknowledgement(array $response): ?bool
     {

@@ -67,7 +67,7 @@ try {
  ck(!$service->tick(new \DateTimeImmutable('2026-10-12 00:59:59',new \DateTimeZone('UTC')),$accounts)['due'],'never before 09:00');
  $tick=$service->tick($now,$accounts);ck($tick['deliveries']===['sent'=>1,'uncertain'=>1],'two recipients, disabled excluded, ambiguous timeout');ck(count($api->texts)===2&&$api->texts[0]===$api->texts[1],'identical content');
  $service->tick($now->modify('+1 minute'),$accounts);ck(count($api->texts)===2,'repeat tick never resends sent/uncertain');
- ck(!$service->tick($now->modify('+15 minutes'),$accounts)['due'],'no late send');
+ $service->tick($now->modify('+15 minutes'),$accounts);ck(count($api->texts)===2,'no late first send or terminal resend');
  ck($store->read($date)['contentHash']===hash('sha256',$api->texts[0]),'saved source is exact sent text');
  ck((fileperms('data/fusanhe/wechat-accounts.json')&0777)===0600&&(fileperms('data/fusanhe/morning-reports/'.$date.'.json')&0777)===0600,'private records');
  $store->configure(false,$now);ck(!$service->tick($now,$accounts)['due'],'global pause');

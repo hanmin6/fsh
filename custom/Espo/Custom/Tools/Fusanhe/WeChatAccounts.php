@@ -184,6 +184,7 @@ final class WeChatAccounts
             if (($a['lastTestAttempt'] ?? 0) > $this->now() - 30) throw new \InvalidArgumentException('test_too_frequent');
             $a['lastTestAttempt'] = $this->now(); $a['testLease'] = $clientId; $all[$id] = $a; return $a;
         });
+        $observedContext = $this->contextState($a);
         $submitted = false;
         try {
             try {
@@ -191,14 +192,14 @@ final class WeChatAccounts
                 $this->absorb($a, $updates);
             } catch (\RuntimeException $e) { if ($e->getMessage() !== 'wechat_timeout') throw $e; }
             // Recheck revocation after polling and before submitting the notification.
-            $allowed = $this->transaction(function (array &$all) use ($id, $a, $clientId) {
+            $allowed = $this->transaction(function (array &$all) use ($id, $a, $clientId, $observedContext) {
                 $current = $this->account($all, $id);
                 if (($current['token'] ?? '') !== $a['token'] || !$current['enabled'] || ($current['testLease'] ?? '') !== $clientId) return false;
-                foreach (['contextToken', 'syncBuf', 'lastInboundAt'] as $field) if (isset($a[$field])) $all[$id][$field] = $a[$field];
-                $this->mergeInbox($all[$id], $a);
-                return true;
+                $this->mergePolledContext($all[$id], $a, $observedContext);
+                return ['contextToken' => $all[$id]['contextToken'] ?? null];
             });
             if (!$allowed) throw new \RuntimeException('test_cancelled');
+            $a['contextToken'] = $allowed['contextToken'];
             $msg = ['from_user_id' => '', 'to_user_id' => $a['userId'], 'client_id' => $clientId, 'message_type' => 2, 'message_state' => 2,
                 'item_list' => [['type' => 1, 'text_item' => ['text' => '福三和 CRM 微信接入测试：提醒通道已绑定。每日晨报的开关和发送记录可在 CRM「微信接入」查看。']]]];
             if (!empty($a['contextToken'])) $msg['context_token'] = $a['contextToken'];
@@ -212,8 +213,8 @@ final class WeChatAccounts
                 if (($a['testLease'] ?? '') === $clientId) { $a['lastTestAt'] = gmdate('c', $this->now()); $a['testStatus'] = 'sent'; $a['error'] = null; $all[$id] = $a; }
                 return $this->publicAccount($a);
             });
-        } catch (\RuntimeException $e) {
-            $error = $submitted && in_array($e->getMessage(), ['wechat_timeout', 'wechat_unavailable', 'wechat_invalid_response'], true) ? 'test_uncertain' : ($e->getMessage() === 'test_cancelled' ? 'test_cancelled' : 'test_rejected');
+        } catch (\Throwable $e) {
+            $error = $submitted && $e->getMessage() !== 'test_rejected' ? 'test_uncertain' : ($e->getMessage() === 'test_cancelled' ? 'test_cancelled' : 'test_rejected');
             return $this->transaction(function (array &$all) use ($id, $clientId, $error) {
                 $a = $this->account($all, $id);
                 if (($a['testLease'] ?? '') === $clientId) { $a['testStatus'] = $error === 'test_uncertain' ? 'uncertain' : 'failed'; $a['error'] = $error; $all[$id] = $a; }
@@ -222,19 +223,31 @@ final class WeChatAccounts
         }
     }
     /** Durable per-account claim. Ambiguous submissions are never automatically resent. */
-    public function sendReport(string $id, string $key, string $text): array
+    public function sendReport(string $id, string $key, string $text, bool $retryRejected = false, bool $diagnoseLegacyRejection = false): array
     {
         if (!preg_match('/^morning-\d{4}-\d{2}-\d{2}$/D', $key) || $text === '' || mb_strlen($text) > 4000) throw new \InvalidArgumentException('invalid_report');
         $clientId = 'fsh-' . substr(hash('sha256', $id . '|' . $key), 0, 40);
-        $claim = $this->transaction(function (array &$all) use ($id, $key, $clientId) {
+        $claim = $this->transaction(function (array &$all) use ($id, $key, $clientId, $retryRejected, $diagnoseLegacyRejection) {
             $a = $this->account($all, $id);
-            if (isset($a['reportDeliveries'][$key])) return ['existing' => $a['reportDeliveries'][$key]];
+            $previous = $a['reportDeliveries'][$key] ?? null;
+            $history = $previous['attempts'] ?? [];
+            if ($previous) {
+                $fresh = !empty($a['contextToken']) && strtotime($a['lastInboundAt'] ?? '') > strtotime($previous['at'] ?? '') &&
+                    (!isset($previous['contextHash']) || !hash_equals($previous['contextHash'], hash('sha256', $a['contextToken'])));
+                // A legacy rejection discarded the provider code. One explicit CLI
+                // diagnosis can capture it; scheduler retries require a new user context.
+                $legacy = $diagnoseLegacyRejection && ($previous['error'] ?? '') === 'report_rejected' && !array_key_exists('providerCode', $previous) && !$history;
+                if (!$retryRejected || ($previous['status'] ?? '') !== 'failed' ||
+                    !in_array($previous['error'] ?? '', ['report_rejected','report_context_expired','report_context_unavailable'], true) ||
+                    count($history) >= 2 || !$fresh && !$legacy) return ['existing' => $previous];
+                $prior = $previous; unset($prior['attempts'], $prior['clientId']); $history[] = $prior;
+            }
             if (empty($a['token']) || !$a['enabled']) return ['existing' => ['status' => 'skipped', 'error' => empty($a['token']) ? 'account_unbound' : 'account_disabled']];
-            $a['reportDeliveries'][$key] = ['status' => 'preparing', 'clientId' => $clientId, 'at' => gmdate('c', $this->now())];
+            $a['reportDeliveries'][$key] = ['status' => 'preparing', 'clientId' => $clientId, 'at' => gmdate('c', $this->now()), 'attempts' => $history];
             $all[$id] = $a; return ['account' => $a];
         });
         if (isset($claim['existing'])) return $claim['existing'];
-        $a = $claim['account']; $submitted = false;
+        $a = $claim['account']; $observedContext = $this->contextState($a); $submitted = false;
         try {
             try {
                 $updates = $this->api->request('POST', $a['base'], 'ilink/bot/getupdates', ['get_updates_buf' => $a['syncBuf'] ?? '', 'base_info' => WeChatApi::info()], $a['token'], 4);
@@ -242,16 +255,16 @@ final class WeChatAccounts
                 $this->absorb($a, $updates);
             } catch (\RuntimeException $e) { if ($e->getMessage() !== 'wechat_timeout') throw $e; }
             if (empty($a['contextToken'])) throw new \RuntimeException('report_context_unavailable');
-            $allowed = $this->transaction(function (array &$all) use ($id, $key, $a, $clientId) {
+            $allowed = $this->transaction(function (array &$all) use ($id, $key, $a, $clientId, $observedContext) {
                 $current = $this->account($all, $id);
                 if (($current['token'] ?? '') !== $a['token'] || !$current['enabled'] || ($current['reportDeliveries'][$key]['clientId'] ?? '') !== $clientId) return false;
-                foreach (['contextToken', 'syncBuf', 'lastInboundAt'] as $field) if (isset($a[$field])) $all[$id][$field] = $a[$field];
-                $this->mergeInbox($all[$id], $a);
+                $this->mergePolledContext($all[$id], $a, $observedContext);
                 // Persist uncertainty BEFORE the external side effect, including process crashes.
                 $all[$id]['reportDeliveries'][$key]['status'] = 'uncertain';
-                return true;
+                return ['contextToken' => $all[$id]['contextToken'], 'lastInboundAt' => $all[$id]['lastInboundAt'] ?? null];
             });
             if (!$allowed) throw new \RuntimeException('report_cancelled');
+            $a['contextToken'] = $allowed['contextToken'];
             $msg = ['from_user_id' => '', 'to_user_id' => $a['userId'], 'client_id' => $clientId, 'message_type' => 2, 'message_state' => 2,
                 'item_list' => [['type' => 1, 'text_item' => ['text' => $text]]]];
             if (!empty($a['contextToken'])) $msg['context_token'] = $a['contextToken'];
@@ -259,11 +272,14 @@ final class WeChatAccounts
             $result = $this->api->request('POST', $a['base'], 'ilink/bot/sendmessage', ['msg' => $msg, 'base_info' => WeChatApi::info()], $a['token'], 10);
             $ack = WeChatApi::acknowledgement($result);
             if ($ack === null) throw new \RuntimeException('wechat_invalid_response');
-            $delivery = ['status' => $ack ? 'sent' : 'failed', 'error' => $ack ? null : 'report_rejected', 'at' => gmdate('c', $this->now())];
+            $delivery = ['status' => $ack ? 'sent' : 'failed', 'error' => null, 'at' => gmdate('c', $this->now())];
+            if (!$ack) $delivery = WeChatApi::rejection($result) + $delivery;
         } catch (\Throwable $e) {
-            $uncertain = $submitted && in_array($e->getMessage(), ['wechat_timeout', 'wechat_unavailable', 'wechat_invalid_response'], true);
+            $uncertain = $submitted;
             $delivery = ['status' => $uncertain ? 'uncertain' : 'failed', 'error' => $uncertain ? 'report_uncertain' : ($e->getMessage() === 'report_cancelled' ? 'report_cancelled' : 'report_context_unavailable'), 'at' => gmdate('c', $this->now())];
         }
+        $delivery['attempts'] = $a['reportDeliveries'][$key]['attempts'] ?? [];
+        if ($submitted && !empty($a['contextToken'])) $delivery['contextHash'] = hash('sha256', $a['contextToken']);
         $this->transaction(function (array &$all) use ($id, $key, $clientId, $delivery) {
             if (($all[$id]['reportDeliveries'][$key]['clientId'] ?? '') === $clientId) {
                 $all[$id]['reportDeliveries'][$key] = $delivery + ['clientId' => $clientId];
@@ -271,6 +287,21 @@ final class WeChatAccounts
             }
         });
         return $delivery;
+    }
+    private function contextState(array $account): array
+    {
+        return ['contextToken' => $account['contextToken'] ?? null,
+            'syncBuf' => $account['syncBuf'] ?? null, 'lastInboundAt' => $account['lastInboundAt'] ?? null];
+    }
+    private function mergePolledContext(array &$current, array $incoming, array $observed): void
+    {
+        // A concurrent poll may win within the same second; timestamps cannot order it.
+        if ($this->contextState($current) === $observed) {
+            foreach (['contextToken', 'syncBuf', 'lastInboundAt'] as $field) {
+                if (isset($incoming[$field])) $current[$field] = $incoming[$field];
+            }
+        }
+        $this->mergeInbox($current, $incoming);
     }
     private function mergeInbox(array &$current, array $incoming): void
     {
@@ -311,12 +342,12 @@ final class WeChatAccounts
     {
         $a=$this->transaction(fn(array &$all)=>$this->account($all,$id));
         if (empty($a['token']) || !($a['agentEnabled']??true)) return;
+        $observedContext=$this->contextState($a);
         $updates=$this->api->request('POST',$a['base'],'ilink/bot/getupdates',['get_updates_buf'=>$a['syncBuf']??'','base_info'=>WeChatApi::info()],$a['token'],4);
         $this->absorb($a,$updates);
-        $this->transaction(function(array &$all)use($id,$a){
+        $this->transaction(function(array &$all)use($id,$a,$observedContext){
             $current=$this->account($all,$id);if(($current['token']??'')!==$a['token'])return;
-            foreach(['contextToken','syncBuf','lastInboundAt'] as $f)if(isset($a[$f]))$all[$id][$f]=$a[$f];
-            $this->mergeInbox($all[$id],$a);
+            $this->mergePolledContext($all[$id],$a,$observedContext);
         });
     }
     public function claimAgentMessage(string $id): ?array

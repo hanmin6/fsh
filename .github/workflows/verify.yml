@@ -26,7 +26,7 @@ jobs:
           python3 -m unittest tests.test_reply_assistant -v
       - name: Verify acquisition, reception, sales, WeChat and website policies offline
         run: |
-          for contract in acquisition_routing acquisition_run gateway_recovery_policy gateway_recovery_service morning_report reception_schedule sales_policy scheduled_reception wechat_accounts wechat_agent wechat_api_acl website_policy; do
+          for contract in acquisition_routing acquisition_run gateway_recovery_policy gateway_recovery_service morning_report wechat_report_recovery reception_schedule sales_policy scheduled_reception wechat_accounts wechat_agent wechat_api_acl website_policy; do
             php "tests/${contract}_contract.php" "$PWD"
           done
       - name: Lint custom PHP

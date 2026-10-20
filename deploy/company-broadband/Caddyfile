@@ -1,0 +1,17 @@
+{
+	admin off
+}
+
+{$CRM_DOMAIN:fshcrm.xyz} {
+	bind {$CRM_BIND_ADDRESS:192.168.0.13}
+	encode zstd gzip
+	header X-Robots-Tag "noindex, nofollow"
+
+	@crmWebSocket path /ws*
+	handle @crmWebSocket {
+		reverse_proxy 127.0.0.1:8081
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8080
+	}
+}
